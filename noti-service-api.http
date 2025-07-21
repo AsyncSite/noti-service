@@ -1,0 +1,151 @@
+### Notification API 시나리오
+
+# 1. 알림 발송
+POST http://localhost:8084/api/v1/notifications
+Content-Type: application/json
+
+{
+  "userId": "test-user-1",
+  "eventType": "STUDY_UPDATE",
+  "metadata": {
+    "key1": "value1"
+  }
+}
+
+###
+# 2. 알림 단건 조회
+GET http://localhost:8084/api/v1/notifications/{{notificationId}}
+
+###
+# 3. 사용자 알림 목록 조회
+GET http://localhost:8084/api/v1/notifications?userId=test-user-1&page=0&size=10
+
+###
+# 4. 알림 재시도
+PATCH http://localhost:8084/api/v1/notifications/{{notificationId}}/retry
+
+###
+# 5. 헬스 체크
+GET http://localhost:8084/api/v1/notifications/health
+
+
+### NotificationChannel API 시나리오
+
+# 1. 채널 목록 조회
+GET http://localhost:8084/api/v1/notification-channels?notificationId={{notificationId}}&channelType=EMAIL
+
+###
+# 2. 채널 단건 조회
+GET http://localhost:8084/api/v1/notification-channels/{{channelId}}
+
+###
+# 3. 채널 재시도
+POST http://localhost:8084/api/v1/notification-channels/{{channelId}}/retry
+
+
+### NotificationTemplate API 시나리오
+
+# 1. 템플릿 목록 조회
+GET http://localhost:8084/api/v1/notification-templates?eventType=STUDY_UPDATE&channelType=EMAIL&language=ko&page=0&size=10
+
+###
+# 2. 템플릿 단건 조회
+GET http://localhost:8084/api/v1/notification-templates/{{templateId}}
+
+###
+# 3. 템플릿 생성
+POST http://localhost:8084/api/v1/notification-templates
+Content-Type: application/json
+
+{
+  "eventType": "STUDY_UPDATE",
+  "channelType": "EMAIL",
+  "language": "ko",
+  "titleTemplate": "[스터디] 새로운 소식이 있습니다!",
+  "contentTemplate": "안녕하세요, {{userName}}님! 새로운 소식이 도착했습니다."
+}
+
+###
+# 4. 템플릿 수정
+PUT http://localhost:8084/api/v1/notification-templates/{{templateId}}
+Content-Type: application/json
+
+{
+  "eventType": "STUDY_UPDATE",
+  "channelType": "EMAIL",
+  "language": "ko",
+  "titleTemplate": "[수정] 새로운 소식이 있습니다!",
+  "contentTemplate": "안녕하세요, {{userName}}님! 수정된 소식이 도착했습니다."
+}
+
+###
+# 5. 템플릿 비활성화
+PATCH http://localhost:8084/api/v1/notification-templates/{{templateId}}/deactivate
+
+###
+# 6. 템플릿 복제
+POST http://localhost:8084/api/v1/notification-templates/{{templateId}}/clone
+Content-Type: application/json
+
+{
+  "language": "en",
+  "titleTemplate": "[Study] You have a new update!",
+  "contentTemplate": "Hello, {{userName}}! You have a new update."
+}
+
+###
+# 7. 템플릿 미리보기
+POST http://localhost:8084/api/v1/notification-templates/{{templateId}}/preview
+Content-Type: application/json
+
+{
+  "userName": "홍길동"
+}
+
+###
+# 8. 이벤트 타입 목록
+GET http://localhost:8084/api/v1/notification-templates/event-types
+
+###
+# 9. 언어 목록
+GET http://localhost:8084/api/v1/notification-templates/languages
+
+
+### NotificationSettings API 시나리오
+
+# 1. 알림 설정 조회
+GET http://localhost:8084/api/v1/users/{{userId}}/notification-settings
+
+###
+# 2. 알림 설정 업데이트
+PUT http://localhost:8084/api/v1/users/{{userId}}/notification-settings
+Content-Type: application/json
+
+{
+  "studyUpdates": true,
+  "marketing": false,
+  "emailEnabled": true,
+  "discordEnabled": false,
+  "pushEnabled": false,
+  "timezone": "Asia/Seoul",
+  "language": "ko",
+  "quietHours": "22:00-07:00"
+}
+
+###
+# 3. 이벤트 알림 설정 토글
+PATCH http://localhost:8084/api/v1/users/{{userId}}/notification-settings/events/STUDY_UPDATE
+Content-Type: application/json
+
+{
+  "enabled": true,
+  "channels": ["EMAIL", "PUSH"]
+}
+
+###
+# 4. 알림 설정 초기화
+POST http://localhost:8084/api/v1/users/{{userId}}/notification-settings/reset
+
+###
+# 5. 대량 알림 설정 조회
+GET http://localhost:8084/api/v1/users/notification-settings/bulk?userIds=test-user-1&userIds=test-user-2&eventType=STUDY_UPDATE

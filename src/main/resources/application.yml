@@ -1,0 +1,111 @@
+spring:
+
+  application:
+    name: noti-service
+
+  # Database Configuration
+  datasource:
+    url: jdbc:mysql://localhost:3306/notidb?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+    username: noti
+    password: noti1234
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  # JPA Configuration
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+        format_sql: true
+
+  # Flyway Configuration
+
+  # Mail Configuration
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+  # Thymeleaf Configuration
+  thymeleaf:
+    cache: false
+    prefix: classpath:/templates/
+    suffix: .html
+
+# Eureka Client Configuration
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+    register-with-eureka: true
+    fetch-registry: true
+  instance:
+    prefer-ip-address: true
+    instance-id: ${spring.application.name}:${server.port}
+
+# Server Configuration
+server:
+  port: 8084
+
+# Actuator Configuration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+  health:
+    defaults:
+      enabled: true
+
+# Application Specific Configuration
+application:
+  notification:
+    email:
+      enabled: true
+      retry-attempts: 3
+      retry-delay: 5000
+      from-address: ${MAIL_FROM:noreply@asyncsite.com}
+    discord:
+      enabled: true
+      webhook-url: ${DISCORD_WEBHOOK_URL:}
+      retry-attempts: 3
+      retry-delay: 3000
+    async:
+      core-pool-size: 5
+      max-pool-size: 10
+      queue-capacity: 100
+      thread-name-prefix: noti-async-
+
+# Logging Configuration
+logging:
+  level:
+    com.asyncsite: DEBUG
+    org.springframework.web: INFO
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+  file:
+    name: logs/noti-service.log
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operationsSorter: method
+    tagsSorter: alpha
+    display-request-duration: true

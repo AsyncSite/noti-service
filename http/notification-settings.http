@@ -1,0 +1,38 @@
+### NotificationSettings API 시나리오
+
+# 1. 알림 설정 조회
+GET http://localhost:8084/api/v1/users/{{userId}}/notification-settings
+
+###
+# 2. 알림 설정 업데이트
+PUT http://localhost:8084/api/v1/users/{{userId}}/notification-settings
+Content-Type: application/json
+
+{
+  "studyUpdates": true,
+  "marketing": false,
+  "emailEnabled": true,
+  "discordEnabled": false,
+  "pushEnabled": false,
+  "timezone": "Asia/Seoul",
+  "language": "ko",
+  "quietHours": "22:00-07:00"
+}
+
+###
+# 3. 이벤트 알림 설정 토글
+PATCH http://localhost:8084/api/v1/users/{{userId}}/notification-settings/events/STUDY_UPDATE
+Content-Type: application/json
+
+{
+  "enabled": true,
+  "channels": ["EMAIL", "PUSH"]
+}
+
+###
+# 4. 알림 설정 초기화
+POST http://localhost:8084/api/v1/users/{{userId}}/notification-settings/reset
+
+###
+# 5. 대량 알림 설정 조회
+GET http://localhost:8084/api/v1/users/notification-settings/bulk?userIds=test-user-1&userIds=test-user-2&eventType=STUDY_UPDATE

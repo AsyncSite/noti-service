@@ -1,0 +1,70 @@
+version: '3.8'
+
+services:
+  noti-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: noti-service
+    ports:
+      - "8084:8084"
+    environment:
+      # Spring 프로파일
+      - SPRING_PROFILES_ACTIVE=docker,microservices
+      # Eureka 설정
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - EUREKA_INSTANCE_PREFER_IP_ADDRESS=true
+      # 데이터베이스 설정
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/notidb?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      - SPRING_DATASOURCE_USERNAME=noti
+      - SPRING_DATASOURCE_PASSWORD=noti1234
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - asyncsite-network
+    volumes:
+      - ./logs:/app/logs
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8084/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+        reservations:
+          memory: 512M
+    labels:
+      - "com.asyncsite.service=noti"
+      - "com.asyncsite.tier=business"
+
+  # 로컬 개발용 인프라 (Core Platform 미사용 시)
+  mysql:
+    image: mysql:8.0
+    container_name: noti-mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=root1234
+      - MYSQL_DATABASE=notidb
+    volumes:
+      - noti-mysql-data:/var/lib/mysql
+      - ./mysql/conf:/etc/mysql/conf.d
+      - ./mysql/init:/docker-entrypoint-initdb.d
+    ports:
+      - "3308:3306"  # Core Platform MySQL과 충돌 방지
+    networks:
+      - asyncsite-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+networks:
+  asyncsite-network:
+    external: true
+
+volumes:
+  noti-mysql-data:
