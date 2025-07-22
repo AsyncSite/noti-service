@@ -1,0 +1,89 @@
+spring:
+  application:
+    name: noti-service-test
+
+  # H2 Database Configuration for Testing
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: 
+    
+  # JPA Configuration
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+        format_sql: true
+        
+  # H2 Console (for debugging)
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+  # Mail Configuration (Mock)
+  mail:
+    host: localhost
+    port: 25
+    username: test
+    password: test
+    properties:
+      mail:
+        smtp:
+          auth: false
+          starttls:
+            enable: false
+
+# Disable Eureka for testing
+eureka:
+  client:
+    enabled: false
+    register-with-eureka: false
+    fetch-registry: false
+
+# Test Server Configuration
+server:
+  port: 0
+
+# Actuator Configuration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always
+
+# Application Specific Configuration
+application:
+  notification:
+    email:
+      enabled: true
+      retry-attempts: 2
+      retry-delay: 100
+      from-address: test@asyncsite.com
+    discord:
+      enabled: true
+      webhook-url: http://localhost:8080/mock-discord
+      retry-attempts: 2
+      retry-delay: 100
+    async:
+      core-pool-size: 2
+      max-pool-size: 4
+      queue-capacity: 10
+      thread-name-prefix: test-async-
+
+# Logging Configuration
+logging:
+  level:
+    com.asyncsite: DEBUG
+    org.springframework.web: INFO
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n" 

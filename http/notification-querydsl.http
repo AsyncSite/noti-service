@@ -1,0 +1,94 @@
+### 🔍 QueryDSL 기반 복잡한 쿼리 API 테스트
+
+@baseUrl = http://localhost:8084
+@userId = user123
+
+### 🔍 1. 복잡한 조건으로 알림 검색 - 전체 조건
+GET {{baseUrl}}/api/v1/notifications/query/search?userId={{userId}}&status=SENT&eventType=STUDY_APPROVED&startDate=2024-01-01T00:00:00&endDate=2024-12-31T23:59:59&page=0&size=10
+
+### 🔍 2. 복잡한 조건으로 알림 검색 - 상태와 이벤트 타입만
+GET {{baseUrl}}/api/v1/notifications/query/search?status=FAILED&eventType=MARKETING_PROMOTION&page=0&size=20
+
+### 🔍 3. 복잡한 조건으로 알림 검색 - 기간만 지정
+GET {{baseUrl}}/api/v1/notifications/query/search?startDate=2024-07-01T00:00:00&endDate=2024-07-31T23:59:59&page=0&size=15
+
+### 🔍 4. 복잡한 조건으로 알림 검색 - 사용자만 지정
+GET {{baseUrl}}/api/v1/notifications/query/search?userId={{userId}}&page=0&size=5
+
+### 🔍 5. 복잡한 조건으로 알림 검색 - 조건 없음 (전체)
+GET {{baseUrl}}/api/v1/notifications/query/search?page=0&size=25
+
+### 📊 6. 사용자별 알림 통계 조회
+GET {{baseUrl}}/api/v1/notifications/query/statistics/user/{{userId}}
+
+### 📊 7. 사용자별 알림 통계 조회 (기간 지정)
+GET {{baseUrl}}/api/v1/notifications/query/statistics/user/{{userId}}?startDate=2024-07-01T00:00:00&endDate=2024-07-31T23:59:59
+
+### 📊 8. 이벤트 타입별 통계 조회
+GET {{baseUrl}}/api/v1/notifications/query/statistics/event-types
+
+### 📊 9. 이벤트 타입별 통계 조회 (기간 지정)
+GET {{baseUrl}}/api/v1/notifications/query/statistics/event-types?startDate=2024-06-01T00:00:00&endDate=2024-06-30T23:59:59
+
+### 🔄 10. 재시도 가능한 알림 조회 (기본값)
+GET {{baseUrl}}/api/v1/notifications/query/retryable
+
+### 🔄 11. 재시도 가능한 알림 조회 (커스텀 최대 재시도 횟수)
+GET {{baseUrl}}/api/v1/notifications/query/retryable?maxRetryCount=5
+
+### 📈 12. 발송 성공률 조회 (전체 기간)
+GET {{baseUrl}}/api/v1/notifications/query/statistics/success-rate
+
+### 📈 13. 발송 성공률 조회 (기간 지정)
+GET {{baseUrl}}/api/v1/notifications/query/statistics/success-rate?startDate=2024-07-01T00:00:00&endDate=2024-07-31T23:59:59
+
+### 📊 14. 대시보드 데이터 조회 (전체)
+GET {{baseUrl}}/api/v1/notifications/query/dashboard
+
+### 📊 15. 대시보드 데이터 조회 (특정 사용자)
+GET {{baseUrl}}/api/v1/notifications/query/dashboard?userId={{userId}}
+
+### 📊 16. 대시보드 데이터 조회 (기간 지정)
+GET {{baseUrl}}/api/v1/notifications/query/dashboard?startDate=2024-07-01T00:00:00&endDate=2024-07-31T23:59:59
+
+### 📊 17. 대시보드 데이터 조회 (사용자 + 기간)
+GET {{baseUrl}}/api/v1/notifications/query/dashboard?userId={{userId}}&startDate=2024-07-01T00:00:00&endDate=2024-07-31T23:59:59
+
+### 🧪 18. QueryDSL 성능 테스트 - 복합 조건 검색
+GET {{baseUrl}}/api/v1/notifications/query/search?userId=performance-test&status=PENDING&eventType=STUDY_APPROVED&startDate=2024-01-01T00:00:00&endDate=2024-12-31T23:59:59&page=0&size=100
+
+### 🧪 19. QueryDSL 성능 테스트 - 대량 데이터 통계
+GET {{baseUrl}}/api/v1/notifications/query/statistics/event-types?startDate=2024-01-01T00:00:00&endDate=2024-12-31T23:59:59
+
+### 🧪 20. QueryDSL 엣지 케이스 - 존재하지 않는 사용자
+GET {{baseUrl}}/api/v1/notifications/query/search?userId=non-existent-user&page=0&size=10
+
+### 🧪 21. QueryDSL 엣지 케이스 - 잘못된 날짜 범위
+GET {{baseUrl}}/api/v1/notifications/query/search?startDate=2024-12-31T23:59:59&endDate=2024-01-01T00:00:00&page=0&size=10
+
+### 🧪 22. QueryDSL 엣지 케이스 - 미래 날짜
+GET {{baseUrl}}/api/v1/notifications/query/search?startDate=2025-01-01T00:00:00&endDate=2025-12-31T23:59:59&page=0&size=10
+
+### 📊 23. 실시간 모니터링 - 최근 1시간 알림
+GET {{baseUrl}}/api/v1/notifications/query/search?startDate={{$datetime 'yyyy-MM-ddTHH:mm:ss' offset='-1 hour'}}&endDate={{$datetime 'yyyy-MM-ddTHH:mm:ss'}}&page=0&size=50
+
+### 📊 24. 실시간 모니터링 - 실패한 알림만
+GET {{baseUrl}}/api/v1/notifications/query/search?status=FAILED&startDate={{$datetime 'yyyy-MM-ddTHH:mm:ss' offset='-24 hour'}}&endDate={{$datetime 'yyyy-MM-ddTHH:mm:ss'}}&page=0&size=20
+
+### 📊 25. 성능 분석 - 재시도 중인 알림
+GET {{baseUrl}}/api/v1/notifications/query/search?status=RETRY&page=0&size=30
+
+### 🔄 26. 배치 작업 지원 - 재시도 대상 알림 (최대 재시도 2회)
+GET {{baseUrl}}/api/v1/notifications/query/retryable?maxRetryCount=2
+
+### 📈 27. 월간 성공률 분석
+GET {{baseUrl}}/api/v1/notifications/query/statistics/success-rate?startDate=2024-07-01T00:00:00&endDate=2024-07-31T23:59:59
+
+### 📈 28. 주간 성공률 분석
+GET {{baseUrl}}/api/v1/notifications/query/statistics/success-rate?startDate={{$datetime 'yyyy-MM-ddTHH:mm:ss' offset='-7 day'}}&endDate={{$datetime 'yyyy-MM-ddTHH:mm:ss'}}
+
+### 📊 29. 관리자 대시보드 - 전체 시스템 상태
+GET {{baseUrl}}/api/v1/notifications/query/dashboard?startDate={{$datetime 'yyyy-MM-ddTHH:mm:ss' offset='-30 day'}}&endDate={{$datetime 'yyyy-MM-ddTHH:mm:ss'}}
+
+### 🔍 30. 고급 검색 - 여러 이벤트 타입 (STUDY_APPROVED)
+GET {{baseUrl}}/api/v1/notifications/query/search?eventType=STUDY_APPROVED&startDate=2024-07-01T00:00:00&page=0&size=10&sort=createdAt,desc 

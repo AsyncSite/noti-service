@@ -3,6 +3,7 @@ package com.asyncsite.notiservice.adapter.out.persistence;
 import com.asyncsite.notiservice.adapter.out.persistence.entity.NotificationEntity;
 import com.asyncsite.notiservice.adapter.out.persistence.repository.NotificationRepository;
 import com.asyncsite.notiservice.domain.model.Notification;
+import com.asyncsite.notiservice.domain.model.vo.ChannelType;
 import com.asyncsite.notiservice.domain.port.out.NotificationRepositoryPort;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,34 +23,24 @@ public class NotificationPersistenceAdapter implements NotificationRepositoryPor
 
     @Override
     public Notification saveNotification(Notification notification) {
-        NotificationEntity entity = com.asyncsite.notiservice.adapter.out.persistence.mapper.NotificationEntityMapper.toEntity(notification);
-        if (entity.getNotificationId() == null) {
-            entity = entity.toBuilder()
-                    .createdAt(LocalDateTime.now())
-                    .updatedAt(LocalDateTime.now())
-                    .build();
-        } else {
-            entity = entity.toBuilder()
-                    .updatedAt(LocalDateTime.now())
-                    .build();
-        }
+        NotificationEntity entity = NotificationEntity.from(notification);
         NotificationEntity savedEntity = notificationRepository.save(entity);
-        return com.asyncsite.notiservice.adapter.out.persistence.mapper.NotificationEntityMapper.toDomain(savedEntity);
+        return savedEntity.toDomain();
     }
 
     @Override
     public Optional<Notification> findNotificationById(String notificationId) {
         return notificationRepository.findById(notificationId)
-                .map(com.asyncsite.notiservice.adapter.out.persistence.mapper.NotificationEntityMapper::toDomain);
+                .map(NotificationEntity::toDomain);
     }
 
     @Override
-    public List<Notification> findNotificationsByUserId(String userId, int page, int size) {
+    public List<Notification> findNotificationsByUserId(String userId, ChannelType channelType, int page, int size) {
         PageRequest pageRequest = PageRequest.of(page, size);
-        return notificationRepository.findByUserIdOrderByCreatedAtDesc(userId, pageRequest)
+        return notificationRepository.findByUserIdAndChannelTypeOrderByCreatedAtDesc(userId, channelType, pageRequest)
                 .getContent()
                 .stream()
-                .map(com.asyncsite.notiservice.adapter.out.persistence.mapper.NotificationEntityMapper::toDomain)
+                .map(NotificationEntity::toDomain)
                 .toList();
     }
 }

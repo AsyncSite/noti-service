@@ -1,32 +1,81 @@
 package com.asyncsite.notiservice.domain.model;
 
+import com.asyncsite.notiservice.domain.model.vo.ChannelType;
+import com.asyncsite.notiservice.domain.model.vo.NotificationStatus;
 import lombok.Builder;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @Getter
 @Builder(toBuilder = true)
 public class Notification {
     private String notificationId;
     private String userId;
-    private String eventType;
-    private String title;
-    private String content;
+    private String templateId;
+    private ChannelType channelType;
     private Map<String, Object> metadata;
     private NotificationStatus status;
     private LocalDateTime createdAt;
-    private LocalDateTime sentAt;
     private LocalDateTime updatedAt;
+    private LocalDateTime sentAt;
     private Integer retryCount;
-    private String errorMessage;
-    private List<NotificationChannel> channels;
+    private Long version;
 
-    public enum NotificationStatus {
-        PENDING, SENT, FAILED, RETRY
+
+    // === 정적 팩토리 메서드 ===
+
+    /**
+     * 새로운 알림을 생성합니다.
+     */
+    public static Notification create(String userId, String templateId, ChannelType channelType, Map<String, Object> metadata) {
+        LocalDateTime now = LocalDateTime.now();
+        return Notification.builder()
+                .userId(userId)
+                .templateId(templateId)
+                .channelType(channelType)
+                .metadata(metadata)
+                .status(NotificationStatus.PENDING)
+                .createdAt(now)
+                .updatedAt(now)
+                .retryCount(0)
+                .version(0L)
+                .build();
     }
+
+    // === 도메인 행위 메서드 ===
+
+    /**
+     * 알림을 발송 완료로 표시합니다.
+     */
+    public Notification markAsSent() {
+        LocalDateTime now = LocalDateTime.now();
+        return this.toBuilder()
+                .status(NotificationStatus.SENT)
+                .sentAt(now)
+                .updatedAt(now)
+                .build();
+    }
+
+    /**
+     * 알림 재시도를 준비합니다.
+     */
+    public Notification prepareRetry() {
+        if (!canRetry()) {
+            throw new IllegalStateException("재시도할 수 없는 알림입니다. status=" + status + ", retryCount=" + retryCount);
+        }
+
+        return this.toBuilder()
+                .status(NotificationStatus.RETRY)
+                .retryCount(this.retryCount + 1)
+                .updatedAt(LocalDateTime.now())
+                .build();
+    }
+
+    // === 비즈니스 로직 메서드 ===
 
     public boolean isPending() {
         return status == NotificationStatus.PENDING;
@@ -40,79 +89,25 @@ public class Notification {
         return status == NotificationStatus.FAILED;
     }
 
+    public boolean isRetry() {
+        return status == NotificationStatus.RETRY;
+    }
+
     public boolean canRetry() {
-        return status == NotificationStatus.FAILED && retryCount < 3;
+        return isFailed() && retryCount < 3;
     }
 
-    public Notification withStatus(NotificationStatus newStatus) {
-        return Notification.builder()
-                .notificationId(this.notificationId)
-                .userId(this.userId)
-                .eventType(this.eventType)
-                .title(this.title)
-                .content(this.content)
-                .metadata(this.metadata)
-                .status(newStatus)
-                .createdAt(this.createdAt)
-                .sentAt(this.sentAt)
-                .updatedAt(LocalDateTime.now())
-                .retryCount(this.retryCount)
-                .errorMessage(this.errorMessage)
-                .channels(this.channels)
-                .build();
+    /**
+     * 알림이 완료된 상태인지 확인합니다 (발송 완료 또는 최종 실패).
+     */
+    public boolean isCompleted() {
+        return isSent() || (isFailed() && !canRetry());
     }
 
-    public Notification withRetryCount(int newRetryCount) {
-        return Notification.builder()
-                .notificationId(this.notificationId)
-                .userId(this.userId)
-                .eventType(this.eventType)
-                .title(this.title)
-                .content(this.content)
-                .metadata(this.metadata)
-                .status(this.status)
-                .createdAt(this.createdAt)
-                .sentAt(this.sentAt)
-                .updatedAt(LocalDateTime.now())
-                .retryCount(newRetryCount)
-                .errorMessage(this.errorMessage)
-                .channels(this.channels)
-                .build();
-    }
-
-    public Notification withErrorMessage(String errorMessage) {
-        return Notification.builder()
-                .notificationId(this.notificationId)
-                .userId(this.userId)
-                .eventType(this.eventType)
-                .title(this.title)
-                .content(this.content)
-                .metadata(this.metadata)
-                .status(this.status)
-                .createdAt(this.createdAt)
-                .sentAt(this.sentAt)
-                .updatedAt(LocalDateTime.now())
-                .retryCount(this.retryCount)
-                .errorMessage(errorMessage)
-                .channels(this.channels)
-                .build();
-    }
-
-    public Notification withSentAt(LocalDateTime sentAt) {
-        return Notification.builder()
-                .notificationId(this.notificationId)
-                .userId(this.userId)
-                .eventType(this.eventType)
-                .title(this.title)
-                .content(this.content)
-                .metadata(this.metadata)
-                .status(this.status)
-                .createdAt(this.createdAt)
-                .sentAt(sentAt)
-                .updatedAt(LocalDateTime.now())
-                .retryCount(this.retryCount)
-                .errorMessage(this.errorMessage)
-                .channels(this.channels)
-                .build();
+    /**
+     * 알림이 처리 중인지 확인합니다.
+     */
+    public boolean isProcessing() {
+        return isPending() || isRetry();
     }
 }

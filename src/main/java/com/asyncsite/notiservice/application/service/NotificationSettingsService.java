@@ -1,5 +1,6 @@
 package com.asyncsite.notiservice.application.service;
 
+import com.asyncsite.notiservice.domain.model.NotificationChannel;
 import com.asyncsite.notiservice.domain.model.NotificationSettings;
 import com.asyncsite.notiservice.domain.port.in.NotificationSettingsUseCase;
 import com.asyncsite.notiservice.domain.port.out.NotificationSettingsRepositoryPort;
@@ -8,8 +9,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 @Slf4j
@@ -24,17 +27,40 @@ public class NotificationSettingsService implements NotificationSettingsUseCase 
     @Transactional(readOnly = true)
     public Optional<NotificationSettings> getNotificationSettings(String userId) {
         log.info("알림 설정 조회: userId={}", userId);
-        return Optional.of(settingsRepository.findByUserId(userId));
+        return settingsRepository.findByUserId(userId);
     }
 
     @Override
     public NotificationSettings updateNotificationSettings(String userId, NotificationSettings settings) {
         log.info("알림 설정 업데이트: userId={}", userId);
 
-        NotificationSettings updatedSettings = settings.toBuilder()
-                .userId(userId)
-                .updatedAt(LocalDateTime.now())
-                .build();
+        // 기존 설정을 조회하고 도메인 행위 메서드를 사용하여 업데이트
+        Optional<NotificationSettings> existingSettings = settingsRepository.findByUserId(userId);
+
+        // 도메인 행위 메서드를 통한 업데이트
+        NotificationSettings updatedSettings = existingSettings.get()
+                .updateEventSettings(settings.isStudyUpdates(), settings.isMarketing());
+
+        // 채널 설정 업데이트
+        updatedSettings = updatedSettings
+                .updateChannelEnabled(NotificationChannel.ChannelType.EMAIL, settings.isEmailEnabled())
+                .updateChannelEnabled(NotificationChannel.ChannelType.DISCORD, settings.isDiscordEnabled())
+                .updateChannelEnabled(NotificationChannel.ChannelType.PUSH, settings.isPushEnabled());
+
+        // 지역화 설정 업데이트
+        if (!settings.getTimezone().equals(existingSettings.getTimezone()) ||
+            !Objects.equals(settings.getLanguage(), existingSettings.getLanguage())) {
+
+            updatedSettings = updatedSettings.updateLocalizationSettings(
+                    settings.getTimezone(),
+                    settings.getLanguage()
+            );
+        }
+
+        // 방해금지 시간 업데이트
+        if (!Objects.equals(settings.getQuietHours(), existingSettings.getQuietHours())) {
+            updatedSettings = updatedSettings.updateQuietHours(settings.getQuietHours());
+        }
 
         return settingsRepository.save(updatedSettings);
     }
@@ -45,34 +71,25 @@ public class NotificationSettingsService implements NotificationSettingsUseCase 
                 userId, eventType, enabled, channels);
 
         NotificationSettings currentSettings = settingsRepository.findByUserId(userId);
-
-        // 이벤트 타입에 따른 설정 업데이트
         NotificationSettings updatedSettings = currentSettings;
 
+        // 이벤트 타입에 따른 설정 업데이트 (도메인 행위 메서드 사용)
         if (eventType.startsWith("STUDY_")) {
-            updatedSettings = updatedSettings.toBuilder()
-                    .studyUpdates(enabled)
-                    .updatedAt(LocalDateTime.now())
-                    .build();
+            updatedSettings = updatedSettings.updateEventSettings(enabled, currentSettings.isMarketing());
         } else if (eventType.startsWith("MARKETING_")) {
-            updatedSettings = updatedSettings.toBuilder()
-                    .marketing(enabled)
-                    .updatedAt(LocalDateTime.now())
-                    .build();
+            updatedSettings = updatedSettings.updateEventSettings(currentSettings.isStudyUpdates(), enabled);
         }
 
-        // 채널별 설정 업데이트
-        if (channels.contains("EMAIL")) {
-            updatedSettings = updatedSettings.withChannelEnabled(
-                    com.asyncsite.notiservice.domain.model.NotificationChannel.ChannelType.EMAIL, enabled);
-        }
-        if (channels.contains("DISCORD")) {
-            updatedSettings = updatedSettings.withChannelEnabled(
-                    com.asyncsite.notiservice.domain.model.NotificationChannel.ChannelType.DISCORD, enabled);
-        }
-        if (channels.contains("PUSH")) {
-            updatedSettings = updatedSettings.withChannelEnabled(
-                    com.asyncsite.notiservice.domain.model.NotificationChannel.ChannelType.PUSH, enabled);
+        // 채널별 설정 업데이트 (도메인 메서드 사용)
+        if (channels != null) {
+            for (String channelStr : channels) {
+                try {
+                    NotificationChannel.ChannelType channelType = NotificationChannel.ChannelType.valueOf(channelStr);
+                    updatedSettings = updatedSettings.updateChannelEnabled(channelType, enabled);
+                } catch (IllegalArgumentException e) {
+                    log.warn("잘못된 채널 타입: {}", channelStr);
+                }
+            }
         }
 
         return settingsRepository.save(updatedSettings);
@@ -82,18 +99,8 @@ public class NotificationSettingsService implements NotificationSettingsUseCase 
     public NotificationSettings resetNotificationSettings(String userId) {
         log.info("알림 설정 초기화: userId={}", userId);
 
-        NotificationSettings defaultSettings = NotificationSettings.builder()
-                .userId(userId)
-                .studyUpdates(true)
-                .marketing(false)
-                .emailEnabled(true)
-                .discordEnabled(false)
-                .pushEnabled(false)
-                .timezone("Asia/Seoul")
-                .language("ko")
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
-                .build();
+        // 도메인 팩토리 메서드 사용
+        NotificationSettings defaultSettings = NotificationSettings.createDefault(userId);
 
         return settingsRepository.save(defaultSettings);
     }

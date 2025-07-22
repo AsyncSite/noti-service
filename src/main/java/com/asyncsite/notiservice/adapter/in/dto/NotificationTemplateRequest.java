@@ -1,33 +1,35 @@
 package com.asyncsite.notiservice.adapter.in.dto;
 
-import lombok.Getter;
-import lombok.Setter;
+import jakarta.validation.constraints.NotBlank;
 
 import java.util.List;
 import java.util.Map;
 
-@Getter
-@Setter
-public class NotificationTemplateRequest {
-
-    private String eventType;
-    private String channelType;
-    private String language;
-    private String titleTemplate;
-    private String contentTemplate;
-    private List<String> variables;
-    private boolean isActive = true;
-    private Map<String, Object> previewVariables;
-
-    public com.asyncsite.notiservice.domain.model.NotificationTemplate toDomain() {
-        return com.asyncsite.notiservice.domain.model.NotificationTemplate.builder()
-                .eventType(this.eventType)
-                .channelType(com.asyncsite.notiservice.domain.model.NotificationChannel.ChannelType.valueOf(this.channelType))
-                .language(this.language)
-                .titleTemplate(this.titleTemplate)
-                .contentTemplate(this.contentTemplate)
-                .variables(this.variables != null ? this.variables.stream().collect(java.util.stream.Collectors.toMap(v -> v, v -> "")) : java.util.Map.of())
-                .active(this.isActive)
-                .build();
+public record NotificationTemplateRequest(
+    @NotBlank(message = "이벤트 타입은 필수입니다.")
+    String eventType,
+    
+    @NotBlank(message = "채널 타입은 필수입니다.")
+    String channelType,
+    
+    @NotBlank(message = "언어는 필수입니다.")
+    String language,
+    
+    @NotBlank(message = "제목 템플릿은 필수입니다.")
+    String titleTemplate,
+    
+    @NotBlank(message = "내용 템플릿은 필수입니다.")
+    String contentTemplate,
+    
+    List<String> variables,
+    boolean isActive,
+    Map<String, Object> previewVariables
+) {
+    // 기본값을 제공하는 생성자
+    public NotificationTemplateRequest {
+        // 기본값 설정
+        if (language == null || language.isBlank()) {
+            language = "ko";
+        }
     }
 }

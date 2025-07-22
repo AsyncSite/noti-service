@@ -9,7 +9,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -68,17 +67,12 @@ public class NotificationTemplateService implements NotificationTemplateUseCase 
         log.info("템플릿 생성: eventType={}, channelType={}, language={}",
                 template.getEventType(), template.getChannelType(), template.getLanguage());
 
-        NotificationTemplate newTemplate = template.toBuilder()
-                .version(template.getVersion())
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
-                .build();
-
-        return templateRepository.saveTemplate(newTemplate);
+        // 도메인 팩토리 메서드 사용이 이미 완료된 template을 그대로 저장
+        return templateRepository.saveTemplate(template);
     }
 
     @Override
-    public NotificationTemplate updateTemplate(String templateId, NotificationTemplate template) {
+    public NotificationTemplate updateTemplate(String templateId, NotificationTemplate updateData) {
         log.info("템플릿 수정: templateId={}", templateId);
 
         Optional<NotificationTemplate> existingTemplate = templateRepository.findTemplateById(templateId);
@@ -86,10 +80,14 @@ public class NotificationTemplateService implements NotificationTemplateUseCase 
             throw new IllegalArgumentException("템플릿을 찾을 수 없습니다: " + templateId);
         }
 
-        NotificationTemplate updatedTemplate = template.toBuilder()
-                .templateId(templateId)
-                .updatedAt(LocalDateTime.now())
-                .build();
+        NotificationTemplate existing = existingTemplate.get();
+        
+        // 도메인 행위 메서드 사용
+        NotificationTemplate updatedTemplate = existing.updateTemplate(
+                updateData.getTitleTemplate(),
+                updateData.getContentTemplate(),
+                updateData.getVariables()
+        );
 
         return templateRepository.saveTemplate(updatedTemplate);
     }
@@ -103,10 +101,8 @@ public class NotificationTemplateService implements NotificationTemplateUseCase 
             throw new IllegalArgumentException("템플릿을 찾을 수 없습니다: " + templateId);
         }
 
-        NotificationTemplate deactivatedTemplate = template.get().toBuilder()
-                .active(false)
-                .updatedAt(LocalDateTime.now())
-                .build();
+        // 도메인 행위 메서드 사용
+        NotificationTemplate deactivatedTemplate = template.get().deactivate();
 
         templateRepository.saveTemplate(deactivatedTemplate);
     }
@@ -121,17 +117,9 @@ public class NotificationTemplateService implements NotificationTemplateUseCase 
         }
 
         NotificationTemplate original = originalTemplate.get();
-        NotificationTemplate clonedTemplate = NotificationTemplate.builder()
-                .eventType(original.getEventType())
-                .channelType(original.getChannelType())
-                .language(language)
-                .titleTemplate(titleTemplate)
-                .contentTemplate(contentTemplate)
-                .variables(original.getVariables())
-                .active(true)
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
-                .build();
+        
+        // 도메인 행위 메서드 사용
+        NotificationTemplate clonedTemplate = original.cloneForLanguage(language, titleTemplate, contentTemplate);
 
         return templateRepository.saveTemplate(clonedTemplate);
     }

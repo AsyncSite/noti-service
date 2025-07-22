@@ -18,11 +18,6 @@ public interface NotificationSettingsUseCase {
     NotificationSettings updateNotificationSettings(String userId, NotificationSettings settings);
 
     /**
-     * 특정 이벤트 알림 설정을 토글합니다.
-     */
-    NotificationSettings toggleEventNotification(String userId, String eventType, boolean enabled, List<String> channels);
-
-    /**
      * 알림 설정을 초기화합니다.
      */
     NotificationSettings resetNotificationSettings(String userId);

@@ -5,6 +5,7 @@ import com.asyncsite.notiservice.adapter.in.dto.SendNotificationRequest;
 import com.asyncsite.notiservice.domain.model.Notification;
 import com.asyncsite.notiservice.domain.port.in.GetNotificationUseCase;
 import com.asyncsite.notiservice.domain.port.in.SendNotificationUseCase;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -25,14 +26,14 @@ public class NotificationController {
 
     @PostMapping
     public CompletableFuture<ResponseEntity<NotificationResponse>> sendNotification(
-            @RequestBody SendNotificationRequest request) {
+            @Valid @RequestBody SendNotificationRequest request) {
 
-        log.info("알림 발송 요청: userId={}, eventType={}", request.getUserId(), request.getEventType());
+        log.info("알림 발송 요청: userId={}, eventType={}", request.userId(), request.eventType());
 
         return sendNotificationUseCase.sendNotification(
-                request.getUserId(),
-                request.getEventType(),
-                request.getMetadata())
+                request.userId(),
+                request.eventType(),
+                request.metadata())
                 .thenApply(notification -> {
                     if (notification != null) {
                         NotificationResponse response = NotificationResponse.from(notification);

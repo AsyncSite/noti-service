@@ -19,9 +19,9 @@ public interface NotificationTemplateUseCase {
     Optional<NotificationTemplate> getTemplateById(String templateId);
 
     /**
-     * 이벤트 타입과 채널 타입으로 템플릿을 조회합니다.
+     * 채널 타입으로 템플릿을 조회합니다.
      */
-    Optional<NotificationTemplate> getTemplateByEventAndChannel(String eventType, String channelType, String language);
+    Optional<NotificationTemplate> getTemplateByEventAndChannel(String channelType);
 
     /**
      * 템플릿을 생성합니다.
@@ -37,11 +37,6 @@ public interface NotificationTemplateUseCase {
      * 템플릿을 비활성화합니다.
      */
     void deactivateTemplate(String templateId);
-
-    /**
-     * 템플릿을 복제합니다.
-     */
-    NotificationTemplate cloneTemplate(String templateId, String language, String titleTemplate, String contentTemplate);
 
     /**
      * 템플릿 미리보기를 생성합니다.

@@ -1,66 +1,326 @@
-### NotificationTemplate API 시나리오
+### 📝 Notification Template API 시나리오 테스트
 
-# 1. 템플릿 목록 조회
-GET http://localhost:8084/api/v1/notification-templates?eventType=STUDY_UPDATE&channelType=EMAIL&language=ko&page=0&size=10
+@baseUrl = http://localhost:8084
 
-###
-# 2. 템플릿 단건 조회
-GET http://localhost:8084/api/v1/notification-templates/0263d77f-52af-4690-8bd7-192b21c0bb08
+### 📋 1. 모든 템플릿 조회
+GET {{baseUrl}}/api/v1/notification-templates
 
-###
-# 3. 템플릿 생성
-POST http://localhost:8084/api/v1/notification-templates
+### 📋 2. 필터링된 템플릿 조회 (이메일, 한국어, 활성화)
+GET {{baseUrl}}/api/v1/notification-templates?channelType=EMAIL&language=ko&isActive=true&page=0&size=10
+
+### 📋 3. 특정 이벤트 타입 템플릿 조회
+GET {{baseUrl}}/api/v1/notification-templates?eventType=STUDY_APPROVED&page=0&size=5
+
+### ➕ 4. 스터디 승인 이메일 템플릿 생성
+POST {{baseUrl}}/api/v1/notification-templates
 Content-Type: application/json
 
 {
-  "eventType": "STUDY_UPDATE",
+  "eventType": "STUDY_APPROVED",
   "channelType": "EMAIL",
   "language": "ko",
-  "titleTemplate": "[스터디] 새로운 소식이 있습니다!",
-  "contentTemplate": "안녕하세요, {userName}님! 새로운 소식이 도착했습니다."
+  "titleTemplate": "🎉 스터디 승인: {studyTitle}",
+  "contentTemplate": "안녕하세요 {userName}님,\n\n귀하가 신청하신 \"{studyTitle}\" 스터디가 승인되었습니다!\n\n✅ 승인자: {approvedBy}\n📅 승인일: {approvalDate}\n🔗 스터디 링크: {studyUrl}\n\n스터디에 참여해 주셔서 감사합니다.\n\n스터디 플랫폼 팀 드림",
+  "variables": ["userName", "studyTitle", "approvedBy", "approvalDate", "studyUrl"],
+  "isActive": true,
+  "previewVariables": {
+    "userName": "김개발",
+    "studyTitle": "Java Spring Boot 마스터",
+    "approvedBy": "관리자",
+    "approvalDate": "2024-07-19",
+    "studyUrl": "https://example.com/study/456"
+  }
 }
 
-###
-# 4. 템플릿 수정
-PUT http://localhost:8084/api/v1/notification-templates/{{templateId}}
+### ➕ 5. 댓글 알림 이메일 템플릿 생성
+POST {{baseUrl}}/api/v1/notification-templates
 Content-Type: application/json
 
 {
-  "eventType": "STUDY_UPDATE",
+  "eventType": "COMMENT_ADDED",
   "channelType": "EMAIL",
   "language": "ko",
-  "titleTemplate": "[수정] 새로운 소식이 있습니다!",
-  "contentTemplate": "안녕하세요, {{userName}}님! 수정된 소식이 도착했습니다."
+  "titleTemplate": "💬 새 댓글: {{postTitle}}",
+  "contentTemplate": "안녕하세요 {{userName}}님,\n\n\"{{postTitle}}\" 글에 새로운 댓글이 달렸습니다.\n\n👤 댓글 작성자: {{commenterName}}\n💭 댓글 내용: {{commentContent}}\n\n📖 전체 글 보기: {{postUrl}}\n\n알림을 받고 싶지 않으시면 설정에서 변경하실 수 있습니다.",
+  "variables": ["userName", "postTitle", "commenterName", "commentContent", "postUrl"],
+  "isActive": true,
+  "previewVariables": {
+    "userName": "박사용자",
+    "postTitle": "Spring Security 질문입니다",
+    "commenterName": "이전문가",
+    "commentContent": "좋은 질문이네요! JWT 토큰 처리 방법을 설명드릴게요.",
+    "postUrl": "https://example.com/post/789"
+  }
 }
 
-###
-# 5. 템플릿 비활성화
-PATCH http://localhost:8084/api/v1/notification-templates/{{templateId}}/deactivate
-
-###
-# 6. 템플릿 복제
-POST http://localhost:8084/api/v1/notification-templates/{{templateId}}/clone
+### ➕ 6. Discord 스터디 승인 템플릿 생성
+POST {{baseUrl}}/api/v1/notification-templates
 Content-Type: application/json
 
 {
+  "eventType": "STUDY_APPROVED",
+  "channelType": "DISCORD",
+  "language": "ko",
+  "titleTemplate": "",
+  "contentTemplate": "🎉 **스터디 승인 알림**\n\n**{{userName}}**님의 스터디가 승인되었습니다!\n\n📚 **스터디명**: {{studyTitle}}\n👨‍💼 **승인자**: {{approvedBy}}\n🔗 **링크**: {{studyUrl}}\n\n축하합니다! 🎊",
+  "variables": ["userName", "studyTitle", "approvedBy", "studyUrl"],
+  "isActive": true,
+  "previewVariables": {
+    "userName": "김개발",
+    "studyTitle": "React 심화 스터디",
+    "approvedBy": "관리자",
+    "studyUrl": "https://example.com/study/789"
+  }
+}
+
+### ➕ 7. 마케팅 이메일 템플릿 생성
+POST {{baseUrl}}/api/v1/notification-templates
+Content-Type: application/json
+
+{
+  "eventType": "MARKETING_PROMOTION",
+  "channelType": "EMAIL",
+  "language": "ko",
+  "titleTemplate": "🎁 특별 혜택: {{promotionTitle}} ({{discountRate}} 할인!)",
+  "contentTemplate": "안녕하세요 {{userName}}님,\n\n🎉 **{{promotionTitle}}**\n\n💰 할인율: **{{discountRate}}**\n⏰ 유효기간: {{validUntil}}까지\n🎟️ 프로모션 코드: **{{promoCode}}**\n\n지금 바로 사용하세요!\n\n이 기회를 놓치지 마세요! 📢",
+  "variables": ["userName", "promotionTitle", "discountRate", "validUntil", "promoCode"],
+  "isActive": true,
+  "previewVariables": {
+    "userName": "최고객",
+    "promotionTitle": "여름 특가 이벤트",
+    "discountRate": "50%",
+    "validUntil": "2024-08-31",
+    "promoCode": "SUMMER50"
+  }
+}
+
+### ➕ 8. 영어 스터디 승인 템플릿 생성
+POST {{baseUrl}}/api/v1/notification-templates
+Content-Type: application/json
+
+{
+  "eventType": "STUDY_APPROVED",
+  "channelType": "EMAIL",
   "language": "en",
-  "titleTemplate": "[Study] You have a new update!",
-  "contentTemplate": "Hello, {{userName}}! You have a new update."
+  "titleTemplate": "✅ Study Approved: {{studyTitle}}",
+  "contentTemplate": "Hello {{userName}},\n\nYour study \"{{studyTitle}}\" has been approved!\n\n✅ Approved by: {{approvedBy}}\n📅 Approval date: {{approvalDate}}\n🔗 Study link: {{studyUrl}}\n\nThank you for joining our platform.\n\nBest regards,\nStudy Platform Team",
+  "variables": ["userName", "studyTitle", "approvedBy", "approvalDate", "studyUrl"],
+  "isActive": true,
+  "previewVariables": {
+    "userName": "John Developer",
+    "studyTitle": "Advanced JavaScript Patterns",
+    "approvedBy": "Admin",
+    "approvalDate": "2024-07-19",
+    "studyUrl": "https://example.com/study/456"
+  }
 }
 
-###
-# 7. 템플릿 미리보기
-POST http://localhost:8084/api/v1/notification-templates/{{templateId}}/preview
+### 🧪 9. 도메인 로직 테스트 - 복잡한 중괄호 패턴 템플릿
+POST {{baseUrl}}/api/v1/notification-templates
 Content-Type: application/json
 
 {
-  "userName": "홍길동"
+  "eventType": "COMPLEX_PATTERN_TEST",
+  "channelType": "EMAIL",
+  "language": "ko",
+  "titleTemplate": "일반 텍스트 {단일중괄호} {{정상변수}} {{{비정상}}} 끝",
+  "contentTemplate": "내용: {{var1}} {비정상} {{var2}} end",
+  "variables": {
+    "정상변수": "정상값",
+    "var1": "값1",
+    "var2": "값2"
+  },
+  "isActive": true,
+  "previewVariables": {
+    "정상변수": "렌더링값",
+    "var1": "데이터1",
+    "var2": "데이터2"
+  }
 }
 
-###
-# 8. 이벤트 타입 목록
-GET http://localhost:8084/api/v1/notification-templates/event-types
+### 🧪 10. 도메인 로직 테스트 - 특수문자 변수명 템플릿
+POST {{baseUrl}}/api/v1/notification-templates
+Content-Type: application/json
 
-###
-# 9. 언어 목록
-GET http://localhost:8084/api/v1/notification-templates/languages
+{
+  "eventType": "SPECIAL_CHARS_TEST",
+  "channelType": "EMAIL",
+  "language": "ko",
+  "titleTemplate": "{{user_name}}의 {{study-name}} ({{user.email}})",
+  "contentTemplate": "{{description}}",
+  "variables": {},
+  "isActive": true,
+  "previewVariables": {
+    "user_name": "홍길동",
+    "study-name": "Java 스터디",
+    "user.email": "hong@example.com",
+    "description": "특수문자 포함 설명"
+  }
+}
+
+### 🧪 11. 엣지 케이스 테스트 - 빈 템플릿
+POST {{baseUrl}}/api/v1/notification-templates
+Content-Type: application/json
+
+{
+  "eventType": "EMPTY_TEMPLATE_TEST",
+  "channelType": "EMAIL",
+  "language": "ko",
+  "titleTemplate": "",
+  "contentTemplate": "",
+  "variables": {},
+  "isActive": true,
+  "previewVariables": {}
+}
+
+### 🧪 12. 엣지 케이스 테스트 - 잘못된 템플릿 (중괄호 불일치)
+POST {{baseUrl}}/api/v1/notification-templates
+Content-Type: application/json
+
+{
+  "eventType": "INVALID_TEMPLATE_TEST",
+  "channelType": "EMAIL",
+  "language": "ko",
+  "titleTemplate": "{{unclosed",
+  "contentTemplate": "{{also_unclosed",
+  "variables": {},
+  "isActive": false,
+  "previewVariables": {}
+}
+
+### 🔍 13. 특정 템플릿 조회 (템플릿 ID 필요)
+GET {{baseUrl}}/api/v1/notification-templates/template-id-here
+
+### ✏️ 14. 템플릿 수정 (템플릿 ID 필요)
+PUT {{baseUrl}}/api/v1/notification-templates/template-id-here
+Content-Type: application/json
+
+{
+  "eventType": "STUDY_APPROVED",
+  "channelType": "EMAIL",
+  "language": "ko",
+  "titleTemplate": "🎉 [업데이트] 스터디 승인: {{studyTitle}}",
+  "contentTemplate": "안녕하세요 {{userName}}님,\n\n귀하가 신청하신 \"{{studyTitle}}\" 스터디가 승인되었습니다! 🎊\n\n✅ 승인자: {{approvedBy}}\n📅 승인일: {{approvalDate}}\n🔗 스터디 페이지: {{studyUrl}}\n\n💡 **새로운 기능**: 이제 스터디 일정을 캘린더에 동기화할 수 있습니다!\n\n스터디 참여를 환영합니다.\n\n감사합니다,\n스터디 플랫폼 팀",
+  "variables": ["userName", "studyTitle", "approvedBy", "approvalDate", "studyUrl"],
+  "isActive": true,
+  "previewVariables": {
+    "userName": "김개발자",
+    "studyTitle": "Vue.js 완벽 마스터",
+    "approvedBy": "최관리자",
+    "approvalDate": "2024-07-19",
+    "studyUrl": "https://example.com/study/999"
+  }
+}
+
+### ❌ 15. 템플릿 비활성화 (템플릿 ID 필요)
+PATCH {{baseUrl}}/api/v1/notification-templates/template-id-here/deactivate
+
+### ✅ 16. 템플릿 활성화 (템플릿 ID 필요)
+PATCH {{baseUrl}}/api/v1/notification-templates/template-id-here/activate
+
+### 📋 17. 템플릿 복제 (템플릿 ID 필요)
+POST {{baseUrl}}/api/v1/notification-templates/template-id-here/clone
+Content-Type: application/json
+
+{
+  "eventType": "STUDY_APPROVED",
+  "channelType": "EMAIL",
+  "language": "en",
+  "titleTemplate": "✅ Study Approved: {{studyTitle}}",
+  "contentTemplate": "Hello {{userName}},\n\nGreat news! Your study \"{{studyTitle}}\" has been approved.\n\n✅ Approved by: {{approvedBy}}\n📅 Date: {{approvalDate}}\n🔗 Link: {{studyUrl}}\n\nWelcome to our study community!\n\nCheers,\nStudy Team",
+  "variables": ["userName", "studyTitle", "approvedBy", "approvalDate", "studyUrl"],
+  "isActive": true,
+  "previewVariables": {
+    "userName": "Jane Smith",
+    "studyTitle": "Python Data Science",
+    "approvedBy": "Administrator",
+    "approvalDate": "2024-07-19",
+    "studyUrl": "https://example.com/study/123"
+  }
+}
+
+### 👁️ 18. 템플릿 미리보기 (템플릿 ID 필요)
+POST {{baseUrl}}/api/v1/notification-templates/template-id-here/preview
+Content-Type: application/json
+
+{
+  "userName": "테스트 사용자",
+  "studyTitle": "React + TypeScript 완벽 가이드",
+  "approvedBy": "김관리자",
+  "approvalDate": "2024-07-19",
+  "studyUrl": "https://example.com/study/777"
+}
+
+### 👁️ 19. 다른 변수로 미리보기
+POST {{baseUrl}}/api/v1/notification-templates/template-id-here/preview
+Content-Type: application/json
+
+{
+  "userName": "박개발",
+  "studyTitle": "Node.js 백엔드 심화",
+  "approvedBy": "이관리자",
+  "approvalDate": "2024-07-20",
+  "studyUrl": "https://example.com/study/888",
+  "extraField": "이 필드는 무시됩니다"
+}
+
+### 🔧 20. 템플릿 변수 추출 (템플릿 ID 필요)
+GET {{baseUrl}}/api/v1/notification-templates/template-id-here/variables
+
+### 🔧 21. 템플릿 유효성 검증 (템플릿 ID 필요)
+GET {{baseUrl}}/api/v1/notification-templates/template-id-here/validate
+
+### 🧪 22. 도메인 로직 테스트 - 새 버전 생성
+POST {{baseUrl}}/api/v1/notification-templates/template-id-here/version
+Content-Type: application/json
+
+{
+  "titleTemplate": "새 버전 제목: {{studyTitle}}",
+  "contentTemplate": "새 버전 내용: {{userName}}님을 위한 {{studyTitle}}",
+  "variables": ["userName", "studyTitle", "newVar"],
+  "previewVariables": {
+    "userName": "버전테스트",
+    "studyTitle": "새버전 스터디",
+    "newVar": "새변수값"
+  }
+}
+
+### 🧪 23. 도메인 로직 테스트 - 언어별 복제
+POST {{baseUrl}}/api/v1/notification-templates/template-id-here/clone-language
+Content-Type: application/json
+
+{
+  "language": "ja",
+  "titleTemplate": "스터디 승인: {{studyTitle}}",
+  "contentTemplate": "{{userName}}님,\n\n「{{studyTitle}}」스터디가 승인되었습니다！"
+}
+
+### ❌ 24. 존재하지 않는 템플릿 조회 (404 테스트)
+GET {{baseUrl}}/api/v1/notification-templates/non-existent-template-id
+
+### ❌ 25. 잘못된 템플릿 생성 요청 (400 테스트)
+POST {{baseUrl}}/api/v1/notification-templates
+Content-Type: application/json
+
+{
+  "eventType": "",
+  "channelType": "INVALID_CHANNEL",
+  "language": "",
+  "titleTemplate": "",
+  "contentTemplate": "",
+  "variables": [],
+  "isActive": true,
+  "previewVariables": {}
+}
+
+### 📊 26. 대량 템플릿 조회 (페이징 테스트)
+GET {{baseUrl}}/api/v1/notification-templates?page=0&size=50
+
+### 📊 27. 비활성화된 템플릿만 조회
+GET {{baseUrl}}/api/v1/notification-templates?isActive=false&page=0&size=20
+
+### 📈 28. 템플릿 사용 통계 조회
+GET {{baseUrl}}/api/v1/notification-templates/statistics/usage
+
+### 📈 29. 템플릿 렌더링 성능 통계
+GET {{baseUrl}}/api/v1/notification-templates/statistics/performance

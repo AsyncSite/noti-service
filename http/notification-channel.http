@@ -1,12 +1,173 @@
-### NotificationChannel API 시나리오
+### 📱 NotificationChannel API 시나리오 테스트
 
-# 1. 채널 목록 조회
-GET http://localhost:8084/api/v1/notification-channels?notificationId={{notificationId}}&channelType=EMAIL
+@baseUrl = http://localhost:8084
+@notificationId = notification-123
+@channelId = channel-456
 
-###
-# 2. 채널 단건 조회
-GET http://localhost:8084/api/v1/notification-channels/{{channelId}}
+### 📋 1. 특정 알림의 채널 목록 조회
+GET {{baseUrl}}/api/v1/notification-channels?notificationId={{notificationId}}
 
-###
-# 3. 채널 재시도
-POST http://localhost:8084/api/v1/notification-channels/{{channelId}}/retry
+### 📋 2. 채널 타입별 필터링 조회
+GET {{baseUrl}}/api/v1/notification-channels?notificationId={{notificationId}}&channelType=EMAIL
+
+### 🔍 3. 채널 단건 조회
+GET {{baseUrl}}/api/v1/notification-channels/{{channelId}}
+
+### 🔄 4. 채널 재시도
+POST {{baseUrl}}/api/v1/notification-channels/{{channelId}}/retry
+
+### 📊 5. 채널 통계 조회 - 전체
+GET {{baseUrl}}/api/v1/notification-channels/statistics
+
+### 📊 6. 채널별 성공률 통계
+GET {{baseUrl}}/api/v1/notification-channels/statistics/success-rate?channelType=EMAIL
+
+### 📊 7. 재시도 패턴 분석
+GET {{baseUrl}}/api/v1/notification-channels/statistics/retry-patterns
+
+### 🧪 8. 도메인 로직 테스트 - 채널 상태 변경 시뮬레이션
+POST {{baseUrl}}/api/v1/notification-channels/test/status-transition
+Content-Type: application/json
+
+{
+  "channelId": "test-channel-001",
+  "scenario": "PENDING → FAILED → RETRY → SENT",
+  "maxRetryCount": 3,
+  "channelType": "EMAIL",
+  "recipient": "test@example.com"
+}
+
+### 🧪 9. 도메인 로직 테스트 - 최대 재시도 도달 시나리오
+POST {{baseUrl}}/api/v1/notification-channels/test/max-retry
+Content-Type: application/json
+
+{
+  "channelId": "test-channel-002",
+  "scenario": "최대 재시도 도달",
+  "expectedRetryCount": 3,
+  "channelType": "DISCORD",
+  "recipient": "https://discord.com/api/webhooks/test"
+}
+
+### 🧪 10. 도메인 로직 테스트 - 복잡한 응답 데이터 처리
+PATCH {{baseUrl}}/api/v1/notification-channels/{{channelId}}/mock-response
+Content-Type: application/json
+
+{
+  "status": "SENT",
+  "externalId": "msg-complex-123",
+  "responseData": {
+    "messageId": "msg-123",
+    "deliveryTime": "2023-01-01T10:00:00",
+    "provider": "SendGrid",
+    "metadata": {
+      "campaignId": "camp-456",
+      "tags": ["notification", "study", "approval"]
+    }
+  }
+}
+
+### 🧪 11. 엣지 케이스 테스트 - null 외부 ID 처리
+PATCH {{baseUrl}}/api/v1/notification-channels/{{channelId}}/mock-success
+Content-Type: application/json
+
+{
+  "externalId": null,
+  "responseData": null
+}
+
+### 🧪 12. 엣지 케이스 테스트 - 빈 수신자 채널
+POST {{baseUrl}}/api/v1/notification-channels/test/empty-recipient
+Content-Type: application/json
+
+{
+  "notificationId": "test-notification",
+  "channelType": "EMAIL",
+  "recipient": ""
+}
+
+### 🧪 13. 엣지 케이스 테스트 - null 알림 ID
+POST {{baseUrl}}/api/v1/notification-channels/test/null-notification
+Content-Type: application/json
+
+{
+  "notificationId": null,
+  "channelType": "PUSH",
+  "recipient": "push-token-123"
+}
+
+### 📈 14. 채널별 성능 메트릭
+GET {{baseUrl}}/api/v1/notification-channels/metrics/performance?period=daily
+
+### 📈 15. 실시간 채널 상태 대시보드
+GET {{baseUrl}}/api/v1/notification-channels/dashboard/realtime
+
+### 🔧 16. 채널 상태 세부 정보 조회
+GET {{baseUrl}}/api/v1/notification-channels/{{channelId}}/status-details
+
+### 🔧 17. 채널 마지막 시도 시간 조회
+GET {{baseUrl}}/api/v1/notification-channels/{{channelId}}/last-attempt
+
+### 📱 18. 이메일 채널 전용 통계
+GET {{baseUrl}}/api/v1/notification-channels/statistics/email
+
+### 📱 19. Discord 채널 전용 통계
+GET {{baseUrl}}/api/v1/notification-channels/statistics/discord
+
+### 📱 20. 푸시 채널 전용 통계
+GET {{baseUrl}}/api/v1/notification-channels/statistics/push
+
+### 🔄 21. 실패한 채널들 일괄 재시도
+POST {{baseUrl}}/api/v1/notification-channels/bulk-retry
+Content-Type: application/json
+
+{
+  "notificationId": "{{notificationId}}",
+  "channelTypes": ["EMAIL", "DISCORD"],
+  "maxRetryAge": "1h"
+}
+
+### 🧪 22. 도메인 로직 테스트 - 연속 상태 변경
+POST {{baseUrl}}/api/v1/notification-channels/test/consecutive-changes
+Content-Type: application/json
+
+{
+  "channelId": "consecutive-test",
+  "operations": [
+    { "action": "markAsFailed", "errorMessage": "첫 번째 실패" },
+    { "action": "prepareRetry" },
+    { "action": "markAsFailed", "errorMessage": "두 번째 실패" },
+    { "action": "prepareRetry" },
+    { "action": "markAsSent", "externalId": "final-success", "responseData": { "deliveryId": "final-123" } }
+  ]
+}
+
+### 🧪 23. 비즈니스 규칙 검증 테스트
+GET {{baseUrl}}/api/v1/notification-channels/{{channelId}}/business-rules
+# 응답 예시: { "canRetry": true, "isCompleted": false, "isProcessing": true, "hasReachedMaxRetries": false }
+
+### ❌ 24. 존재하지 않는 채널 조회 (404 테스트)
+GET {{baseUrl}}/api/v1/notification-channels/non-existent-channel-id
+
+### ❌ 25. 잘못된 재시도 요청 (이미 성공한 채널)
+POST {{baseUrl}}/api/v1/notification-channels/already-sent-channel/retry
+
+### ❌ 26. 최대 재시도 도달 후 재시도 시도 (409 테스트)
+POST {{baseUrl}}/api/v1/notification-channels/max-retry-reached-channel/retry
+
+### 🔧 27. 채널 수신자 정보 업데이트
+PATCH {{baseUrl}}/api/v1/notification-channels/{{channelId}}/recipient
+Content-Type: application/json
+
+{
+  "recipient": "new-recipient@example.com"
+}
+
+### 📊 28. 시간대별 채널 발송 통계
+GET {{baseUrl}}/api/v1/notification-channels/statistics/hourly?date=2024-07-22
+
+### 📊 29. 채널별 오류 분석
+GET {{baseUrl}}/api/v1/notification-channels/statistics/error-analysis?period=weekly
+
+### ✅ 30. 채널 헬스체크
+GET {{baseUrl}}/api/v1/notification-channels/health

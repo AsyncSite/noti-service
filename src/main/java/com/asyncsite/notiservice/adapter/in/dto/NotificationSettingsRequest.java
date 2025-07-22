@@ -1,24 +1,33 @@
 package com.asyncsite.notiservice.adapter.in.dto;
 
-import lombok.Getter;
-import lombok.Setter;
+import jakarta.validation.constraints.NotBlank;
 
 import java.util.List;
 import java.util.Map;
 
-@Getter
-@Setter
-public class NotificationSettingsRequest {
-    
-    private boolean studyUpdates = true;
-    private boolean marketing = false;
-    private boolean emailEnabled = true;
-    private boolean discordEnabled = false;
-    private boolean pushEnabled = false;
-    private String timezone = "Asia/Seoul";
-    private String language = "ko";
-    private Map<String, Object> quietHours;
-    private Map<String, Object> channelSettings;
-    private boolean enabled;
-    private List<String> channels;
+public record NotificationSettingsRequest(
+    boolean studyUpdates,
+    boolean marketing,
+    boolean emailEnabled,
+    boolean discordEnabled,
+    boolean pushEnabled,
+    @NotBlank(message = "시간대는 필수입니다.")
+    String timezone,
+    @NotBlank(message = "언어는 필수입니다.")
+    String language,
+    Map<String, Object> quietHours,
+    Map<String, Object> channelSettings,
+    boolean enabled,
+    List<String> channels
+) {
+    // 기본값을 제공하는 생성자
+    public NotificationSettingsRequest {
+        // 기본값 설정
+        if (timezone == null || timezone.isBlank()) {
+            timezone = "Asia/Seoul";
+        }
+        if (language == null || language.isBlank()) {
+            language = "ko";
+        }
+    }
 } 
