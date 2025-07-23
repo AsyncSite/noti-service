@@ -14,4 +14,5 @@ public interface NotificationSenderPort {
      * @return 발송 결과
      */
     CompletableFuture<Notification> sendNotification(Notification notification);
+    boolean supportsChannelType(ChannelType channelType);
 }

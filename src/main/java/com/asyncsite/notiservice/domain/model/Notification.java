@@ -6,9 +6,7 @@ import lombok.Builder;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 @Getter
 @Builder(toBuilder = true)
@@ -48,31 +46,30 @@ public class Notification {
 
     // === 도메인 행위 메서드 ===
 
+    public void fail() {
+        this.status = NotificationStatus.FAILED;
+        this.updatedAt = LocalDateTime.now();
+    }
+
     /**
      * 알림을 발송 완료로 표시합니다.
      */
-    public Notification markAsSent() {
-        LocalDateTime now = LocalDateTime.now();
-        return this.toBuilder()
-                .status(NotificationStatus.SENT)
-                .sentAt(now)
-                .updatedAt(now)
-                .build();
+    public void markAsSent() {
+        this.status = NotificationStatus.SENT;
+        this.updatedAt = LocalDateTime.now();
+        this.sentAt = this.updatedAt;
     }
 
     /**
      * 알림 재시도를 준비합니다.
      */
-    public Notification prepareRetry() {
+    public void prepareRetry() {
         if (!canRetry()) {
             throw new IllegalStateException("재시도할 수 없는 알림입니다. status=" + status + ", retryCount=" + retryCount);
         }
-
-        return this.toBuilder()
-                .status(NotificationStatus.RETRY)
-                .retryCount(this.retryCount + 1)
-                .updatedAt(LocalDateTime.now())
-                .build();
+        this.retryCount = retryCount + 1;
+        this.updatedAt = LocalDateTime.now();
+        this.sentAt = this.updatedAt;
     }
 
     // === 비즈니스 로직 메서드 ===
