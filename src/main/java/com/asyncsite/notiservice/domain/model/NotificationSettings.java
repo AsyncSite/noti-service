@@ -34,34 +34,27 @@ public class NotificationSettings {
                 .pushEnabled(false)
                 .timezone("Asia/Seoul")
                 .createdAt(now)
-                .updatedAt(now)
                 .build();
     }
 
     /**
      * 커스텀 알림 설정을 생성합니다.
      */
-    public static NotificationSettings create(
-            String userId,
+    public void update(
             boolean studyUpdates,
             boolean marketing,
             boolean emailEnabled,
             boolean discordEnabled,
-            boolean pushEnabled,
-            String timezone) {
+            boolean pushEnabled
+    ) {
 
         LocalDateTime now = LocalDateTime.now();
-        return NotificationSettings.builder()
-                .userId(userId)
-                .studyUpdates(studyUpdates)
-                .marketing(marketing)
-                .emailEnabled(emailEnabled)
-                .discordEnabled(discordEnabled)
-                .pushEnabled(pushEnabled)
-                .timezone(timezone != null ? timezone : "Asia/Seoul")
-                .createdAt(now)
-                .updatedAt(now)
-                .build();
+        this.studyUpdates = studyUpdates;
+        this.marketing = marketing;
+        this.emailEnabled = emailEnabled;
+        this.discordEnabled = discordEnabled;
+        this.pushEnabled = pushEnabled;
+        this.updatedAt = now;
     }
 
     /**

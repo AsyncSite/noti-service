@@ -1,7 +1,7 @@
 package com.asyncsite.notiservice.application.service;
 
-import com.asyncsite.notiservice.domain.model.NotificationChannel;
 import com.asyncsite.notiservice.domain.model.NotificationTemplate;
+import com.asyncsite.notiservice.domain.model.vo.ChannelType;
 import com.asyncsite.notiservice.domain.port.in.NotificationTemplateUseCase;
 import com.asyncsite.notiservice.domain.port.out.NotificationTemplateRepositoryPort;
 import lombok.RequiredArgsConstructor;
@@ -24,21 +24,9 @@ public class NotificationTemplateService implements NotificationTemplateUseCase 
 
     @Override
     @Transactional(readOnly = true)
-    public List<NotificationTemplate> getTemplates(String eventType, String channelType, String language, boolean isActive, int page, int size) {
-        log.info("템플릿 목록 조회: eventType={}, channelType={}, language={}, isActive={}, page={}, size={}",
-                eventType, channelType, language, isActive, page, size);
+    public List<NotificationTemplate> getTemplates(ChannelType channelType, boolean active, int page, int size) {
 
-        NotificationChannel.ChannelType channelTypeEnum = null;
-        if (channelType != null) {
-            try {
-                channelTypeEnum = NotificationChannel.ChannelType.valueOf(channelType.toUpperCase());
-            } catch (IllegalArgumentException e) {
-                log.warn("잘못된 채널 타입: {}", channelType);
-                return List.of();
-            }
-        }
-
-        return templateRepository.findTemplatesByFilters(eventType, channelTypeEnum, language, isActive, page, size);
+        return templateRepository.findTemplatesByFilters(channelType, active, page, size);
     }
 
     @Override
@@ -49,30 +37,23 @@ public class NotificationTemplateService implements NotificationTemplateUseCase 
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public Optional<NotificationTemplate> getTemplateByEventAndChannel(String eventType, String channelType, String language) {
-        log.info("템플릿 조회: eventType={}, channelType={}, language={}", eventType, channelType, language);
-
-        try {
-            NotificationChannel.ChannelType channelTypeEnum = NotificationChannel.ChannelType.valueOf(channelType.toUpperCase());
-            return templateRepository.findTemplateByEventAndChannel(eventType, channelTypeEnum, language);
-        } catch (IllegalArgumentException e) {
-            log.warn("잘못된 채널 타입: {}", channelType);
-            return Optional.empty();
-        }
-    }
-
-    @Override
-    public NotificationTemplate createTemplate(NotificationTemplate template) {
-        log.info("템플릿 생성: eventType={}, channelType={}, language={}",
-                template.getEventType(), template.getChannelType(), template.getLanguage());
-
+    public NotificationTemplate createTemplate(
+            ChannelType channelType,
+            String titleTemplate,
+            String contentTemplate,
+            Map<String, String> variables
+    ) {
         // 도메인 팩토리 메서드 사용이 이미 완료된 template을 그대로 저장
-        return templateRepository.saveTemplate(template);
+        return templateRepository.saveTemplate(NotificationTemplate.create(channelType, titleTemplate, contentTemplate, variables));
     }
 
     @Override
-    public NotificationTemplate updateTemplate(String templateId, NotificationTemplate updateData) {
+    public NotificationTemplate updateTemplate(
+            String templateId,
+            String titleTemplate,
+            String contentTemplate,
+            Map<String, String> variables
+    ) {
         log.info("템플릿 수정: templateId={}", templateId);
 
         Optional<NotificationTemplate> existingTemplate = templateRepository.findTemplateById(templateId);
@@ -81,12 +62,12 @@ public class NotificationTemplateService implements NotificationTemplateUseCase 
         }
 
         NotificationTemplate existing = existingTemplate.get();
-        
+
         // 도메인 행위 메서드 사용
         NotificationTemplate updatedTemplate = existing.updateTemplate(
-                updateData.getTitleTemplate(),
-                updateData.getContentTemplate(),
-                updateData.getVariables()
+                titleTemplate,
+                contentTemplate,
+                variables
         );
 
         return templateRepository.saveTemplate(updatedTemplate);
@@ -105,23 +86,6 @@ public class NotificationTemplateService implements NotificationTemplateUseCase 
         NotificationTemplate deactivatedTemplate = template.get().deactivate();
 
         templateRepository.saveTemplate(deactivatedTemplate);
-    }
-
-    @Override
-    public NotificationTemplate cloneTemplate(String templateId, String language, String titleTemplate, String contentTemplate) {
-        log.info("템플릿 복제: templateId={}, language={}", templateId, language);
-
-        Optional<NotificationTemplate> originalTemplate = templateRepository.findTemplateById(templateId);
-        if (originalTemplate.isEmpty()) {
-            throw new IllegalArgumentException("템플릿을 찾을 수 없습니다: " + templateId);
-        }
-
-        NotificationTemplate original = originalTemplate.get();
-        
-        // 도메인 행위 메서드 사용
-        NotificationTemplate clonedTemplate = original.cloneForLanguage(language, titleTemplate, contentTemplate);
-
-        return templateRepository.saveTemplate(clonedTemplate);
     }
 
     @Override

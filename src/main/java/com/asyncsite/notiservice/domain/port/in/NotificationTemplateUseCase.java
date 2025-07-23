@@ -1,6 +1,7 @@
 package com.asyncsite.notiservice.domain.port.in;
 
 import com.asyncsite.notiservice.domain.model.NotificationTemplate;
+import com.asyncsite.notiservice.domain.model.vo.ChannelType;
 
 import java.util.List;
 import java.util.Map;
@@ -11,7 +12,7 @@ public interface NotificationTemplateUseCase {
     /**
      * 템플릿 목록을 조회합니다.
      */
-    List<NotificationTemplate> getTemplates(String eventType, String channelType, String language, boolean isActive, int page, int size);
+    List<NotificationTemplate> getTemplates(ChannelType channelType, boolean active, int page, int size);
 
     /**
      * 템플릿 ID로 템플릿을 조회합니다.
@@ -19,19 +20,22 @@ public interface NotificationTemplateUseCase {
     Optional<NotificationTemplate> getTemplateById(String templateId);
 
     /**
-     * 채널 타입으로 템플릿을 조회합니다.
-     */
-    Optional<NotificationTemplate> getTemplateByEventAndChannel(String channelType);
-
-    /**
      * 템플릿을 생성합니다.
      */
-    NotificationTemplate createTemplate(NotificationTemplate template);
+    NotificationTemplate createTemplate(
+            ChannelType channelType,
+            String titleTemplate,
+            String contentTemplate,
+            Map<String, String> variables
+    );
 
     /**
      * 템플릿을 수정합니다.
      */
-    NotificationTemplate updateTemplate(String templateId, NotificationTemplate template);
+    NotificationTemplate updateTemplate(String templateId,
+                                        String titleTemplate,
+                                        String contentTemplate,
+                                        Map<String, String> variables);
 
     /**
      * 템플릿을 비활성화합니다.

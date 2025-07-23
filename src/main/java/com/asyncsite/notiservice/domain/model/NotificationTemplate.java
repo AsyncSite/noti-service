@@ -47,36 +47,6 @@ public class NotificationTemplate {
                 .build();
     }
 
-    /**
-     * 이메일 템플릿을 생성합니다.
-     */
-    public static NotificationTemplate createEmailTemplate(
-            String titleTemplate,
-            String contentTemplate,
-            Map<String, String> variables) {
-        return create(ChannelType.EMAIL, titleTemplate, contentTemplate, variables);
-    }
-
-    /**
-     * Discord 템플릿을 생성합니다.
-     */
-    public static NotificationTemplate createDiscordTemplate(
-            String titleTemplate,
-            String contentTemplate,
-            Map<String, String> variables) {
-        return create(ChannelType.DISCORD, titleTemplate, contentTemplate, variables);
-    }
-
-    /**
-     * 푸시 알림 템플릿을 생성합니다.
-     */
-    public static NotificationTemplate createPushTemplate(
-            String titleTemplate,
-            String contentTemplate,
-            Map<String, String> variables) {
-        return create(ChannelType.PUSH, titleTemplate, contentTemplate, variables);
-    }
-
     // === 도메인 행위 메서드 ===
 
     /**
