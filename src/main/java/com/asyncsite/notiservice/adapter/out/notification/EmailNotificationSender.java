@@ -55,11 +55,11 @@ public class EmailNotificationSender implements NotificationSenderPort {
                     return markNotificationAsFailed(notification, "EMAIL 채널에 적합하지 않은 템플릿입니다.");
                 }
 
-                String title = template.renderTitle(notification.getMetadata());
-                String content = template.renderContent(notification.getMetadata());
+                String title = notification.getTitle();
+                String content = notification.getContent();
 
                 // 2. 수신자 이메일 추출
-                String recipientEmail = getRecipientEmail(notification.getMetadata());
+                String recipientEmail = notification.getRecipientContact();
 
                 if (recipientEmail == null || recipientEmail.isEmpty()) {
                     log.warn("수신자 이메일이 없습니다: notificationId={}", notification.getNotificationId());
@@ -93,29 +93,6 @@ public class EmailNotificationSender implements NotificationSenderPort {
     @Override
     public boolean supportsChannelType(ChannelType channelType) {
         return channelType == ChannelType.EMAIL;
-    }
-    /**
-     * 수신자 이메일 주소를 추출합니다.
-     */
-    private String getRecipientEmail(Map<String, Object> metadata) {
-        // metadata에서 이메일 주소를 찾습니다
-        Object emailFromMetadata = metadata.get("email");
-        if (emailFromMetadata != null && !emailFromMetadata.toString().isEmpty()) {
-            return emailFromMetadata.toString();
-        }
-
-        Object recipientFromMetadata = metadata.get("recipient");
-        if (recipientFromMetadata != null && !recipientFromMetadata.toString().isEmpty()) {
-            return recipientFromMetadata.toString();
-        }
-
-        // userEmail 키도 확인해봅니다
-        Object userEmailFromMetadata = metadata.get("userEmail");
-        if (userEmailFromMetadata != null && !userEmailFromMetadata.toString().isEmpty()) {
-            return userEmailFromMetadata.toString();
-        }
-
-        return null;
     }
 
     /**

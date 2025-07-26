@@ -4,6 +4,7 @@ import com.asyncsite.notiservice.adapter.in.dto.NotificationResponse;
 import com.asyncsite.notiservice.adapter.in.dto.SendNotificationRequest;
 import com.asyncsite.notiservice.domain.model.Notification;
 import com.asyncsite.notiservice.domain.model.vo.ChannelType;
+import com.asyncsite.notiservice.domain.model.vo.EventType;
 import com.asyncsite.notiservice.domain.port.in.NotificationUseCase;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -27,12 +28,14 @@ public class NotificationController {
     public CompletableFuture<ResponseEntity<NotificationResponse>> sendNotification(
             @Valid @RequestBody SendNotificationRequest request) {
 
-        log.info("알림 발송 요청: userId={}, channelType={}", request.userId(), request.channelType());
+        log.info("알림 발송 요청: userId={}, channelType={}, eventType={}", request.userId(), request.channelType(), request.eventType());
 
         return notificationUseCase.sendNotification(
                 request.userId(),
-                request.channelType(),
-                request.metadata())
+                ChannelType.valueOf(request.channelType()),
+                EventType.valueOf(request.eventType()),
+                request.metadata(),
+                        request.recipientContact())
                 .thenApply(notification -> {
                     if (notification != null) {
                         NotificationResponse response = NotificationResponse.from(notification);

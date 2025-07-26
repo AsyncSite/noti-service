@@ -2,6 +2,7 @@ package com.asyncsite.notiservice.application.service;
 
 import com.asyncsite.notiservice.domain.model.NotificationTemplate;
 import com.asyncsite.notiservice.domain.model.vo.ChannelType;
+import com.asyncsite.notiservice.domain.model.vo.EventType;
 import com.asyncsite.notiservice.domain.port.in.NotificationTemplateUseCase;
 import com.asyncsite.notiservice.domain.port.out.NotificationTemplateRepositoryPort;
 import lombok.RequiredArgsConstructor;
@@ -24,9 +25,9 @@ public class NotificationTemplateService implements NotificationTemplateUseCase 
 
     @Override
     @Transactional(readOnly = true)
-    public List<NotificationTemplate> getTemplates(ChannelType channelType, boolean active, int page, int size) {
+    public List<NotificationTemplate> getTemplates(ChannelType channelType, boolean active) {
 
-        return templateRepository.findTemplatesByFilters(channelType, active, page, size);
+        return templateRepository.findTemplatesByFilters(channelType, active);
     }
 
     @Override
@@ -39,12 +40,13 @@ public class NotificationTemplateService implements NotificationTemplateUseCase 
     @Override
     public NotificationTemplate createTemplate(
             ChannelType channelType,
+            EventType eventType,
             String titleTemplate,
             String contentTemplate,
             Map<String, String> variables
     ) {
         // 도메인 팩토리 메서드 사용이 이미 완료된 template을 그대로 저장
-        return templateRepository.saveTemplate(NotificationTemplate.create(channelType, titleTemplate, contentTemplate, variables));
+        return templateRepository.saveTemplate(NotificationTemplate.create(channelType, eventType, titleTemplate, contentTemplate, variables));
     }
 
     @Override

@@ -1,19 +1,18 @@
-FROM eclipse-temurin:21-jre
-
+FROM gradle:8.5-jdk21 AS build
 WORKDIR /app
+COPY build.gradle settings.gradle ./
+COPY gradle ./gradle
+COPY src ./src
+RUN gradle build -x test --no-daemon
 
-# 보안을 위한 non-root 사용자 생성
-RUN groupadd -g 1001 appgroup && \
-    useradd -r -u 1001 -g appgroup appuser
+# Runtime stage
+FROM openjdk:21-jre-slim
+WORKDIR /app
+COPY --from=build /app/build/libs/*.jar app.jar
 
-# 사전 빌드된 JAR 파일 복사
-COPY --chown=appuser:appgroup build/libs/noti-service-0.0.1-SNAPSHOT.jar app.jar
-
-# 헬스체크 설정
-HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-    CMD curl -f http://localhost:8084/actuator/health || exit 1
-
+# Create non-root user
+RUN useradd -m -u 1001 appuser && chown -R appuser:appuser /app
 USER appuser
-EXPOSE 8084
 
-ENTRYPOINT ["java", "-Dspring.profiles.active=${SPRING_PROFILES_ACTIVE:-docker}", "-jar", "app.jar"] 
+EXPOSE 8084
+ENTRYPOINT ["java", "-jar", "app.jar"]

@@ -1,6 +1,5 @@
 package com.asyncsite.notiservice.adapter.out.persistence.entity;
 
-import com.asyncsite.notiservice.common.JsonUtil;
 import com.asyncsite.notiservice.domain.model.Notification;
 import com.asyncsite.notiservice.domain.model.vo.ChannelType;
 import com.asyncsite.notiservice.domain.model.vo.NotificationStatus;
@@ -11,8 +10,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-import java.util.Map;
-import java.util.Objects;
 
 @Entity
 @Table(name = "notifications")
@@ -31,8 +28,9 @@ public class NotificationEntity {
     private String userId;
     private String templateId;
     private ChannelType channelType;
-    @Column(columnDefinition = "JSON")
-    private String metadata;
+    private String title;
+    private String content;
+    private String recipientContact;
     private NotificationStatus status;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
@@ -45,7 +43,9 @@ public class NotificationEntity {
                 .userId(notification.getUserId())
                 .templateId(notification.getTemplateId())
                 .channelType(notification.getChannelType())
-                .metadata(Objects.isNull(notification.getMetadata()) ? null : JsonUtil.toJson(notification.getMetadata()))
+                .title(notification.getTitle())
+                .content(notification.getContent())
+                .recipientContact(notification.getRecipientContact())
                 .status(notification.getStatus())
                 .createdAt(notification.getCreatedAt())
                 .updatedAt(notification.getUpdatedAt())
@@ -61,7 +61,9 @@ public class NotificationEntity {
                 .userId(this.userId)
                 .templateId(this.templateId)
                 .channelType(this.channelType)
-                .metadata(Objects.isNull(this.metadata) ? null : (Map<String, Object>) JsonUtil.fromJson(this.metadata, Map.class))
+                .title(this.title)
+                .content(this.content)
+                .recipientContact(this.recipientContact)
                 .status(this.status)
                 .createdAt(this.createdAt)
                 .updatedAt(this.updatedAt)

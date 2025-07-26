@@ -1,6 +1,5 @@
 package com.asyncsite.notiservice.adapter.in.dto;
 
-import com.asyncsite.notiservice.domain.model.vo.ChannelType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
@@ -11,7 +10,10 @@ public record SendNotificationRequest(
     String userId,
 
     @NotBlank(message = "채널 타입은 필수입니다.")
-    ChannelType channelType,
+    String channelType,
+    @NotBlank(message = "채널 이벤트는 필수입니다.")
+    String eventType,
+    String recipientContact,
 
     Map<String, Object> metadata
 ) {}

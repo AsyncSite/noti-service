@@ -2,6 +2,7 @@ package com.asyncsite.notiservice.domain.port.in;
 
 import com.asyncsite.notiservice.domain.model.NotificationTemplate;
 import com.asyncsite.notiservice.domain.model.vo.ChannelType;
+import com.asyncsite.notiservice.domain.model.vo.EventType;
 
 import java.util.List;
 import java.util.Map;
@@ -12,7 +13,7 @@ public interface NotificationTemplateUseCase {
     /**
      * 템플릿 목록을 조회합니다.
      */
-    List<NotificationTemplate> getTemplates(ChannelType channelType, boolean active, int page, int size);
+    List<NotificationTemplate> getTemplates(ChannelType channelType, boolean active);
 
     /**
      * 템플릿 ID로 템플릿을 조회합니다.
@@ -24,6 +25,7 @@ public interface NotificationTemplateUseCase {
      */
     NotificationTemplate createTemplate(
             ChannelType channelType,
+            EventType eventType,
             String titleTemplate,
             String contentTemplate,
             Map<String, String> variables

@@ -4,7 +4,6 @@ import lombok.Builder;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
-import java.util.Map;
 
 @Getter
 @Builder(toBuilder = true)
@@ -28,10 +27,10 @@ public class NotificationSettings {
         return NotificationSettings.builder()
                 .userId(userId)
                 .studyUpdates(true)
-                .marketing(false)
+                .marketing(true)
                 .emailEnabled(true)
-                .discordEnabled(false)
-                .pushEnabled(false)
+                .discordEnabled(true)
+                .pushEnabled(true)
                 .timezone("Asia/Seoul")
                 .createdAt(now)
                 .build();

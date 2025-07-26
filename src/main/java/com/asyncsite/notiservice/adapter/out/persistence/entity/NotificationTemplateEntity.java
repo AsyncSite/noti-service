@@ -3,6 +3,7 @@ package com.asyncsite.notiservice.adapter.out.persistence.entity;
 import com.asyncsite.notiservice.common.JsonUtil;
 import com.asyncsite.notiservice.domain.model.NotificationTemplate;
 import com.asyncsite.notiservice.domain.model.vo.ChannelType;
+import com.asyncsite.notiservice.domain.model.vo.EventType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -27,6 +28,7 @@ public class NotificationTemplateEntity {
     @Version
     private Integer version;
     private ChannelType channelType;
+    private EventType eventType;
     @Column(columnDefinition = "TEXT")
     private String titleTemplate;
     @Column(columnDefinition = "TEXT")
@@ -43,6 +45,7 @@ public class NotificationTemplateEntity {
                 .templateId(template.getTemplateId())
                 .version(template.getVersion())
                 .channelType(template.getChannelType())
+                .eventType(template.getEventType())
                 .titleTemplate(template.getTitleTemplate())
                 .contentTemplate(template.getContentTemplate())
                 .variables(Objects.isNull(template.getVariables()) ? null : JsonUtil.toJson(template.getVariables()))
@@ -57,6 +60,7 @@ public class NotificationTemplateEntity {
                 .templateId(templateId)
                 .version(version)
                 .channelType(channelType)
+                .eventType(eventType)
                 .titleTemplate(titleTemplate)
                 .contentTemplate(contentTemplate)
                 .variables(Objects.isNull(this.variables) ? null : (Map<String, String>) JsonUtil.fromJson(variables, Map.class))

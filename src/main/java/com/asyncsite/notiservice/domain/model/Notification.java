@@ -6,7 +6,6 @@ import lombok.Builder;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
-import java.util.Map;
 
 @Getter
 @Builder(toBuilder = true)
@@ -15,7 +14,9 @@ public class Notification {
     private String userId;
     private String templateId;
     private ChannelType channelType;
-    private Map<String, Object> metadata;
+    private String title;
+    private String content;
+    private String recipientContact;
     private NotificationStatus status;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
@@ -29,13 +30,16 @@ public class Notification {
     /**
      * 새로운 알림을 생성합니다.
      */
-    public static Notification create(String userId, String templateId, ChannelType channelType, Map<String, Object> metadata) {
+    public static Notification create(String userId, String templateId, ChannelType channelType, String title, String content, String recipientContact
+    ) {
         LocalDateTime now = LocalDateTime.now();
         return Notification.builder()
                 .userId(userId)
                 .templateId(templateId)
                 .channelType(channelType)
-                .metadata(metadata)
+                .title(title)
+                .content(content)
+                .recipientContact(recipientContact)
                 .status(NotificationStatus.PENDING)
                 .createdAt(now)
                 .updatedAt(now)

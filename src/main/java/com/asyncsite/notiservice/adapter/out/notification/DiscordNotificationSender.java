@@ -52,11 +52,11 @@ public class DiscordNotificationSender implements NotificationSenderPort {
                     return markNotificationAsFailed(notification, "Discord 채널에 적합하지 않은 템플릿입니다.");
                 }
 
-                String title = template.renderTitle(notification.getMetadata());
-                String content = template.renderContent(notification.getMetadata());
+                String title = notification.getTitle();
+                String content = notification.getContent();
 
                 // 2. 수신자 정보 추출 (metadata에서 webhook URL 또는 설정값 사용)
-                String targetWebhookUrl = getDiscordWebhookUrl(notification.getMetadata());
+                String targetWebhookUrl = notification.getRecipientContact();
 
                 if (targetWebhookUrl == null || targetWebhookUrl.isEmpty()) {
                     log.warn("Discord webhook URL이 설정되지 않았습니다.");
@@ -92,24 +92,6 @@ public class DiscordNotificationSender implements NotificationSenderPort {
     @Override
     public boolean supportsChannelType(ChannelType channelType) {
         return channelType == ChannelType.DISCORD;
-    }
-
-    /**
-     * Discord webhook URL을 추출합니다.
-     */
-    private String getDiscordWebhookUrl(Map<String, Object> metadata) {
-        // metadata에서 discord webhook URL을 찾거나 기본값 사용
-        Object webhookFromMetadata = metadata.get("discordWebhook");
-        if (webhookFromMetadata != null && !webhookFromMetadata.toString().isEmpty()) {
-            return webhookFromMetadata.toString();
-        }
-
-        Object recipientFromMetadata = metadata.get("recipient");
-        if (recipientFromMetadata != null && !recipientFromMetadata.toString().isEmpty()) {
-            return recipientFromMetadata.toString();
-        }
-
-        return webhookUrl; // 기본 설정값 사용
     }
 
     /**

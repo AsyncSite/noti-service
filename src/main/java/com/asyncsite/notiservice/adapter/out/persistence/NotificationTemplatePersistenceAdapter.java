@@ -4,6 +4,7 @@ import com.asyncsite.notiservice.adapter.out.persistence.entity.NotificationTemp
 import com.asyncsite.notiservice.adapter.out.persistence.repository.NotificationTemplateRepository;
 import com.asyncsite.notiservice.domain.model.NotificationTemplate;
 import com.asyncsite.notiservice.domain.model.vo.ChannelType;
+import com.asyncsite.notiservice.domain.model.vo.EventType;
 import com.asyncsite.notiservice.domain.port.out.NotificationTemplateRepositoryPort;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -39,7 +40,13 @@ public class NotificationTemplatePersistenceAdapter implements NotificationTempl
     }
 
     @Override
-    public List<NotificationTemplate> findTemplatesByFilters(ChannelType channelType, Boolean isActive, int page, int size) {
-        return List.of();
+    public Optional<NotificationTemplate> findTemplateByChannelAndEventType(ChannelType channelType, EventType eventType) {
+        return templateRepository.findByChannelTypeAndEventType(channelType, eventType).map(NotificationTemplateEntity::toDomain);
+    }
+
+    @Override
+    public List<NotificationTemplate> findTemplatesByFilters(ChannelType channelType, Boolean isActive) {
+        return templateRepository.findAllByChannelTypeAndActive(channelType, isActive)
+                .stream().map(NotificationTemplateEntity::toDomain).toList();
     }
 }

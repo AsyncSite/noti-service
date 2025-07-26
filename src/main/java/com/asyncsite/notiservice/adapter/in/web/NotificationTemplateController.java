@@ -1,16 +1,14 @@
 package com.asyncsite.notiservice.adapter.in.web;
 
 import com.asyncsite.notiservice.adapter.in.dto.CreateNotificationTemplateRequest;
-import com.asyncsite.notiservice.adapter.in.dto.UpdateNotificationTemplateRequest;
 import com.asyncsite.notiservice.adapter.in.dto.NotificationTemplateResponse;
+import com.asyncsite.notiservice.adapter.in.dto.UpdateNotificationTemplateRequest;
 import com.asyncsite.notiservice.domain.model.NotificationTemplate;
 import com.asyncsite.notiservice.domain.model.vo.ChannelType;
 import com.asyncsite.notiservice.domain.port.in.NotificationTemplateUseCase;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -27,21 +25,18 @@ public class NotificationTemplateController {
     private final NotificationTemplateUseCase notificationTemplateUseCase;
 
     @GetMapping
-    public ResponseEntity<Page<NotificationTemplateResponse>> getTemplates(
+    public ResponseEntity<List<NotificationTemplateResponse>> getTemplates(
             @RequestParam(required = false) String channelType,
-            @RequestParam(required = false, defaultValue = "true") Boolean active,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(required = false, defaultValue = "true") Boolean active) {
 
 
         List<NotificationTemplate> templates = notificationTemplateUseCase.getTemplates(
-                ChannelType.valueOf(channelType), active, page, size);
+                ChannelType.valueOf(channelType), active);
 
         List<NotificationTemplateResponse> responses = templates.stream()
                 .map(NotificationTemplateResponse::from)
                 .toList();
-        PageImpl<NotificationTemplateResponse> pageImpl = new PageImpl<>(responses);
-        return ResponseEntity.ok(pageImpl);
+        return ResponseEntity.ok(responses);
     }
 
     @GetMapping("/{templateId}")
@@ -59,7 +54,7 @@ public class NotificationTemplateController {
     public ResponseEntity<NotificationTemplateResponse> createTemplate(
             @Valid @RequestBody CreateNotificationTemplateRequest request) {
         // Mapper를 사용하여 Request에서 Domain 객체로 변환
-        return ResponseEntity.status(HttpStatus.CREATED).body(NotificationTemplateResponse.from(notificationTemplateUseCase.createTemplate(request.channelType(),  request.titleTemplate(), request.contentTemplate(), request.variables())));
+        return ResponseEntity.status(HttpStatus.CREATED).body(NotificationTemplateResponse.from(notificationTemplateUseCase.createTemplate(request.channelType(),  request.eventType(), request.titleTemplate(), request.contentTemplate(), request.variables())));
     }
 
     @PutMapping("/{templateId}")
@@ -83,6 +78,7 @@ public class NotificationTemplateController {
         return ResponseEntity.ok().build();
     }
 
+    // FIXME 작업중
     @PostMapping("/{templateId}/preview")
     public ResponseEntity<Map<String, String>> previewTemplate(
             @PathVariable String templateId,

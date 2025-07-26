@@ -2,6 +2,7 @@ package com.asyncsite.notiservice.domain.port.in;
 
 import com.asyncsite.notiservice.domain.model.Notification;
 import com.asyncsite.notiservice.domain.model.vo.ChannelType;
+import com.asyncsite.notiservice.domain.model.vo.EventType;
 
 import java.util.List;
 import java.util.Map;
@@ -35,7 +36,7 @@ public interface NotificationUseCase {
      * @param metadata 메타데이터
      * @return 발송된 알림 정보
      */
-    CompletableFuture<Notification> sendNotification(String userId, ChannelType channelType, Map<String, Object> metadata);
+    CompletableFuture<Notification> sendNotification(String userId, ChannelType channelType, EventType eventType, Map<String, Object> metadata, String recipientContact);
 
     /**
      * 알림을 재시도합니다.

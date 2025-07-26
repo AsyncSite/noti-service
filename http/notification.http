@@ -2,7 +2,7 @@
 
 @baseUrl = http://localhost:8084
 @userId = user123
-@email = test@example.com
+@email = leegeondev@gmail.com
 @discordWebhook = https://discord.com/api/webhooks/test
 
 ### 🚀 1. 스터디 승인 알림 발송 (이메일)
@@ -11,246 +11,21 @@ Content-Type: application/json
 
 {
   "userId": "{{userId}}",
-  "eventType": "STUDY_APPROVED",
+  "channelType": "EMAIL",
+  "eventType": "STUDY",
+  "recipientContact": "{{email}}",
   "metadata": {
     "studyId": 456,
     "studyTitle": "Java Spring Boot 스터디",
     "userName": "김개발",
     "approvedBy": "관리자",
-    "studyUrl": "https://example.com/study/456",
-    "email": "{{email}}",
-    "discordWebhook": "{{discordWebhook}}"
-  }
-}
-
-### 🔔 2. 마케팅 알림 발송 (다중 채널)
-POST {{baseUrl}}/api/v1/notifications
-Content-Type: application/json
-
-{
-  "userId": "{{userId}}",
-  "eventType": "MARKETING_PROMOTION",
-  "metadata": {
-    "promotionTitle": "특별 할인 이벤트",
-    "discountRate": "50%",
-    "validUntil": "2024-12-31",
-    "promoCode": "SAVE50",
-    "email": "{{email}}",
-    "discordWebhook": "{{discordWebhook}}"
-  }
-}
-
-### 💬 3. 댓글 알림 발송
-POST {{baseUrl}}/api/v1/notifications
-Content-Type: application/json
-
-{
-  "userId": "{{userId}}",
-  "eventType": "COMMENT_ADDED",
-  "metadata": {
-    "postId": 789,
-    "postTitle": "Spring Boot 질문입니다",
-    "commenterName": "박댓글",
-    "commentContent": "좋은 질문이네요! 답변드릴게요.",
-    "postUrl": "https://example.com/post/789",
-    "email": "{{email}}"
-  }
-}
-
-### 📱 4. 푸시 알림 발송
-POST {{baseUrl}}/api/v1/notifications
-Content-Type: application/json
-
-{
-  "userId": "{{userId}}",
-  "eventType": "STUDY_REMINDER",
-  "metadata": {
-    "studyTitle": "오늘 스터디 시간입니다",
-    "studyTime": "19:00",
-    "location": "온라인 Zoom",
-    "zoomLink": "https://zoom.us/j/123456789",
-    "pushToken": "push-token-{{userId}}"
+    "studyUrl": "https://example.com/study/456"
   }
 }
 
 ### 🔍 5. 알림 단건 조회 (응답에서 notificationId 복사 후 사용)
 # @name getNotification
-GET {{baseUrl}}/api/v1/notifications/notification-id-here
+GET {{baseUrl}}/api/v1/notifications/7192a810-b316-47dd-9fa4-a156ab099da0
 
 ### 📋 6. 사용자 알림 목록 조회 (페이징)
 GET {{baseUrl}}/api/v1/notifications?userId={{userId}}&page=0&size=20
-
-### 📋 7. 사용자 알림 목록 조회 (필터링)
-GET {{baseUrl}}/api/v1/notifications?userId={{userId}}&page=0&size=10&status=SENT&eventType=STUDY_APPROVED
-
-### 🔄 8. 실패한 알림 재시도
-PATCH {{baseUrl}}/api/v1/notifications/notification-id-here/retry
-
-### 🧪 9. 도메인 로직 테스트 - 연속 상태 변경 시나리오
-# 알림 발송 → 실패 → 재시도 → 성공 패턴 확인
-POST {{baseUrl}}/api/v1/notifications
-Content-Type: application/json
-
-{
-  "userId": "domain-test-user",
-  "eventType": "DOMAIN_LOGIC_TEST",
-  "metadata": {
-    "testScenario": "연속 상태 변경",
-    "expectedFlow": "PENDING → FAILED → RETRY → SENT",
-    "maxRetryCount": 3,
-    "email": "domain.test@example.com"
-  }
-}
-
-### 🧪 10. 도메인 로직 테스트 - 최대 재시도 도달 시나리오
-POST {{baseUrl}}/api/v1/notifications
-Content-Type: application/json
-
-{
-  "userId": "retry-limit-test",
-  "eventType": "MAX_RETRY_TEST",
-  "metadata": {
-    "testScenario": "최대 재시도 도달",
-    "expectedBehavior": "3회 재시도 후 최종 실패",
-    "shouldFailAfter": 3,
-    "email": "retry.test@example.com"
-  }
-}
-
-### 🧪 11. 도메인 로직 테스트 - 비즈니스 규칙 검증
-POST {{baseUrl}}/api/v1/notifications
-Content-Type: application/json
-
-{
-  "userId": "business-rule-test",
-  "eventType": "BUSINESS_RULE_TEST",
-  "metadata": {
-    "testScenario": "비즈니스 규칙 검증",
-    "rules": ["canRetry", "isCompleted", "isProcessing"],
-    "version": "낙관적 락 테스트",
-    "email": "business.test@example.com"
-  }
-}
-
-### 🧪 12. 엣지 케이스 테스트 - null 메타데이터
-POST {{baseUrl}}/api/v1/notifications
-Content-Type: application/json
-
-{
-  "userId": "edge-case-test",
-  "eventType": "NULL_METADATA_TEST",
-  "metadata": null
-}
-
-### 🧪 13. 엣지 케이스 테스트 - 빈 문자열 필드
-POST {{baseUrl}}/api/v1/notifications
-Content-Type: application/json
-
-{
-  "userId": "",
-  "eventType": "",
-  "metadata": {
-    "title": "",
-    "content": "",
-    "testType": "빈 문자열 처리"
-  }
-}
-
-### ❌ 14. 존재하지 않는 알림 조회 (404 테스트)
-GET {{baseUrl}}/api/v1/notifications/non-existent-id
-
-### ❌ 15. 잘못된 요청 (400 테스트)
-POST {{baseUrl}}/api/v1/notifications
-Content-Type: application/json
-
-{
-  "userId": "",
-  "eventType": "",
-  "metadata": {}
-}
-
-### ✅ 16. 헬스 체크
-GET {{baseUrl}}/api/v1/notifications/health
-
-### 📊 17. 대량 알림 발송 시나리오
-POST {{baseUrl}}/api/v1/notifications
-Content-Type: application/json
-
-{
-  "userId": "batch-user-1",
-  "eventType": "SYSTEM_MAINTENANCE",
-  "metadata": {
-    "maintenanceDate": "2024-07-20",
-    "maintenanceTime": "02:00-04:00",
-    "affectedServices": ["notification", "user-service"],
-    "alternativeUrl": "https://status.example.com",
-    "email": "admin@example.com"
-  }
-}
-
-### 📊 18. 대량 알림 발송 시나리오 (배치 2)
-POST {{baseUrl}}/api/v1/notifications
-Content-Type: application/json
-
-{
-  "userId": "batch-user-2",
-  "eventType": "SYSTEM_MAINTENANCE",
-  "metadata": {
-    "maintenanceDate": "2024-07-20",
-    "maintenanceTime": "02:00-04:00",
-    "affectedServices": ["notification", "user-service"],
-    "alternativeUrl": "https://status.example.com",
-    "email": "admin2@example.com"
-  }
-}
-
-### 🔄 19. 연속 요청 성능 테스트 (1)
-POST {{baseUrl}}/api/v1/notifications
-Content-Type: application/json
-
-{
-  "userId": "perf-test-1",
-  "eventType": "PERFORMANCE_TEST",
-  "metadata": {
-    "testId": 1,
-    "timestamp": "{{$timestamp}}",
-    "email": "perf1@example.com"
-  }
-}
-
-### 🔄 20. 연속 요청 성능 테스트 (2)
-POST {{baseUrl}}/api/v1/notifications
-Content-Type: application/json
-
-{
-  "userId": "perf-test-2",
-  "eventType": "PERFORMANCE_TEST",
-  "metadata": {
-    "testId": 2,
-    "timestamp": "{{$timestamp}}",
-    "email": "perf2@example.com"
-  }
-}
-
-### 🔄 21. 연속 요청 성능 테스트 (3)
-POST {{baseUrl}}/api/v1/notifications
-Content-Type: application/json
-
-{
-  "userId": "perf-test-3",
-  "eventType": "PERFORMANCE_TEST",
-  "metadata": {
-    "testId": 3,
-    "timestamp": "{{$timestamp}}",
-    "email": "perf3@example.com"
-  }
-}
-
-### 📈 22. 알림 통계 조회 (채널별 성공률)
-GET {{baseUrl}}/api/v1/notifications/statistics?userId={{userId}}&period=daily&channelType=EMAIL
-
-### 📈 23. 알림 통계 조회 (전체)
-GET {{baseUrl}}/api/v1/notifications/statistics?period=weekly
-
-### 🔧 24. 도메인 모델 상태 확인 테스트
-GET {{baseUrl}}/api/v1/notifications/notification-id-here/status-details

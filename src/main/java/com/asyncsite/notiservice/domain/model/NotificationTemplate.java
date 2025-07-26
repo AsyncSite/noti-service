@@ -1,6 +1,7 @@
 package com.asyncsite.notiservice.domain.model;
 
 import com.asyncsite.notiservice.domain.model.vo.ChannelType;
+import com.asyncsite.notiservice.domain.model.vo.EventType;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -14,6 +15,7 @@ import java.util.regex.Pattern;
 public class NotificationTemplate {
     private String templateId;
     private ChannelType channelType;
+    private EventType eventType;
     private String titleTemplate;
     private String contentTemplate;
     private Map<String, String> variables;
@@ -31,6 +33,7 @@ public class NotificationTemplate {
      */
     public static NotificationTemplate create(
             ChannelType channelType,
+            EventType eventType,
             String titleTemplate,
             String contentTemplate,
             Map<String, String> variables) {
@@ -38,6 +41,7 @@ public class NotificationTemplate {
         LocalDateTime now = LocalDateTime.now();
         return NotificationTemplate.builder()
                 .channelType(channelType)
+                .eventType(eventType)
                 .titleTemplate(titleTemplate)
                 .contentTemplate(contentTemplate)
                 .variables(variables)
