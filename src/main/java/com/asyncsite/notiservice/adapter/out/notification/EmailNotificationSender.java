@@ -31,9 +31,6 @@ public class EmailNotificationSender implements NotificationSenderPort {
     @Value("${spring.mail.username}")
     private String fromEmail;
 
-    @Value("${application.notification.email.from-address:noreply@asyncsite.com}")
-    private String defaultFromEmail;
-
     @Override
     public CompletableFuture<Notification> sendNotification(Notification notification) {
         return CompletableFuture.supplyAsync(() -> {
@@ -78,7 +75,7 @@ public class EmailNotificationSender implements NotificationSenderPort {
                 context.setVariable("title", title);
                 context.setVariable("content", content);
 
-                String html = templateEngine.process("email-template", context);
+                String html = templateEngine.process("email", context);
                 helper.setFrom(fromEmail);
                 helper.setTo(recipientEmail);
                 helper.setSubject(title);
@@ -103,13 +100,6 @@ public class EmailNotificationSender implements NotificationSenderPort {
     @Override
     public boolean supportsChannelType(ChannelType channelType) {
         return channelType == ChannelType.EMAIL;
-    }
-
-    /**
-     * 발신자 이메일 주소를 결정합니다.
-     */
-    private String getFromEmail() {
-        return fromEmail != null && !fromEmail.isEmpty() ? fromEmail : defaultFromEmail;
     }
 
     /**
