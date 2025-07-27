@@ -5,14 +5,16 @@ import com.asyncsite.notiservice.domain.model.NotificationTemplate;
 import com.asyncsite.notiservice.domain.model.vo.ChannelType;
 import com.asyncsite.notiservice.domain.port.out.NotificationSenderPort;
 import com.asyncsite.notiservice.domain.port.out.NotificationTemplateRepositoryPort;
+import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Component;
+import org.thymeleaf.context.Context;
+import org.thymeleaf.spring6.SpringTemplateEngine;
 
-import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
@@ -22,6 +24,8 @@ import java.util.concurrent.CompletableFuture;
 public class EmailNotificationSender implements NotificationSenderPort {
 
     private final JavaMailSender mailSender;
+    private final SpringTemplateEngine templateEngine;
+
     private final NotificationTemplateRepositoryPort templateRepository;
 
     @Value("${spring.mail.username}")
@@ -67,12 +71,18 @@ public class EmailNotificationSender implements NotificationSenderPort {
                 }
 
                 // 3. 이메일 메시지 구성 및 발송
-                SimpleMailMessage message = new SimpleMailMessage();
-                message.setFrom(getFromEmail());
-                message.setTo(recipientEmail);
-                message.setSubject(title != null && !title.trim().isEmpty() ? title : "알림");
-                message.setText(content != null ? content : "알림 내용");
+                MimeMessage message = mailSender.createMimeMessage();
+                MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
+                Context context = new Context();
+                context.setVariable("title", title);
+                context.setVariable("content", content);
+
+                String html = templateEngine.process("email-template", context);
+                helper.setFrom(fromEmail);
+                helper.setTo(recipientEmail);
+                helper.setSubject(title);
+                helper.setText(html, true);
                 mailSender.send(message);
 
                 log.info("이메일 발송 성공: notificationId={}, recipient={}",
