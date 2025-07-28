@@ -198,7 +198,7 @@ jobs:
               environment:
                 - SPRING_PROFILES_ACTIVE=docker,microservices
                 - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://asyncsite-eureka:8761/eureka/
-                - SPRING_DATASOURCE_URL=jdbc:mysql://asyncsite-mysql:3306/notidb?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true&characterEncoding=utf8&useUnicode=true
+                - SPRING_DATASOURCE_URL=jdbc:mysql://asyncsite-mysql:3306/notidb?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true&characterEncoding=utf8&useUnicode=true&createDatabaseIfNotExist=true
                 - SPRING_DATASOURCE_USERNAME=root
                 - SPRING_DATASOURCE_PASSWORD=asyncsite_root_2024!
                 - SPRING_MAIL_HOST=${{ secrets.MAIL_HOST }}
@@ -238,15 +238,30 @@ jobs:
           
           # Wait for services to be healthy
           echo "Waiting for services to be healthy..."
-          sleep 45
+          for i in {1..30}; do
+            if curl -f http://localhost:8089/actuator/health >/dev/null 2>&1; then
+              echo "✅ Service is healthy!"
+              break
+            fi
+            echo "⏳ Waiting for service to start... ($i/30)"
+            sleep 2
+          done
           
           # Check service status
-          echo "Checking container status..."
-          docker ps | grep asyncsite-noti-service || echo "WARNING: noti-service container is not running!"
+          echo ""
+          echo "=== Container Status ==="
+          docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" | grep -E "(NAMES|noti-service)" || echo "WARNING: noti-service container not found!"
           
           # Show initial logs
-          echo "Showing initial logs..."
-          docker logs asyncsite-noti-service --tail 50 || echo "WARNING: Could not retrieve logs"
+          echo ""
+          echo "=== Recent Logs ==="
+          docker logs asyncsite-noti-service --tail 20 2>&1 || echo "WARNING: Could not retrieve logs"
           
-          echo "Deployment completed!"
+          # Final health check
+          echo ""
+          echo "=== Health Check ==="
+          curl -s http://localhost:8089/actuator/health | python3 -m json.tool || echo "WARNING: Health check failed"
+          
+          echo ""
+          echo "✅ Deployment completed!"
         ENDSSH
