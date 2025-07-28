@@ -15,6 +15,7 @@
 # Build files
 .gradle
 build/
+!build/libs/
 target/
 out/
 bin/
