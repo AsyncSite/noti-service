@@ -1,0 +1,327 @@
+// Docker 실행 파일 찾기
+def findDockerExecutable() {
+    def possiblePaths = [
+        "/usr/local/bin/docker",
+        "/usr/bin/docker",
+        "/opt/homebrew/bin/docker",
+        "/Applications/Docker.app/Contents/Resources/bin/docker"
+    ]
+
+    for (path in possiblePaths) {
+        if (file(path).exists()) {
+            return path
+        }
+    }
+
+    // which 명령어로 docker 찾기
+    try {
+        def process = "which docker".execute()
+        def dockerPath = process.text.trim()
+        if (dockerPath && file(dockerPath).exists()) {
+            return dockerPath
+        }
+    } catch (Exception e) {
+        // ignore
+    }
+
+    return null
+}
+
+// Docker 명령어 실행 헬퍼 함수
+def executeDockerCommand(String... args) {
+    def dockerPath = findDockerExecutable()
+    if (!dockerPath) {
+        println "❌ Docker not found. Please make sure Docker Desktop is installed and running."
+        println "   You can also run Docker commands directly from terminal."
+        return false
+    }
+
+    try {
+        def output = new ByteArrayOutputStream()
+        def result = exec {
+            // 전체 명령어 배열 생성 (docker 실행 파일 경로 포함)
+            def fullCommand = args[0] == "docker" ? [dockerPath] + args.drop(1) : [dockerPath] + args
+            
+            commandLine fullCommand
+            workingDir = projectDir
+            standardOutput = output
+            errorOutput = output
+            ignoreExitValue = true
+        }
+
+        if (result.exitValue != 0) {
+            println "Command failed: ${args.join(' ')}"
+            println output.toString()
+            return false
+        }
+        return true
+    } catch (Exception e) {
+        println "Error executing Docker command: ${e.message}"
+        return false
+    }
+}
+
+// Docker Compose 명령어 실행
+def dockerCompose(String... args) {
+    return executeDockerCommand("compose", *args)
+}
+
+// Docker Compose 명령어 실행 (특정 파일 지정)
+def dockerComposeWithFile(String file, String... args) {
+    return executeDockerCommand("compose", "-f", file, *args)
+}
+
+// 간편한 Docker Tasks
+task dockerUp {
+    group = 'docker-simple'
+    description = 'Start noti service with docker compose up -d'
+    doLast {
+        if (dockerCompose("up", "-d")) {
+            println "✅ Noti service started successfully"
+            println "View logs: ./gradlew dockerLogs"
+            println "Check status: docker ps"
+        } else {
+            println "❌ Failed to start noti service"
+            println "Make sure Docker Desktop is running"
+        }
+    }
+}
+
+task dockerDown {
+    group = 'docker-simple'
+    description = 'Stop noti service with docker compose down'
+    doLast {
+        if (dockerCompose("down")) {
+            println "✅ Noti service stopped successfully"
+        } else {
+            println "❌ Failed to stop noti service"
+        }
+    }
+}
+
+task dockerRestart {
+    group = 'docker-simple'
+    description = 'Restart noti service'
+    dependsOn dockerDown, dockerUp
+}
+
+task dockerStatus {
+    group = 'docker-simple'
+    description = 'Show Docker container status'
+    doLast {
+        executeDockerCommand("ps", "--format", "table {{.Names}}\\t{{.Status}}\\t{{.Ports}}")
+    }
+}
+
+task dockerBuildAndRun {
+    group = 'docker-simple'
+    description = 'Build JAR file and run noti service'
+    dependsOn 'bootJar'
+    finalizedBy dockerUp
+    doLast {
+        println "Building noti service..."
+    }
+}
+
+task dockerLogs {
+    group = 'docker-simple'
+    description = 'Show noti service Docker logs'
+    doLast {
+        executeDockerCommand("logs", "-f", "asyncsite-noti-service")
+    }
+}
+
+// Noti Service 전용 Docker Tasks
+task dockerBuild {
+    group = 'docker-simple'
+    description = 'Build Noti Service Docker image'
+    dependsOn 'bootJar'
+    doLast {
+        if (executeDockerCommand("build", "-t", "asyncsite/noti-service:latest", ".")) {
+            println "✅ Noti service Docker image built successfully"
+        } else {
+            println "❌ Failed to build Docker image"
+        }
+    }
+}
+
+// Noti Service Only (인프라가 이미 실행 중일 때)
+task dockerUpNotiOnly {
+    group = 'docker-simple'
+    description = 'Start only noti service when infrastructure is already running'
+    doLast {
+        if (dockerComposeWithFile("docker-compose.noti-only.yml", "up", "-d")) {
+            println "✅ Noti service started successfully (using existing infrastructure)"
+            println "View logs: ./gradlew dockerLogsNotiOnly"
+            println "Check status: docker ps"
+        } else {
+            println "❌ Failed to start noti service"
+            println "Make sure infrastructure services are already running"
+        }
+    }
+}
+
+task dockerDownNotiOnly {
+    group = 'docker-simple'
+    description = 'Stop only noti service (keeps infrastructure running)'
+    doLast {
+        if (dockerComposeWithFile("docker-compose.noti-only.yml", "down")) {
+            println "✅ Noti service stopped successfully"
+        } else {
+            println "❌ Failed to stop noti service"
+        }
+    }
+}
+
+task dockerRestartNotiOnly {
+    group = 'docker-simple'
+    description = 'Restart only noti service'
+    dependsOn dockerDownNotiOnly, dockerUpNotiOnly
+}
+
+// Ensure clean happens before bootJar
+tasks.named('bootJar') {
+    mustRunAfter 'clean'
+}
+
+task dockerRebuildAndRunNotiOnly {
+    group = 'docker-simple'
+    description = 'Completely rebuild and run noti service (removes old container and image)'
+    
+    dependsOn 'clean', 'bootJar'
+    
+    doLast {
+        // Stop and remove container
+        if (dockerComposeWithFile("docker-compose.noti-only.yml", "down")) {
+            println "✅ Noti service stopped and removed"
+        }
+        
+        // Remove old image
+        executeDockerCommand("rmi", "asyncsite/noti-service:latest", "-f")
+        println "✅ Old noti service image removed"
+        
+        println "🔨 Building Docker image..."
+        if (executeDockerCommand("build", "-t", "asyncsite/noti-service:latest", ".")) {
+            println "✅ Noti service Docker image built successfully"
+            
+            println "🚀 Starting noti service..."
+            if (dockerComposeWithFile("docker-compose.noti-only.yml", "up", "-d")) {
+                println "✅ Noti service started successfully"
+                println "View logs: ./gradlew dockerLogsNotiOnly"
+            } else {
+                println "❌ Failed to start noti service"
+            }
+        } else {
+            println "❌ Failed to build Docker image"
+        }
+    }
+}
+
+task dockerBuildAndRunNotiOnly {
+    group = 'docker-simple'
+    description = 'Build JAR and run only noti service'
+    dependsOn 'bootJar'
+    finalizedBy dockerUpNotiOnly
+    doLast {
+        println "Building noti service..."
+    }
+}
+
+task dockerLogsNotiOnly {
+    group = 'docker-simple'
+    description = 'Show noti service Docker logs'
+    doLast {
+        executeDockerCommand("logs", "-f", "asyncsite-noti-service")
+    }
+}
+
+task dockerRunStandalone {
+    group = 'docker-simple'
+    description = 'Run Noti Service as standalone container (ensure infrastructure is running)'
+    dependsOn dockerBuild
+    doLast {
+        // Stop and remove existing container if it exists
+        executeDockerCommand("stop", "asyncsite-noti-service")
+        executeDockerCommand("rm", "asyncsite-noti-service")
+        
+        if (executeDockerCommand(
+            "run", "-d",
+            "--name", "asyncsite-noti-service",
+            "--network", "asyncsite-network",
+            "-p", "8084:8084",
+            "-e", "SPRING_PROFILES_ACTIVE=docker",
+            "-e", "EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://asyncsite-eureka:8761/eureka/",
+            "-e", "SPRING_DATASOURCE_URL=jdbc:mysql://asyncsite-mysql:3306/notidb?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true",
+            "-e", "SPRING_DATASOURCE_USERNAME=root",
+            "-e", "SPRING_DATASOURCE_PASSWORD=asyncsite_root_2024!",
+            "asyncsite/noti-service:latest"
+        )) {
+            println "✅ Noti service container started successfully"
+            println "Access at: http://localhost:8084"
+        } else {
+            println "❌ Failed to start noti service container"
+            println "Make sure core-platform infrastructure is running"
+        }
+    }
+}
+
+// Help task to show all Docker commands
+task dockerHelp {
+    group = 'docker-simple'
+    description = 'Show all available Docker commands'
+    doLast {
+        println """
+=== Noti Service Docker Commands ===
+
+Full Stack Commands (includes infrastructure):
+  ./gradlew dockerUp                  - Start all services with docker-compose
+  ./gradlew dockerDown                - Stop all services
+  ./gradlew dockerRestart             - Restart all services
+  ./gradlew dockerBuildAndRun         - Build JAR and run all services
+
+Noti Service Only Commands (when infrastructure is already running):
+  ./gradlew dockerUpNotiOnly          - Start only noti service
+  ./gradlew dockerDownNotiOnly        - Stop only noti service
+  ./gradlew dockerRestartNotiOnly     - Restart only noti service
+  ./gradlew dockerBuildAndRunNotiOnly - Build JAR and run only noti service
+  ./gradlew dockerRebuildAndRunNotiOnly - Completely rebuild and run (removes old container/image)
+  ./gradlew dockerLogsNotiOnly        - Show noti service logs
+
+Other Commands:
+  ./gradlew dockerBuild               - Build Docker image
+  ./gradlew dockerStatus              - Show container status
+  ./gradlew dockerLogs                - Show logs (follows output)
+  ./gradlew runInfraOnly              - Run only infrastructure from core-platform
+
+Note: Use *NotiOnly commands when MySQL and Eureka are already running.
+"""
+    }
+}
+
+// Infrastructure only (for local development)
+task runInfraOnly {
+    group = 'docker-simple'
+    description = 'Run only infrastructure (MySQL, Eureka) from core-platform for local development'
+    doLast {
+        def corePlatformDir = file("../core-platform")
+        def dockerPath = findDockerExecutable()
+        
+        if (!corePlatformDir.exists()) {
+            println "❌ Core platform directory not found at ../core-platform"
+            return
+        }
+        
+        if (!dockerPath) {
+            println "❌ Docker not found. Please make sure Docker Desktop is installed and running."
+            return
+        }
+        
+        exec {
+            commandLine dockerPath, "compose", "up", "-d", "mysql", "eureka-server"
+            workingDir = corePlatformDir
+        }
+        println "✅ Infrastructure services started from core-platform"
+        println "MySQL: localhost:3306"
+        println "Eureka: http://localhost:8761"
+    }
+}

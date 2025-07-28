@@ -1,0 +1,52 @@
+# Multi-stage Dockerfile for noti-service
+# This version builds the application inside Docker
+# Use this when you want to build and run in a single step
+
+# Build stage
+FROM eclipse-temurin:21-jdk AS builder
+WORKDIR /app
+
+# Copy gradle wrapper
+COPY gradle gradle
+COPY gradlew gradlew
+COPY gradle.properties gradle.properties
+
+# Download dependencies
+COPY build.gradle build.gradle
+COPY settings.gradle settings.gradle
+RUN ./gradlew dependencies --no-daemon
+
+# Copy source code
+COPY src src
+
+# Build application
+RUN ./gradlew clean build -x test --no-daemon
+
+# Runtime stage
+FROM eclipse-temurin:21-jre
+WORKDIR /app
+
+# Create non-root user for security and logs directory
+RUN useradd -m -u 1001 appuser && \
+    mkdir -p /app/logs && \
+    chown -R appuser:appuser /app && \
+    chmod 755 /app/logs
+
+# Copy JAR from builder stage
+COPY --from=builder --chown=appuser:appuser /app/build/libs/*.jar app.jar
+
+# Switch to non-root user
+USER appuser
+
+# Expose application port
+EXPOSE 8084
+
+# Set JVM options for container environment
+ENV JAVA_OPTS="-Xmx512m -Xms256m"
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD curl -f http://localhost:8084/actuator/health || exit 1
+
+# Run the application
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]

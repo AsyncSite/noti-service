@@ -1,0 +1,110 @@
+spring:
+  # Database Configuration
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://asyncsite-mysql:3306/notidb?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true}
+    username: ${SPRING_DATASOURCE_USERNAME:root}
+    password: ${SPRING_DATASOURCE_PASSWORD:asyncsite_root_2024!}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      connection-timeout: 30000
+      maximum-pool-size: 10
+      minimum-idle: 5
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      
+  # JPA Configuration
+  jpa:
+    hibernate:
+      ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO:update}
+    show-sql: ${SPRING_JPA_SHOW_SQL:false}
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+        format_sql: false
+        jdbc:
+          time_zone: UTC
+        
+  # Mail Configuration
+  mail:
+    host: ${SPRING_MAIL_HOST:smtp.gmail.com}
+    port: ${SPRING_MAIL_PORT:587}
+    username: ${SPRING_MAIL_USERNAME:}
+    password: ${SPRING_MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: ${SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH:true}
+          starttls:
+            enable: ${SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE:true}
+          connection-timeout: 5000
+          timeout: 5000
+          write-timeout: 5000
+
+# Eureka Client Configuration
+eureka:
+  instance:
+    hostname: noti-service
+    prefer-ip-address: true
+    instance-id: ${EUREKA_INSTANCE_INSTANCE_ID:${spring.application.name}:${server.port}}
+    metadata-map:
+      version: ${EUREKA_INSTANCE_METADATA_MAP_VERSION:1.0.0}
+      zone: ${EUREKA_INSTANCE_METADATA_MAP_ZONE:docker}
+  client:
+    enabled: ${EUREKA_CLIENT_ENABLED:true}
+    service-url:
+      defaultZone: ${EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE:http://asyncsite-eureka:8761/eureka/}
+    registry-fetch-interval-seconds: 5
+    instance-info-replication-interval-seconds: 5
+
+# Server Configuration
+server:
+  port: 8084
+  forward-headers-strategy: framework
+  
+# Actuator Configuration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: ${MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE:health,info,metrics,prometheus}
+  endpoint:
+    health:
+      show-details: ${MANAGEMENT_ENDPOINT_HEALTH_SHOW_DETAILS:always}
+  health:
+    db:
+      enabled: ${MANAGEMENT_HEALTH_DB_ENABLED:true}
+    mail:
+      enabled: false
+
+# Application Specific Configuration
+application:
+  notification:
+    email:
+      enabled: ${APPLICATION_NOTIFICATION_EMAIL_ENABLED:true}
+      retry-attempts: ${APPLICATION_NOTIFICATION_EMAIL_RETRY_ATTEMPTS:3}
+      retry-delay: ${APPLICATION_NOTIFICATION_EMAIL_RETRY_DELAY:5000}
+      from-address: ${APPLICATION_NOTIFICATION_EMAIL_FROM_ADDRESS:noreply@asyncsite.com}
+    discord:
+      enabled: ${APPLICATION_NOTIFICATION_DISCORD_ENABLED:true}
+      webhook-url: ${APPLICATION_NOTIFICATION_DISCORD_WEBHOOK_URL:}
+      retry-attempts: ${APPLICATION_NOTIFICATION_DISCORD_RETRY_ATTEMPTS:3}
+      retry-delay: ${APPLICATION_NOTIFICATION_DISCORD_RETRY_DELAY:3000}
+    async:
+      core-pool-size: ${APPLICATION_NOTIFICATION_ASYNC_CORE_POOL_SIZE:5}
+      max-pool-size: ${APPLICATION_NOTIFICATION_ASYNC_MAX_POOL_SIZE:10}
+      queue-capacity: ${APPLICATION_NOTIFICATION_ASYNC_QUEUE_CAPACITY:100}
+      thread-name-prefix: ${APPLICATION_NOTIFICATION_ASYNC_THREAD_NAME_PREFIX:noti-async-}
+
+# Logging Configuration
+logging:
+  level:
+    com.asyncsite.notiservice: ${LOGGING_LEVEL_COM_ASYNCSITE_NOTISERVICE:INFO}
+    org.springframework.web: ${LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB:INFO}
+    org.hibernate.SQL: ${LOGGING_LEVEL_ORG_HIBERNATE_SQL:WARN}
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+  file:
+    name: /app/logs/noti-service.log
+    max-size: 10MB
+    max-history: 30
