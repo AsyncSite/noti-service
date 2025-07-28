@@ -1,84 +1,11 @@
 # =============================================================================
-# Noti Service - Complete Stack
+# Noti Service Only
 # =============================================================================
-# This docker-compose file contains:
-# - Shared Infrastructure: MySQL, Eureka
-# - Noti Service: Notification Management and Delivery
-# 
-# Infrastructure services use consistent container names across all services.
-# Docker automatically prevents duplicate containers with the same name.
+# This docker-compose file is for local development when core-platform
+# infrastructure (MySQL, Eureka) is already running
 # =============================================================================
 
 services:
-  # =============================================================================
-  # Shared Infrastructure Services
-  # These services are shared across all microservices in the asyncsite ecosystem
-  # =============================================================================
-  
-  # MySQL - Main Database
-  mysql:
-    image: mysql:8.0
-    container_name: asyncsite-mysql
-    restart: unless-stopped
-    ports:
-      - "3306:3306"
-    environment:
-      MYSQL_ROOT_PASSWORD: asyncsite_root_2024!
-    volumes:
-      - asyncsite-mysql-data:/var/lib/mysql
-      - ./mysql/conf:/etc/mysql/conf.d
-      - ./mysql/init:/docker-entrypoint-initdb.d
-    deploy:
-      resources:
-        limits:
-          memory: 1G
-          cpus: '1.0'
-        reservations:
-          memory: 512M
-          cpus: '0.5'
-    labels:
-      - "com.asyncsite.service=mysql"
-      - "com.asyncsite.tier=data"
-      - "com.asyncsite.type=infrastructure"
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p$$MYSQL_ROOT_PASSWORD"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s
-
-  # Eureka Server - Service Discovery
-  eureka:
-    image: asyncsite/eureka:latest
-    container_name: asyncsite-eureka
-    restart: unless-stopped
-    ports:
-      - "8761:8761"
-    environment:
-      - SPRING_PROFILES_ACTIVE=docker
-    deploy:
-      resources:
-        limits:
-          memory: 512M
-          cpus: '0.5'
-        reservations:
-          memory: 256M
-          cpus: '0.25'
-    labels:
-      - "com.asyncsite.service=eureka"
-      - "com.asyncsite.tier=platform"
-      - "com.asyncsite.type=infrastructure"
-    healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8761/actuator/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s
-
-  # =============================================================================
-  # Noti Service - Notification Management and Delivery
-  # =============================================================================
-  # Handles notification templates, channels, settings, and delivery
   noti-service:
     build:
       context: .
@@ -141,9 +68,6 @@ services:
       - noti-service-logs:/app/logs
     networks:
       - asyncsite-network
-    depends_on:
-      - mysql
-      - eureka
     # Health check configuration
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8084/actuator/health"]
@@ -176,7 +100,5 @@ networks:
     name: asyncsite-network
 
 volumes:
-  asyncsite-mysql-data:
-    external: true
   noti-service-logs:
     driver: local

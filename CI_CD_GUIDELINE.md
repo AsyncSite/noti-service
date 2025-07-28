@@ -33,6 +33,25 @@ graph LR
 - SMTP 서버 정보 (이메일 발송용)
 - Discord Webhook URL (Discord 알림용)
 
+### 3.3 인프라 의존성
+Noti Service는 다음 core-platform 서비스에 의존합니다:
+- **asyncsite-mysql**: 데이터베이스
+- **asyncsite-eureka**: 서비스 디스커버리
+- **asyncsite-network**: Docker 네트워크
+
+**중요**: 서버 배포 전에 core-platform이 반드시 먼저 실행되어 있어야 합니다.
+
+배포 전 확인사항:
+```bash
+# core-platform 실행 상태 확인
+docker ps | grep -E "(asyncsite-mysql|asyncsite-eureka)"
+
+# Docker 네트워크 확인
+docker network ls | grep asyncsite-network
+```
+
+core-platform이 실행되지 않은 경우, noti-service 배포는 실패합니다.
+
 ## 4. GitHub Actions 워크플로우
 
 ### 4.1 CI/CD Pipeline (`.github/workflows/ci-cd.yml`)

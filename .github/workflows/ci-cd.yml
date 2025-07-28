@@ -161,6 +161,23 @@ jobs:
         ssh -p 2222 -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'ENDSSH'
           echo "Starting deployment of noti-service..."
           
+          # Check if core infrastructure is running
+          echo "Checking core infrastructure..."
+          if ! docker ps | grep -q "asyncsite-eureka"; then
+            echo "ERROR: Eureka server is not running. Please start core-platform first."
+            exit 1
+          fi
+          
+          if ! docker ps | grep -q "asyncsite-mysql"; then
+            echo "ERROR: MySQL is not running. Please start core-platform first."
+            exit 1
+          fi
+          
+          if ! docker network ls | grep -q "asyncsite-network"; then
+            echo "ERROR: asyncsite-network does not exist. Please ensure core-platform is properly deployed."
+            exit 1
+          fi
+          
           # Navigate to deployment directory
           cd ~/deployments/noti-service || mkdir -p ~/deployments/noti-service && cd ~/deployments/noti-service
           
