@@ -271,3 +271,30 @@ jobs:
           echo ""
           echo "✅ Deployment completed!"
         ENDSSH
+    
+    - name: Send Discord Notification
+      if: always()
+      env:
+        STATUS_COLOR: ${{ job.status == 'success' && '3066993' || '15158332' }}
+        STATUS_EMOJI: ${{ job.status == 'success' && '✅' || '❌' }}
+      run: |
+        curl -H "Content-Type: application/json" \
+             -X POST \
+             -d "{
+               \"embeds\": [{
+                 \"title\": \"$STATUS_EMOJI noti-service 배포 ${{ job.status }}\",
+                 \"color\": $STATUS_COLOR,
+                 \"fields\": [
+                   {\"name\": \"서비스\", \"value\": \"noti-service\", \"inline\": true},
+                   {\"name\": \"브랜치\", \"value\": \"${{ github.ref_name }}\", \"inline\": true},
+                   {\"name\": \"배포자\", \"value\": \"${{ github.actor }}\", \"inline\": true},
+                   {\"name\": \"커밋\", \"value\": \"\`${GITHUB_SHA::8}\`\", \"inline\": false},
+                   {\"name\": \"시간\", \"value\": \"$(TZ=Asia/Seoul date +'%Y-%m-%d %H:%M:%S KST')\", \"inline\": false}
+                 ],
+                 \"footer\": {
+                   \"text\": \"AsyncSite CI/CD\"
+                 },
+                 \"timestamp\": \"$(date -u +%Y-%m-%dT%H:%M:%S.000Z)\"
+               }]
+             }" \
+             https://discord.com/api/webhooks/1399402822105038999/2qQDazifNKeW_c8MhHqcrw6Li5yDQtBL7f2JIBQ_b4qVT3Vxh7TfpMV3kBFnDYAFL3-h
