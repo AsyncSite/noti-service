@@ -178,8 +178,14 @@ jobs:
             exit 1
           fi
           
-          # Navigate to deployment directory
-          cd ~/deployments/noti-service || mkdir -p ~/deployments/noti-service && cd ~/deployments/noti-service
+          # Create deployment directory if it doesn't exist
+          mkdir -p ~/deployments/noti-service
+          cd ~/deployments/noti-service
+          
+          # Stop and remove existing container to avoid port conflicts
+          echo "Stopping existing noti-service container if running..."
+          docker stop asyncsite-noti-service 2>/dev/null || true
+          docker rm asyncsite-noti-service 2>/dev/null || true
           
           # Create docker-compose file
           cat > docker-compose.yml << COMPOSE_EOF
@@ -201,6 +207,8 @@ jobs:
                 - SPRING_MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}
                 - APPLICATION_NOTIFICATION_EMAIL_FROM_ADDRESS=${{ secrets.MAIL_FROM }}
                 - APPLICATION_NOTIFICATION_DISCORD_WEBHOOK_URL=${{ secrets.DISCORD_WEBHOOK_URL }}
+                - LOGGING_LEVEL_ROOT=INFO
+                - LOGGING_LEVEL_COM_ASYNCSITE_NOTISERVICE=DEBUG
               networks:
                 - asyncsite-network
               restart: unless-stopped
@@ -233,7 +241,12 @@ jobs:
           sleep 45
           
           # Check service status
-          docker ps | grep -E "(asyncsite-noti-service|asyncsite-mysql)"
+          echo "Checking container status..."
+          docker ps | grep asyncsite-noti-service || echo "WARNING: noti-service container is not running!"
+          
+          # Show initial logs
+          echo "Showing initial logs..."
+          docker logs asyncsite-noti-service --tail 50 || echo "WARNING: Could not retrieve logs"
           
           echo "Deployment completed!"
         ENDSSH

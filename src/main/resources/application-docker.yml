@@ -70,7 +70,13 @@ management:
   endpoint:
     health:
       show-details: ${MANAGEMENT_ENDPOINT_HEALTH_SHOW_DETAILS:always}
+      probes:
+        enabled: true
   health:
+    readiness-state:
+      enabled: true
+    liveness-state:
+      enabled: true
     db:
       enabled: ${MANAGEMENT_HEALTH_DB_ENABLED:true}
     mail:
@@ -98,12 +104,12 @@ application:
 # Logging Configuration
 logging:
   level:
+    root: ${LOGGING_LEVEL_ROOT:INFO}
     com.asyncsite.notiservice: ${LOGGING_LEVEL_COM_ASYNCSITE_NOTISERVICE:INFO}
     org.springframework.web: ${LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB:INFO}
     org.hibernate.SQL: ${LOGGING_LEVEL_ORG_HIBERNATE_SQL:WARN}
   pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
-    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
   file:
     name: /app/logs/noti-service.log
     max-size: 10MB
