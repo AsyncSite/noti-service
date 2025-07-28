@@ -137,7 +137,7 @@ task dockerBuild {
     description = 'Build Noti Service Docker image'
     dependsOn 'bootJar'
     doLast {
-        if (executeDockerCommand("build", "-t", "asyncsite/noti-service:latest", ".")) {
+        if (executeDockerCommand("build", "-t", "ghcr.io/asyncsite/noti-service:latest", ".")) {
             println "✅ Noti service Docker image built successfully"
         } else {
             println "❌ Failed to build Docker image"
@@ -197,11 +197,11 @@ task dockerRebuildAndRunNotiOnly {
         }
         
         // Remove old image
-        executeDockerCommand("rmi", "asyncsite/noti-service:latest", "-f")
+        executeDockerCommand("rmi", "ghcr.io/asyncsite/noti-service:latest", "-f")
         println "✅ Old noti service image removed"
         
         println "🔨 Building Docker image..."
-        if (executeDockerCommand("build", "-t", "asyncsite/noti-service:latest", ".")) {
+        if (executeDockerCommand("build", "-t", "ghcr.io/asyncsite/noti-service:latest", ".")) {
             println "✅ Noti service Docker image built successfully"
             
             println "🚀 Starting noti service..."
@@ -254,7 +254,7 @@ task dockerRunStandalone {
             "-e", "SPRING_DATASOURCE_URL=jdbc:mysql://asyncsite-mysql:3306/notidb?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true",
             "-e", "SPRING_DATASOURCE_USERNAME=root",
             "-e", "SPRING_DATASOURCE_PASSWORD=asyncsite_root_2024!",
-            "asyncsite/noti-service:latest"
+            "ghcr.io/asyncsite/noti-service:latest"
         )) {
             println "✅ Noti service container started successfully"
             println "Access at: http://localhost:8084"

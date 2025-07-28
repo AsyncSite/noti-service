@@ -2,7 +2,7 @@
 
 ## 1. 개요
 
-본 문서는 Noti Service의 CI/CD 파이프라인 구축 및 운영을 위한 표준 가이드라인입니다. User Service의 CI/CD 패턴을 기반으로 작성되었습니다.
+본 문서는 Noti Service의 CI/CD 파이프라인 구축 및 운영을 위한 표준 가이드라인입니다. User Service의 CI/CD 패턴을 동일하게 따릅니다.
 
 ## 2. CI/CD 아키텍처
 
@@ -27,48 +27,46 @@ graph LR
 - GitHub 계정
 
 ### 3.2 필수 설정
-- GitHub Personal Access Token (PAT)
-- Docker Hub 계정
+- GitHub Personal Access Token (PAT) - GitHub Packages 접근용
+- SSH 키 (서버 배포용)
 - 환경별 설정 파일 준비
 - SMTP 서버 정보 (이메일 발송용)
 - Discord Webhook URL (Discord 알림용)
 
 ## 4. GitHub Actions 워크플로우
 
-### 4.1 CI Pipeline (`.github/workflows/ci.yml`)
-- **트리거**: Push to main/develop/feature branches, Pull requests
+### 4.1 CI/CD Pipeline (`.github/workflows/ci-cd.yml`)
+- **트리거**: 
+  - Push to main/feature/fix/release/hotfix branches
+  - Pull requests to main
+  - Manual dispatch
 - **작업**:
-  - Java 21 환경 설정
-  - Gradle 캐시 활용
-  - 단위 테스트 실행
-  - 코드 품질 검사
-  - JAR 빌드
-  - 테스트 리포트 생성
+  1. **Test Job**:
+     - Java 21 환경 설정
+     - MySQL 서비스 시작
+     - Gradle 빌드 및 테스트
+     - 테스트 리포트 업로드
+  2. **Build and Push Job** (main/feature 브랜치만):
+     - Docker 이미지 빌드
+     - GitHub Container Registry (ghcr.io)에 푸시
+  3. **Deploy Job** (main/feature 브랜치만):
+     - SSH를 통한 서버 배포
+     - Docker Compose로 서비스 시작
+     - 헬스체크
 
-### 4.2 CD Pipeline (`.github/workflows/cd.yml`)
-- **트리거**: Push to main branch, Manual dispatch
-- **작업**:
-  - JAR 빌드
-  - Docker 이미지 빌드 및 푸시
-  - 환경별 배포 (staging/production)
-  - 헬스체크
-  - Slack 알림
-
-### 4.3 PR Validation (`.github/workflows/pr-validation.yml`)
+### 4.2 PR Check (`.github/workflows/pr-check.yml`)
 - **트리거**: Pull request events
 - **작업**:
-  - 코드 스타일 검사
-  - 보안 스캔 (Trivy)
-  - 의존성 취약점 검사
-  - 테스트 커버리지 확인
-  - Docker 빌드 검증
+  - Gradle wrapper 검증
+  - 프로젝트 빌드
+  - 단위 테스트 실행
+  - PR에 테스트 결과 요약 추가
 
-### 4.4 Release Pipeline (`.github/workflows/release.yml`)
-- **트리거**: Git tag push (v*)
+### 4.3 Dependency Check (`.github/workflows/dependency-check.yml`)
+- **트리거**: 매주 월요일 자정 (스케줄) 또는 수동
 - **작업**:
-  - GitHub Release 생성
-  - JAR 아티팩트 업로드
-  - Docker 이미지 태깅 및 푸시
+  - 의존성 취약점 스캔
+  - 보안 리포트 생성
 
 ## 5. 로컬 개발 환경
 
@@ -110,8 +108,8 @@ graph LR
 
 ### 6.1 자동 배포
 
-1. `develop` 브랜치 → Staging 환경 자동 배포
-2. `main` 브랜치 → Production 환경 자동 배포
+1. `main` 브랜치 → 운영 서버 자동 배포
+2. `feature/**` 브랜치 → 개발 서버 자동 배포 (선택적)
 
 ### 6.2 수동 배포
 
@@ -159,12 +157,16 @@ DISCORD_WEBHOOK_URL=https://discord.com/api/webhooks/...
 ### 7.2 GitHub Secrets
 
 Repository Settings > Secrets에 설정:
-- `DOCKER_USERNAME`
-- `DOCKER_PASSWORD`
-- `SLACK_WEBHOOK_URL`
-- `MAIL_USERNAME`
-- `MAIL_PASSWORD`
-- `DISCORD_WEBHOOK_URL`
+- `PAT_TOKEN` - GitHub Personal Access Token
+- `SSH_PRIVATE_KEY` - 서버 접속용 SSH 키 (base64 인코딩)
+- `SSH_HOST` - 배포 서버 주소
+- `SSH_USER` - SSH 사용자명
+- `MAIL_HOST` - SMTP 서버 주소
+- `MAIL_PORT` - SMTP 포트
+- `MAIL_USERNAME` - 이메일 계정
+- `MAIL_PASSWORD` - 이메일 비밀번호
+- `MAIL_FROM` - 발신자 이메일
+- `DISCORD_WEBHOOK_URL` - Discord Webhook URL
 
 ## 8. 모니터링 및 헬스체크
 

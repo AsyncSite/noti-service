@@ -83,7 +83,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: asyncsite/noti-service:latest
+    image: ghcr.io/asyncsite/noti-service:latest
     container_name: asyncsite-noti-service
     restart: unless-stopped
     ports:

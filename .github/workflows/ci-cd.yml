@@ -1,0 +1,216 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, feature/**, fix/**, release/**, hotfix/** ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+env:
+  DOCKER_REGISTRY: ghcr.io
+  IMAGE_NAME: ghcr.io/asyncsite/noti-service
+
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
+  packages: write
+
+jobs:
+  test:
+    name: Build and Test
+    runs-on: ubuntu-latest
+    
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root1234
+          MYSQL_DATABASE: notidb_test
+          MYSQL_USER: noti
+          MYSQL_PASSWORD: noti1234
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+    
+    steps:
+    - name: Checkout noti-service
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    
+    - name: Set up JDK 21
+      uses: actions/setup-java@v4
+      with:
+        java-version: '21'
+        distribution: 'temurin'
+        cache: 'gradle'
+    
+    - name: Grant execute permission for gradlew
+      run: chmod +x gradlew
+    
+    - name: Cache Gradle packages
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.gradle/caches
+          ~/.gradle/wrapper
+        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+        restore-keys: |
+          ${{ runner.os }}-gradle-
+    
+    - name: Build with Gradle (skip tests)
+      run: ./gradlew build -x test --no-daemon --stacktrace
+    
+    - name: Run tests
+      run: ./gradlew test --no-daemon --stacktrace
+      env:
+        SPRING_PROFILES_ACTIVE: test
+        SPRING_DATASOURCE_URL: jdbc:mysql://localhost:3306/notidb_test?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+        SPRING_DATASOURCE_USERNAME: root
+        SPRING_DATASOURCE_PASSWORD: root1234
+    
+    - name: Upload test results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: test-results
+        path: '**/build/test-results/test/'
+        retention-days: 7
+    
+    - name: Upload test reports
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: test-reports
+        path: '**/build/reports/tests/'
+        retention-days: 7
+
+  build-and-push:
+    name: Build and Push Docker Image
+    needs: test
+    runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'push' && 
+      (contains(github.ref, 'main') || contains(github.ref, 'feature/'))
+    
+    steps:
+    - name: Checkout noti-service
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    
+    - name: Set up JDK 21
+      uses: actions/setup-java@v4
+      with:
+        java-version: '21'
+        distribution: 'temurin'
+        cache: 'gradle'
+    
+    - name: Build application
+      run: |
+        chmod +x gradlew
+        ./gradlew build -x test --no-daemon
+    
+    - name: Log in to GitHub Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.DOCKER_REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: ./Dockerfile
+        push: true
+        tags: |
+          ${{ env.IMAGE_NAME }}:latest
+          ${{ env.IMAGE_NAME }}:${{ github.sha }}
+
+  deploy:
+    name: Deploy to Home Server
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'push' && 
+      (contains(github.ref, 'main') || contains(github.ref, 'feature/'))
+    
+    steps:
+    - name: Setup SSH key
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" | base64 -d > ~/.ssh/deploy_key
+        chmod 600 ~/.ssh/deploy_key
+        ssh-keyscan -p 2222 -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
+    
+    - name: Deploy to server
+      run: |
+        ssh -p 2222 -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'ENDSSH'
+          echo "Starting deployment of noti-service..."
+          
+          # Navigate to deployment directory
+          cd ~/deployments/noti-service || mkdir -p ~/deployments/noti-service && cd ~/deployments/noti-service
+          
+          # Create docker-compose file
+          cat > docker-compose.yml << COMPOSE_EOF
+          services:
+            noti-service:
+              image: ${{ env.IMAGE_NAME }}:${{ github.sha }}
+              container_name: asyncsite-noti-service
+              ports:
+                - "8084:8084"
+              environment:
+                - SPRING_PROFILES_ACTIVE=docker,microservices
+                - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://asyncsite-eureka:8761/eureka/
+                - SPRING_DATASOURCE_URL=jdbc:mysql://asyncsite-mysql:3306/notidb?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true&characterEncoding=utf8&useUnicode=true
+                - SPRING_DATASOURCE_USERNAME=root
+                - SPRING_DATASOURCE_PASSWORD=asyncsite_root_2024!
+                - SPRING_MAIL_HOST=${{ secrets.MAIL_HOST }}
+                - SPRING_MAIL_PORT=${{ secrets.MAIL_PORT }}
+                - SPRING_MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}
+                - SPRING_MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}
+                - APPLICATION_NOTIFICATION_EMAIL_FROM_ADDRESS=${{ secrets.MAIL_FROM }}
+                - APPLICATION_NOTIFICATION_DISCORD_WEBHOOK_URL=${{ secrets.DISCORD_WEBHOOK_URL }}
+              networks:
+                - asyncsite-network
+              restart: unless-stopped
+              healthcheck:
+                test: ["CMD", "curl", "-f", "http://localhost:8084/actuator/health"]
+                interval: 30s
+                timeout: 10s
+                retries: 3
+                start_period: 60s
+          
+          networks:
+            asyncsite-network:
+              external: true
+        COMPOSE_EOF
+          
+          # Login to GitHub Container Registry
+          echo "${{ secrets.PAT_TOKEN }}" | docker login ghcr.io -u renechoi --password-stdin
+          
+          # Pull latest image
+          docker pull ${{ env.IMAGE_NAME }}:${{ github.sha }}
+          
+          # Stop and remove old containers
+          docker compose down --remove-orphans || true
+          
+          # Start new containers
+          docker compose up -d
+          
+          # Wait for services to be healthy
+          echo "Waiting for services to be healthy..."
+          sleep 45
+          
+          # Check service status
+          docker ps | grep -E "(asyncsite-noti-service|asyncsite-mysql)"
+          
+          echo "Deployment completed!"
+        ENDSSH

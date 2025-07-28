@@ -13,8 +13,8 @@ echo "===================================="
 
 # 버전 정보
 VERSION=${1:-latest}
-REGISTRY=${DOCKER_REGISTRY:-docker.io}
-IMAGE_NAME=${IMAGE_NAME:-asyncsite/noti-service}
+REGISTRY=${DOCKER_REGISTRY:-ghcr.io}
+IMAGE_NAME=${IMAGE_NAME:-ghcr.io/asyncsite/noti-service}
 
 echo -e "${YELLOW}Registry: $REGISTRY${NC}"
 echo -e "${YELLOW}Image: $IMAGE_NAME:$VERSION${NC}"
