@@ -248,7 +248,7 @@ task dockerRunStandalone {
             "run", "-d",
             "--name", "asyncsite-noti-service",
             "--network", "asyncsite-network",
-            "-p", "8084:8084",
+            "-p", "8089:8089",
             "-e", "SPRING_PROFILES_ACTIVE=docker",
             "-e", "EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://asyncsite-eureka:8761/eureka/",
             "-e", "SPRING_DATASOURCE_URL=jdbc:mysql://asyncsite-mysql:3306/notidb?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true",
@@ -257,7 +257,7 @@ task dockerRunStandalone {
             "ghcr.io/asyncsite/noti-service:latest"
         )) {
             println "✅ Noti service container started successfully"
-            println "Access at: http://localhost:8084"
+            println "Access at: http://localhost:8089"
         } else {
             println "❌ Failed to start noti service container"
             println "Make sure core-platform infrastructure is running"

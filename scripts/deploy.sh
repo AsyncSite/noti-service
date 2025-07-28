@@ -17,19 +17,19 @@ NC='\033[0m'
 case $ENVIRONMENT in
     local)
         export SPRING_PROFILES_ACTIVE="local"
-        export SERVER_PORT="8084"
+        export SERVER_PORT="8089"
         export EUREKA_SERVER_URL="http://localhost:8761/eureka/"
         export DB_HOST="localhost"
         ;;
     staging)
         export SPRING_PROFILES_ACTIVE="staging"
-        export SERVER_PORT="8084"
+        export SERVER_PORT="8089"
         export EUREKA_SERVER_URL="http://eureka-staging.asyncsite.com:8761/eureka/"
         export DB_HOST="mysql-staging.asyncsite.com"
         ;;
     production)
         export SPRING_PROFILES_ACTIVE="production"
-        export SERVER_PORT="8084"
+        export SERVER_PORT="8089"
         export EUREKA_SERVER_URL="http://eureka.asyncsite.com:8761/eureka/"
         export DB_HOST="mysql.asyncsite.com"
         ;;

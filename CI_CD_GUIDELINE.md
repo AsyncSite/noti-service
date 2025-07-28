@@ -191,10 +191,10 @@ Repository Settings > Secrets에 설정:
 
 ### 8.1 Actuator Endpoints
 
-- Health: `http://localhost:8084/actuator/health`
-- Info: `http://localhost:8084/actuator/info`
-- Metrics: `http://localhost:8084/actuator/metrics`
-- Prometheus: `http://localhost:8084/actuator/prometheus`
+- Health: `http://localhost:8089/actuator/health`
+- Info: `http://localhost:8089/actuator/info`
+- Metrics: `http://localhost:8089/actuator/metrics`
+- Prometheus: `http://localhost:8089/actuator/prometheus`
 
 ### 8.2 헬스체크 스크립트
 

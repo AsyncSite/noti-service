@@ -194,7 +194,7 @@ jobs:
               image: ${{ env.IMAGE_NAME }}:${{ github.sha }}
               container_name: asyncsite-noti-service
               ports:
-                - "8084:8084"
+                - "8089:8089"
               environment:
                 - SPRING_PROFILES_ACTIVE=docker,microservices
                 - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://asyncsite-eureka:8761/eureka/
@@ -213,7 +213,7 @@ jobs:
                 - asyncsite-network
               restart: unless-stopped
               healthcheck:
-                test: ["CMD", "curl", "-f", "http://localhost:8084/actuator/health"]
+                test: ["CMD", "curl", "-f", "http://localhost:8089/actuator/health"]
                 interval: 30s
                 timeout: 10s
                 retries: 3

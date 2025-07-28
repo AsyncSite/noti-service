@@ -19,7 +19,7 @@ COPY --chown=appuser:appuser build/libs/noti-service-*.jar app.jar
 USER appuser
 
 # Expose application port
-EXPOSE 8084
+EXPOSE 8089
 
 # Set JVM options for container environment
 ENV JAVA_OPTS="-Xmx512m -Xms256m"

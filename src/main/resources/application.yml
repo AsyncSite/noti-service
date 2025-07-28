@@ -54,7 +54,7 @@ eureka:
 
 # Server Configuration
 server:
-  port: 8084
+  port: 8089
 
 # Actuator Configuration
 management:

@@ -14,16 +14,16 @@ NC='\033[0m'
 # 환경별 헬스체크 URL 설정
 case $ENVIRONMENT in
     local)
-        HEALTH_URL="http://localhost:8084/actuator/health"
+        HEALTH_URL="http://localhost:8089/actuator/health"
         ;;
     staging)
-        HEALTH_URL="http://noti-staging.asyncsite.com:8084/actuator/health"
+        HEALTH_URL="http://noti-staging.asyncsite.com:8089/actuator/health"
         ;;
     production)
-        HEALTH_URL="http://noti.asyncsite.com:8084/actuator/health"
+        HEALTH_URL="http://noti.asyncsite.com:8089/actuator/health"
         ;;
     *)
-        HEALTH_URL="http://localhost:8084/actuator/health"
+        HEALTH_URL="http://localhost:8089/actuator/health"
         ;;
 esac
 

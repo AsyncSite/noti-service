@@ -14,7 +14,7 @@ services:
     container_name: asyncsite-noti-service
     restart: unless-stopped
     ports:
-      - "8084:8084"
+      - "8089:8089"
     environment:
       # Spring Configuration
       - SPRING_PROFILES_ACTIVE=docker,microservices
@@ -22,7 +22,7 @@ services:
       - EUREKA_CLIENT_ENABLED=true
       - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://asyncsite-eureka:8761/eureka/
       - EUREKA_INSTANCE_PREFER_IP_ADDRESS=true
-      - EUREKA_INSTANCE_INSTANCE_ID=${HOSTNAME}:noti-service:8084
+      - EUREKA_INSTANCE_INSTANCE_ID=${HOSTNAME}:noti-service:8089
       - EUREKA_INSTANCE_METADATA_MAP_VERSION=1.0.0
       - EUREKA_INSTANCE_METADATA_MAP_ZONE=docker
       # Database Configuration (uses shared MySQL)
@@ -70,7 +70,7 @@ services:
       - asyncsite-network
     # Health check configuration
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8084/actuator/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8089/actuator/health"]
       interval: 30s
       timeout: 10s
       retries: 3
