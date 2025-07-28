@@ -20,6 +20,26 @@ spring:
 server:
   port: 0
 
+# Disable Eureka for tests
+eureka:
+  client:
+    enabled: false
+    register-with-eureka: false
+    fetch-registry: false
+
+# Disable mail for tests
+spring.mail:
+  host: localhost
+  port: 1025
+  
+# Application configuration for tests
+application:
+  notification:
+    email:
+      enabled: false
+    discord:
+      enabled: false
+
 logging:
   level:
     com.asyncsite: INFO

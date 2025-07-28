@@ -5,7 +5,7 @@ spring:
 
   # Database Configuration
   datasource:
-    url: jdbc:mysql://localhost:3306/notidb?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+    url: jdbc:mysql://localhost:3306/notidb?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true&createDatabaseIfNotExist=true
     username: noti
     password: noti1234
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -54,7 +54,7 @@ eureka:
 
 # Server Configuration
 server:
-  port: 8084
+  port: 8089
 
 # Actuator Configuration
 management:
@@ -91,13 +91,13 @@ application:
 # Logging Configuration
 logging:
   level:
+    root: INFO
     com.asyncsite: DEBUG
     org.springframework.web: INFO
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
   pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
-    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
   file:
     name: logs/noti-service.log
 
