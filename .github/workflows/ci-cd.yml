@@ -209,6 +209,8 @@ jobs:
                 - APPLICATION_NOTIFICATION_DISCORD_WEBHOOK_URL=${{ secrets.DISCORD_WEBHOOK_URL }}
                 - LOGGING_LEVEL_ROOT=INFO
                 - LOGGING_LEVEL_COM_ASYNCSITE_NOTISERVICE=DEBUG
+              volumes:
+                - noti-service-logs:/app/logs
               networks:
                 - asyncsite-network
               restart: unless-stopped
@@ -222,6 +224,10 @@ jobs:
           networks:
             asyncsite-network:
               external: true
+          
+          volumes:
+            noti-service-logs:
+              driver: local
         COMPOSE_EOF
           
           # Login to GitHub Container Registry

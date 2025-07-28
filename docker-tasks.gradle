@@ -265,6 +265,45 @@ task dockerRunStandalone {
     }
 }
 
+// Filebeat Commands
+task dockerUpWithFilebeat {
+    group = 'docker-simple'
+    description = 'Start noti service with Filebeat for ELK logging'
+    doLast {
+        if (dockerComposeWithFile("docker-compose.with-filebeat.yml", "up", "-d")) {
+            println "✅ Noti service with Filebeat started successfully"
+            println "View logs: ./gradlew dockerLogsWithFilebeat"
+            println "Check status: docker ps"
+        } else {
+            println "❌ Failed to start noti service with Filebeat"
+            println "Make sure infrastructure services and ELK stack are running"
+        }
+    }
+}
+
+task dockerDownWithFilebeat {
+    group = 'docker-simple'
+    description = 'Stop noti service with Filebeat'
+    doLast {
+        if (dockerComposeWithFile("docker-compose.with-filebeat.yml", "down")) {
+            println "✅ Noti service with Filebeat stopped successfully"
+        } else {
+            println "❌ Failed to stop noti service with Filebeat"
+        }
+    }
+}
+
+task dockerLogsWithFilebeat {
+    group = 'docker-simple'
+    description = 'Show noti service and Filebeat logs'
+    doLast {
+        println "=== Noti Service Logs ==="
+        executeDockerCommand("logs", "--tail", "50", "asyncsite-noti-service")
+        println "\n=== Filebeat Logs ==="
+        executeDockerCommand("logs", "--tail", "50", "asyncsite-filebeat-noti-service")
+    }
+}
+
 // Help task to show all Docker commands
 task dockerHelp {
     group = 'docker-simple'
@@ -287,6 +326,11 @@ Noti Service Only Commands (when infrastructure is already running):
   ./gradlew dockerRebuildAndRunNotiOnly - Completely rebuild and run (removes old container/image)
   ./gradlew dockerLogsNotiOnly        - Show noti service logs
 
+Filebeat/ELK Commands:
+  ./gradlew dockerUpWithFilebeat      - Start noti service with Filebeat
+  ./gradlew dockerDownWithFilebeat    - Stop noti service with Filebeat
+  ./gradlew dockerLogsWithFilebeat    - Show noti service and Filebeat logs
+
 Other Commands:
   ./gradlew dockerBuild               - Build Docker image
   ./gradlew dockerStatus              - Show container status
@@ -294,6 +338,7 @@ Other Commands:
   ./gradlew runInfraOnly              - Run only infrastructure from core-platform
 
 Note: Use *NotiOnly commands when MySQL and Eureka are already running.
+      Use *WithFilebeat commands when ELK stack is running.
 """
     }
 }
