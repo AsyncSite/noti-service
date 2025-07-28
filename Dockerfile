@@ -12,7 +12,8 @@ RUN useradd -m -u 1001 appuser && \
     chmod 755 /app/logs
 
 # Copy pre-built JAR file
-COPY --chown=appuser:appuser build/libs/*.jar app.jar
+# Spring Boot generates: noti-service-0.0.1-SNAPSHOT.jar
+COPY --chown=appuser:appuser build/libs/noti-service-*.jar app.jar
 
 # Switch to non-root user
 USER appuser
