@@ -1,66 +1,46 @@
-### NotificationTemplate API 시나리오
+### 📝 Notification Template API 시나리오 테스트
 
-# 1. 템플릿 목록 조회
-GET http://localhost:8084/api/v1/notification-templates?eventType=STUDY_UPDATE&channelType=EMAIL&language=ko&page=0&size=10
+@baseUrl = http://localhost:8084
 
-###
-# 2. 템플릿 단건 조회
-GET http://localhost:8084/api/v1/notification-templates/0263d77f-52af-4690-8bd7-192b21c0bb08
+### 📋 1. 필터링된 템플릿 조회 (이메일, 한국어, 활성화)
+GET {{baseUrl}}/api/v1/notification-templates?channelType=EMAIL
 
-###
-# 3. 템플릿 생성
-POST http://localhost:8084/api/v1/notification-templates
+### ➕ 2. 스터디 승인 이메일 템플릿 생성
+POST {{baseUrl}}/api/v1/notification-templates
 Content-Type: application/json
 
 {
-  "eventType": "STUDY_UPDATE",
   "channelType": "EMAIL",
-  "language": "ko",
-  "titleTemplate": "[스터디] 새로운 소식이 있습니다!",
-  "contentTemplate": "안녕하세요, {userName}님! 새로운 소식이 도착했습니다."
+  "eventType": "STUDY",
+  "titleTemplate": "🎉 스터디 승인: {studyTitle}",
+  "contentTemplate": "안녕하세요 {userName}님,\n\n귀하가 신청하신 \"{studyTitle}\" 스터디가 승인되었습니다!\n\n✅ 승인자: {approvedBy}\n📅 승인일: {approvalDate}\n🔗 스터디 링크: {studyUrl}\n\n스터디에 참여해 주셔서 감사합니다.\n\n스터디 플랫폼 팀 드림",
+  "variables": {
+    "userName": "김개발",
+    "studyTitle": "Java Spring Boot 마스터",
+    "approvedBy": "관리자",
+    "approvalDate": "2024-07-19",
+    "studyUrl": "https://example.com/study/456"
+  }
 }
 
-###
-# 4. 템플릿 수정
-PUT http://localhost:8084/api/v1/notification-templates/{{templateId}}
+### 3. 탬플릿 단건 조회
+GET {{baseUrl}}/api/v1/notification-templates/2ad178fe-41a6-48e9-8b6f-9a5ef57fff22
+
+### ➕ 4. 탬플릿 수정
+PUT {{baseUrl}}/api/v1/notification-templates/2ad178fe-41a6-48e9-8b6f-9a5ef57fff22
 Content-Type: application/json
 
 {
-  "eventType": "STUDY_UPDATE",
-  "channelType": "EMAIL",
-  "language": "ko",
-  "titleTemplate": "[수정] 새로운 소식이 있습니다!",
-  "contentTemplate": "안녕하세요, {{userName}}님! 수정된 소식이 도착했습니다."
+  "titleTemplate": "🎉 스터디 승인 수정: {studyTitle}",
+  "contentTemplate": "안녕하세요 {userName}님,\n\n귀하가 신청하신 \"{studyTitle}\" 스터디가 승인되었습니다!\n\n✅ 승인자: {approvedBy}\n📅 승인일: {approvalDate}\n🔗 스터디 링크: {studyUrl}\n\n스터디에 참여해 주셔서 감사합니다.\n\n스터디 플랫폼 팀 드림",
+  "variables": {
+    "userName": "김개발",
+    "studyTitle": "Java Spring Boot 마스터",
+    "approvedBy": "관리자",
+    "approvalDate": "2024-07-19",
+    "studyUrl": "https://example.com/study/456"
+  }
 }
 
-###
-# 5. 템플릿 비활성화
-PATCH http://localhost:8084/api/v1/notification-templates/{{templateId}}/deactivate
-
-###
-# 6. 템플릿 복제
-POST http://localhost:8084/api/v1/notification-templates/{{templateId}}/clone
-Content-Type: application/json
-
-{
-  "language": "en",
-  "titleTemplate": "[Study] You have a new update!",
-  "contentTemplate": "Hello, {{userName}}! You have a new update."
-}
-
-###
-# 7. 템플릿 미리보기
-POST http://localhost:8084/api/v1/notification-templates/{{templateId}}/preview
-Content-Type: application/json
-
-{
-  "userName": "홍길동"
-}
-
-###
-# 8. 이벤트 타입 목록
-GET http://localhost:8084/api/v1/notification-templates/event-types
-
-###
-# 9. 언어 목록
-GET http://localhost:8084/api/v1/notification-templates/languages
+### 3. 탬플릿 비활성화
+PATCH {{baseUrl}}/api/v1/notification-templates/2ad178fe-41a6-48e9-8b6f-9a5ef57fff22/deactivate

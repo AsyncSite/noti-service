@@ -1,13 +1,14 @@
 package com.asyncsite.notiservice.adapter.in.web;
 
-import com.asyncsite.notiservice.adapter.in.dto.NotificationTemplateRequest;
+import com.asyncsite.notiservice.adapter.in.dto.CreateNotificationTemplateRequest;
 import com.asyncsite.notiservice.adapter.in.dto.NotificationTemplateResponse;
+import com.asyncsite.notiservice.adapter.in.dto.UpdateNotificationTemplateRequest;
 import com.asyncsite.notiservice.domain.model.NotificationTemplate;
+import com.asyncsite.notiservice.domain.model.vo.ChannelType;
 import com.asyncsite.notiservice.domain.port.in.NotificationTemplateUseCase;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -24,23 +25,18 @@ public class NotificationTemplateController {
     private final NotificationTemplateUseCase notificationTemplateUseCase;
 
     @GetMapping
-    public ResponseEntity<Page<NotificationTemplateResponse>> getTemplates(
-            @RequestParam(required = false) String eventType,
+    public ResponseEntity<List<NotificationTemplateResponse>> getTemplates(
             @RequestParam(required = false) String channelType,
-            @RequestParam(required = false) String language,
-            @RequestParam(required = false, defaultValue = "true") Boolean isActive,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(required = false, defaultValue = "true") Boolean active) {
 
-        log.info("템플릿 목록 조회: eventType={}, channelType={}, language={}, isActive={}, page={}, size={}",
-                eventType, channelType, language, isActive, page, size);
 
         List<NotificationTemplate> templates = notificationTemplateUseCase.getTemplates(
-                eventType, channelType, language, isActive, page, size);
+                ChannelType.valueOf(channelType), active);
 
-        List<NotificationTemplateResponse> responses = templates.stream().map(NotificationTemplateResponse::from).toList();
-        PageImpl<NotificationTemplateResponse> pageImpl = new PageImpl<>(responses);
-        return ResponseEntity.ok(pageImpl);
+        List<NotificationTemplateResponse> responses = templates.stream()
+                .map(NotificationTemplateResponse::from)
+                .toList();
+        return ResponseEntity.ok(responses);
     }
 
     @GetMapping("/{templateId}")
@@ -56,26 +52,20 @@ public class NotificationTemplateController {
 
     @PostMapping
     public ResponseEntity<NotificationTemplateResponse> createTemplate(
-            @RequestBody NotificationTemplateRequest request) {
-
-        log.info("템플릿 생성 요청: eventType={}, channelType={}, language={}",
-                request.getEventType(), request.getChannelType(), request.getLanguage());
-
-        NotificationTemplate template = notificationTemplateUseCase.createTemplate(request.toDomain());
-        NotificationTemplateResponse response = NotificationTemplateResponse.from(template);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+            @Valid @RequestBody CreateNotificationTemplateRequest request) {
+        // Mapper를 사용하여 Request에서 Domain 객체로 변환
+        return ResponseEntity.status(HttpStatus.CREATED).body(NotificationTemplateResponse.from(notificationTemplateUseCase.createTemplate(request.channelType(),  request.eventType(), request.titleTemplate(), request.contentTemplate(), request.variables())));
     }
 
     @PutMapping("/{templateId}")
     public ResponseEntity<NotificationTemplateResponse> updateTemplate(
             @PathVariable String templateId,
-            @RequestBody NotificationTemplateRequest request) {
+            @Valid @RequestBody UpdateNotificationTemplateRequest request) {
 
         log.info("템플릿 수정 요청: templateId={}", templateId);
 
-        NotificationTemplate template = notificationTemplateUseCase.updateTemplate(templateId, request.toDomain()); // 오류 발생 코드
-        NotificationTemplateResponse response = NotificationTemplateResponse.from(template);
-        return ResponseEntity.ok(response);
+        // 기존 템플릿 조회 후 업데이트
+        return ResponseEntity.ok(NotificationTemplateResponse.from(notificationTemplateUseCase.updateTemplate(templateId, request.titleTemplate(), request.contentTemplate(), request.variables())));
     }
 
     @PatchMapping("/{templateId}/deactivate")
@@ -88,18 +78,7 @@ public class NotificationTemplateController {
         return ResponseEntity.ok().build();
     }
 
-    @PostMapping("/{templateId}/clone")
-    public ResponseEntity<NotificationTemplateResponse> cloneTemplate(
-            @PathVariable String templateId,
-            @RequestBody NotificationTemplateRequest request) {
-
-        log.info("템플릿 복제 요청: templateId={}, language={}", templateId, request.getLanguage());
-
-        NotificationTemplate clonedTemplate = notificationTemplateUseCase.cloneTemplate(templateId, request.getLanguage(), request.getTitleTemplate(), request.getContentTemplate()); // 오류 발생 코드
-        NotificationTemplateResponse response = NotificationTemplateResponse.from(clonedTemplate); // Placeholder
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
-    }
-
+    // FIXME 작업중
     @PostMapping("/{templateId}/preview")
     public ResponseEntity<Map<String, String>> previewTemplate(
             @PathVariable String templateId,

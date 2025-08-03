@@ -1,115 +1,76 @@
 package com.asyncsite.notiservice.domain.model;
 
 import org.junit.jupiter.api.Test;
-import java.time.LocalDateTime;
-import java.util.Map;
+import org.junit.jupiter.api.DisplayName;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.*;
 
+@DisplayName("NotificationSettings 도메인 모델 테스트")
 class NotificationSettingsTest {
+
     @Test
-    void createSettings() {
-        NotificationSettings settings = NotificationSettings.builder()
-                .userId("100")
-                .studyUpdates(true)
-                .marketing(false)
-                .emailEnabled(true)
-                .discordEnabled(false)  
-                .pushEnabled(true)
-                .timezone("Asia/Seoul")
-                .language("ko")
-                .quietHours(Map.of())
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
-                .build();
-        assertThat(settings).isNotNull();
+    @DisplayName("기본 알림 설정을 생성할 수 있다")
+    void createDefaultSettings() {
+        // given
+        String userId = "user123";
+
+        // when
+        NotificationSettings settings = NotificationSettings.createDefault(userId);
+
+        // then
+        assertThat(settings.getUserId()).isEqualTo(userId);
+        assertThat(settings.isStudyUpdates()).isTrue();
+        assertThat(settings.isMarketing()).isTrue();
         assertThat(settings.isEmailEnabled()).isTrue();
-        assertThat(settings.isDiscordEnabled()).isFalse();
+        assertThat(settings.isDiscordEnabled()).isTrue();
         assertThat(settings.isPushEnabled()).isTrue();
+        assertThat(settings.getTimezone()).isEqualTo("Asia/Seoul");
+        assertThat(settings.getCreatedAt()).isNotNull();
+        assertThat(settings.getUpdatedAt()).isNull(); // 기본 생성시에는 null
     }
 
     @Test
-    void channelEnabled() {
-        NotificationSettings settings = NotificationSettings.builder()
-                .userId("100")
-                .studyUpdates(true)
-                .marketing(false)
-                .emailEnabled(true)
-                .discordEnabled(false)
-                .pushEnabled(false)
-                .timezone("Asia/Seoul")
-                .language("ko")
-                .quietHours(Map.of())
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
-                .build();
-        assertThat(settings.isChannelEnabled(NotificationChannel.ChannelType.EMAIL)).isTrue();
-        assertThat(settings.isChannelEnabled(NotificationChannel.ChannelType.DISCORD)).isFalse();
-        assertThat(settings.isChannelEnabled(NotificationChannel.ChannelType.PUSH)).isFalse();
+    @DisplayName("알림 설정을 업데이트할 수 있다")
+    void updateSettings() {
+        // given
+        NotificationSettings settings = NotificationSettings.createDefault("user123");
+        boolean studyUpdates = false;
+        boolean marketing = false;
+        boolean emailEnabled = true;
+        boolean discordEnabled = false;
+        boolean pushEnabled = true;
+
+        // when
+        settings.update(studyUpdates, marketing, emailEnabled, discordEnabled, pushEnabled);
+
+        // then
+        assertThat(settings.isStudyUpdates()).isEqualTo(studyUpdates);
+        assertThat(settings.isMarketing()).isEqualTo(marketing);
+        assertThat(settings.isEmailEnabled()).isEqualTo(emailEnabled);
+        assertThat(settings.isDiscordEnabled()).isEqualTo(discordEnabled);
+        assertThat(settings.isPushEnabled()).isEqualTo(pushEnabled);
+        assertThat(settings.getUpdatedAt()).isNotNull();
     }
 
     @Test
-    void eventTypeEnabled() {
-        NotificationSettings settings = NotificationSettings.builder()
-                .userId("100")
-                .studyUpdates(true)
-                .marketing(false)
-                .emailEnabled(true)
-                .discordEnabled(false)
-                .pushEnabled(false)
-                .timezone("Asia/Seoul")
-                .language("ko")
-                .quietHours(Map.of())
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
-                .build();
-        assertThat(settings.isEventTypeEnabled("STUDY_UPDATE")).isTrue();
-        assertThat(settings.isEventTypeEnabled("MARKETING_EVENT")).isFalse();
-        assertThat(settings.isEventTypeEnabled("ETC_EVENT")).isTrue();
-    }
+    @DisplayName("알림 설정을 초기화할 수 있다")
+    void resetSettings() {
+        // given
+        NotificationSettings settings = NotificationSettings.createDefault("user123");
+        settings.update(false, false, false, false, false); // 모든 설정 비활성화
 
-    @Test
-    void quietHours() {
-        NotificationSettings settings = NotificationSettings.builder()
-                .userId("100")
-                .studyUpdates(true)
-                .marketing(false)
-                .emailEnabled(true)
-                .discordEnabled(false)
-                .pushEnabled(false)
-                .timezone("Asia/Seoul")
-                .language("ko")
-                .quietHours(Map.of(
-                        "enabled", true,
-                        "startTime", "22:00",
-                        "endTime", "08:00",
-                        "weekendsOnly", false
-                ))
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
-                .build();
-        // 실제 시간에 따라 다르므로, enabled 여부만 체크
-        assertThat(settings.isInQuietHours()).isInstanceOf(Boolean.class);
-    }
+        // when
+        NotificationSettings resetSettings = settings.reset();
 
-    @Test
-    void withChannelEnabled() {
-        NotificationSettings settings = NotificationSettings.builder()
-                .userId("100")
-                .studyUpdates(true)
-                .marketing(false)
-                .emailEnabled(false)
-                .discordEnabled(false)
-                .pushEnabled(false)
-                .timezone("Asia/Seoul")
-                .language("ko")
-                .quietHours(Map.of())
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
-                .build();
-        NotificationSettings enabled = settings.withChannelEnabled(NotificationChannel.ChannelType.EMAIL, true);
-        assertThat(enabled.isEmailEnabled()).isTrue();
-        NotificationSettings disabled = enabled.withChannelEnabled(NotificationChannel.ChannelType.EMAIL, false);
-        assertThat(disabled.isEmailEnabled()).isFalse();
+        // then
+        assertThat(resetSettings.getUserId()).isEqualTo("user123");
+        assertThat(resetSettings.isStudyUpdates()).isTrue();
+        assertThat(resetSettings.isMarketing()).isFalse(); // 초기화시 마케팅은 false
+        assertThat(resetSettings.isEmailEnabled()).isTrue();
+        assertThat(resetSettings.isDiscordEnabled()).isFalse(); // 초기화시 디스코드는 false
+        assertThat(resetSettings.isPushEnabled()).isFalse(); // 초기화시 푸시는 false
+        assertThat(resetSettings.getTimezone()).isEqualTo("Asia/Seoul");
+        assertThat(resetSettings.getCreatedAt()).isEqualTo(settings.getCreatedAt()); // 생성시간 유지
+        assertThat(resetSettings.getUpdatedAt()).isNotNull(); // 업데이트 시간 갱신
     }
 } 

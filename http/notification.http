@@ -1,29 +1,31 @@
-### Notification API 시나리오
+### 📧 Notification Service API 시나리오 테스트
 
-# 1. 알림 발송
-POST http://localhost:8084/api/v1/notifications
+@baseUrl = http://localhost:8084
+@userId = user123
+@email = leegeondev@gmail.com
+@discordWebhook = https://discord.com/api/webhooks/test
+
+### 🚀 1. 스터디 승인 알림 발송 (이메일)
+POST {{baseUrl}}/api/v1/notifications
 Content-Type: application/json
 
 {
-  "userId": "test-user-1",
-  "eventType": "STUDY_UPDATE",
+  "userId": "{{userId}}",
+  "channelType": "EMAIL",
+  "eventType": "STUDY",
+  "recipientContact": "{{email}}",
   "metadata": {
-    "key1": "value1"
+    "studyId": 456,
+    "studyTitle": "Java Spring Boot 스터디",
+    "userName": "김개발",
+    "approvedBy": "관리자",
+    "studyUrl": "https://example.com/study/456"
   }
 }
 
-###
-# 2. 알림 단건 조회
-GET http://localhost:8084/api/v1/notifications/{{notificationId}}
+### 🔍 5. 알림 단건 조회 (응답에서 notificationId 복사 후 사용)
+# @name getNotification
+GET {{baseUrl}}/api/v1/notifications/7192a810-b316-47dd-9fa4-a156ab099da0
 
-###
-# 3. 사용자 알림 목록 조회
-GET http://localhost:8084/api/v1/notifications?userId=test-user-1&page=0&size=10
-
-###
-# 4. 알림 재시도
-PATCH http://localhost:8084/api/v1/notifications/{{notificationId}}/retry
-
-###
-# 5. 헬스 체크
-GET http://localhost:8084/api/v1/notifications/health
+### 📋 6. 사용자 알림 목록 조회 (페이징)
+GET {{baseUrl}}/api/v1/notifications?userId={{userId}}&page=0&size=20

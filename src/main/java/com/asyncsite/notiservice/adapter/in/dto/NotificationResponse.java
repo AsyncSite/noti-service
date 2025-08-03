@@ -1,45 +1,39 @@
 package com.asyncsite.notiservice.adapter.in.dto;
 
 import com.asyncsite.notiservice.domain.model.Notification;
-import com.asyncsite.notiservice.domain.model.NotificationChannel;
-import lombok.Builder;
-import lombok.Getter;
+import com.asyncsite.notiservice.domain.model.vo.ChannelType;
+import com.asyncsite.notiservice.domain.model.vo.NotificationStatus;
 
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Map;
 
-@Getter
-@Builder
-public class NotificationResponse {
-
-    private String notificationId;
-
-    private String userId;
-
-    private String eventType;
-
-    private String title;
-
-    private String content;
-
-    private String status;
-
-
-
-    private Map<String, Object> metadata;
-
-    private List<com.asyncsite.notiservice.adapter.in.dto.NotificationChannelResponse> channels;
-
-    private LocalDateTime createdAt;
-
-    private LocalDateTime sentAt;
-
-    private Integer retryCount;
-
-    private String errorMessage;
-
+public record NotificationResponse(
+        String notificationId,
+        String userId,
+        String templateId,
+        ChannelType channelType,
+        String title,
+        String content,
+        String recipientContact,
+        NotificationStatus status,
+        LocalDateTime createdAt,
+        LocalDateTime updatedAt,
+        LocalDateTime sentAt,
+        Integer retryCount
+) {
     public static NotificationResponse from(Notification notification) {
-        return com.asyncsite.notiservice.adapter.in.mapper.NotificationMapper.toResponse(notification);
+        return new NotificationResponse(
+                notification.getNotificationId(),
+                notification.getUserId(),
+                notification.getTemplateId(),
+                notification.getChannelType(),
+                notification.getTitle(),
+                notification.getContent(),
+                notification.getRecipientContact(),
+                notification.getStatus(),
+                notification.getCreatedAt(),
+                notification.getUpdatedAt(),
+                notification.getSentAt(),
+                notification.getRetryCount()
+        );
     }
 }
