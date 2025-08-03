@@ -12,21 +12,21 @@ import org.springframework.web.bind.annotation.*;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/v1/users")
+@RequestMapping("/api/noti/settings")
 @RequiredArgsConstructor
 public class NotificationSettingsController {
 
     private final NotificationSettingsUseCase settingsUseCase;
     private final NotificationSettingsUseCase notificationSettingsUseCase;
 
-    @GetMapping("/{userId}/notification-settings")
+    @GetMapping("/{userId}")
     public ResponseEntity<NotificationSettingsResponse> getNotificationSettings(@PathVariable String userId) {
         log.info("알림 설정 조회: userId={}", userId);
 
         return ResponseEntity.ok(NotificationSettingsResponse.from( settingsUseCase.getNotificationSettings(userId)));
     }
 
-    @PutMapping("/{userId}/notification-settings")
+    @PutMapping("/{userId}")
     public ResponseEntity<NotificationSettingsResponse> updateNotificationSettings(
             @PathVariable String userId,
             @Valid @RequestBody UpdateNotificationSettingsRequest request) {
@@ -42,7 +42,7 @@ public class NotificationSettingsController {
         )));
     }
 
-    @PostMapping("/{userId}/notification-settings/reset")
+    @PostMapping("/{userId}/reset")
     public ResponseEntity<NotificationSettingsResponse> resetNotificationSettings(@PathVariable String userId) {
         log.info("알림 설정 초기화: userId={}", userId);
 

@@ -18,7 +18,7 @@ import java.util.Map;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/v1/notification-templates")
+@RequestMapping("/api/noti/templates")
 @RequiredArgsConstructor
 public class NotificationTemplateController {
 

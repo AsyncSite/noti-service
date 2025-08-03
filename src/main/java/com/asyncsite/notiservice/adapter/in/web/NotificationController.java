@@ -18,7 +18,7 @@ import java.util.concurrent.CompletableFuture;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/v1/notifications")
+@RequestMapping("/api/noti")
 @RequiredArgsConstructor
 public class NotificationController {
 
