@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <!-- 공통 설정 -->
+    <property name="LOG_PATH" value="${LOG_PATH:-logs}"/>
+    <property name="LOG_PATTERN"
+              value="%d{ISO8601} [%thread] %-5level %X{corrId} %logger{36} - %msg%n"/>
+
+    <!-- 개발 환경 -->
+    <springProfile name="local,dev">
+        <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder>
+                <pattern>${LOG_PATTERN}</pattern>
+            </encoder>
+        </appender>
+
+        <logger name="com.asyncsite" level="DEBUG"/>
+        <logger name="org.springframework.security" level="DEBUG"/>
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+        </root>
+    </springProfile>
+
+    <!-- 운영 환경 -->
+    <springProfile name="staging,prod">
+        <!-- JSON 콘솔 출력 -->
+        <appender name="JSON_CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+                <includeMdc>true</includeMdc>
+                <includeContext>false</includeContext>
+                <includeCallerData>false</includeCallerData>
+                <customFields>{"service":"noti-service"}</customFields>
+            </encoder>
+        </appender>
+
+        <!-- 파일 롤링 -->
+        <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+            <file>${LOG_PATH}/application.log</file>
+            <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+                <fileNamePattern>${LOG_PATH}/application-%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+                <maxHistory>30</maxHistory>
+                <timeBasedFileNamingAndTriggeringPolicy
+                    class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                    <maxFileSize>100MB</maxFileSize>
+                </timeBasedFileNamingAndTriggeringPolicy>
+            </rollingPolicy>
+            <encoder>
+                <pattern>${LOG_PATTERN}</pattern>
+            </encoder>
+        </appender>
+
+        <!-- 비동기 처리 -->
+        <appender name="ASYNC" class="ch.qos.logback.classic.AsyncAppender">
+            <queueSize>10000</queueSize>
+            <discardingThreshold>80</discardingThreshold>
+            <includeCallerData>false</includeCallerData>
+            <appender-ref ref="JSON_CONSOLE"/>
+            <appender-ref ref="FILE"/>
+        </appender>
+
+        <logger name="com.asyncsite" level="INFO"/>
+        <logger name="org.springframework.security" level="WARN"/>
+        <root level="WARN">
+            <appender-ref ref="ASYNC"/>
+        </root>
+    </springProfile>
+
+    <!-- Docker 환경 -->
+    <springProfile name="docker">
+        <!-- JSON 콘솔 출력 -->
+        <appender name="JSON_CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+                <includeMdc>true</includeMdc>
+                <includeContext>false</includeContext>
+                <includeCallerData>false</includeCallerData>
+                <customFields>{"service":"noti-service","environment":"docker"}</customFields>
+            </encoder>
+        </appender>
+
+        <!-- JSON 파일 출력 -->
+        <appender name="JSON_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+            <file>/app/logs/application.log</file>
+            <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+                <fileNamePattern>/app/logs/application-%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+                <maxHistory>7</maxHistory>
+                <timeBasedFileNamingAndTriggeringPolicy
+                    class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                    <maxFileSize>100MB</maxFileSize>
+                </timeBasedFileNamingAndTriggeringPolicy>
+            </rollingPolicy>
+            <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+                <includeMdc>true</includeMdc>
+                <includeContext>false</includeContext>
+                <includeCallerData>false</includeCallerData>
+                <customFields>{"service":"noti-service","environment":"docker"}</customFields>
+            </encoder>
+        </appender>
+
+        <logger name="com.asyncsite" level="INFO"/>
+        <logger name="org.springframework.cloud.netflix.eureka" level="WARN"/>
+        <root level="INFO">
+            <appender-ref ref="JSON_CONSOLE"/>
+            <appender-ref ref="JSON_FILE"/>
+        </root>
+    </springProfile>
+
+    <!-- Default profile (for IDE) -->
+    <springProfile name="default">
+        <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder>
+                <pattern>${LOG_PATTERN}</pattern>
+            </encoder>
+        </appender>
+
+        <logger name="com.asyncsite" level="DEBUG"/>
+        <logger name="org.springframework.security" level="DEBUG"/>
+        <logger name="org.jboss.logging" level="INFO"/>
+        <logger name="org.hibernate" level="INFO"/>
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+        </root>
+    </springProfile>
+</configuration>

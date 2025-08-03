@@ -1,19 +1,28 @@
-FROM eclipse-temurin:21-jre
+# Dockerfile for noti-service
+# Requires JAR to be built locally first: ./gradlew clean build
+# This approach avoids authentication issues during Docker build
 
+FROM eclipse-temurin:21-jre
 WORKDIR /app
 
-# 보안을 위한 non-root 사용자 생성
-RUN groupadd -g 1001 appgroup && \
-    useradd -r -u 1001 -g appgroup appuser
+# Create non-root user for security and logs directory
+RUN useradd -m -u 1001 appuser && \
+    mkdir -p /app/logs && \
+    chown -R appuser:appuser /app && \
+    chmod 755 /app/logs
 
-# 사전 빌드된 JAR 파일 복사
-COPY --chown=appuser:appgroup build/libs/noti-service-0.0.1-SNAPSHOT.jar app.jar
+# Copy pre-built JAR file
+# Spring Boot generates: noti-service-0.0.1-SNAPSHOT.jar
+COPY --chown=appuser:appuser build/libs/noti-service-*.jar app.jar
 
-# 헬스체크 설정
-HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-    CMD curl -f http://localhost:8084/actuator/health || exit 1
-
+# Switch to non-root user
 USER appuser
-EXPOSE 8084
 
-ENTRYPOINT ["java", "-Dspring.profiles.active=${SPRING_PROFILES_ACTIVE:-docker}", "-jar", "app.jar"] 
+# Expose application port
+EXPOSE 8089
+
+# Set JVM options for container environment
+ENV JAVA_OPTS="-Xmx512m -Xms256m"
+
+# Run the application
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
