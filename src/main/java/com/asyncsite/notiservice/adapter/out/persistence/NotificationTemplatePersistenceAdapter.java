@@ -40,6 +40,11 @@ public class NotificationTemplatePersistenceAdapter implements NotificationTempl
     }
 
     @Override
+    public List<NotificationTemplate> findTemplates() {
+        return templateRepository.findAll().stream().map(NotificationTemplateEntity::toDomain).collect(Collectors.toList());
+    }
+
+    @Override
     public Optional<NotificationTemplate> findTemplateByChannelAndEventType(ChannelType channelType, EventType eventType) {
         return templateRepository.findByChannelTypeAndEventType(channelType, eventType).map(NotificationTemplateEntity::toDomain);
     }

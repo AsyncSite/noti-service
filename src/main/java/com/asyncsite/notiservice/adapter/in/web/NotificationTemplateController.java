@@ -31,7 +31,7 @@ public class NotificationTemplateController {
 
 
         List<NotificationTemplate> templates = notificationTemplateUseCase.getTemplates(
-                ChannelType.valueOf(channelType), active);
+                channelType, active);
 
         List<NotificationTemplateResponse> responses = templates.stream()
                 .map(NotificationTemplateResponse::from)

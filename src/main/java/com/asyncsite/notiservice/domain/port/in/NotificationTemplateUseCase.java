@@ -13,7 +13,7 @@ public interface NotificationTemplateUseCase {
     /**
      * 템플릿 목록을 조회합니다.
      */
-    List<NotificationTemplate> getTemplates(ChannelType channelType, boolean active);
+    List<NotificationTemplate> getTemplates(String channelType, boolean active);
 
     /**
      * 템플릿 ID로 템플릿을 조회합니다.

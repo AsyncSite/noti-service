@@ -7,6 +7,7 @@ import com.asyncsite.notiservice.domain.port.in.NotificationTemplateUseCase;
 import com.asyncsite.notiservice.domain.port.out.NotificationTemplateRepositoryPort;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.logging.log4j.util.Strings;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,9 +26,10 @@ public class NotificationTemplateService implements NotificationTemplateUseCase 
 
     @Override
     @Transactional(readOnly = true)
-    public List<NotificationTemplate> getTemplates(ChannelType channelType, boolean active) {
-
-        return templateRepository.findTemplatesByFilters(channelType, active);
+    public List<NotificationTemplate> getTemplates(String channelType, boolean active) {
+        if(Strings.isEmpty(channelType))
+            return templateRepository.findTemplates();
+        return templateRepository.findTemplatesByFilters(ChannelType.valueOf(channelType), active);
     }
 
     @Override
