@@ -35,7 +35,7 @@ class NotificationTemplateServiceTest {
         // given
         ChannelType channelType = ChannelType.EMAIL;
         boolean active = true;
-        
+
         List<NotificationTemplate> expectedTemplates = List.of(
                 createTestTemplate("template1"),
                 createTestTemplate("template2")
@@ -45,7 +45,7 @@ class NotificationTemplateServiceTest {
                 .thenReturn(expectedTemplates);
 
         // when
-        List<NotificationTemplate> result = templateService.getTemplates(channelType, active);
+        List<NotificationTemplate> result = templateService.getTemplates(channelType.toString(), active);
 
         // then
         assertThat(result).hasSize(2);
@@ -59,7 +59,7 @@ class NotificationTemplateServiceTest {
         // given
         String templateId = "template123";
         NotificationTemplate expectedTemplate = createTestTemplate(templateId);
-        
+
         when(templateRepository.findTemplateById(templateId))
                 .thenReturn(Optional.of(expectedTemplate));
 
@@ -77,7 +77,7 @@ class NotificationTemplateServiceTest {
     void getTemplateById_NotFound() {
         // given
         String templateId = "nonexistent";
-        
+
         when(templateRepository.findTemplateById(templateId))
                 .thenReturn(Optional.empty());
 
@@ -98,7 +98,7 @@ class NotificationTemplateServiceTest {
         String titleTemplate = "Hello {userName}!";
         String contentTemplate = "Your progress: {progress}%";
         Map<String, String> variables = Map.of("userName", "DefaultUser");
-        
+
         NotificationTemplate expectedTemplate = NotificationTemplate.create(
                 channelType, eventType, titleTemplate, contentTemplate, variables
         );
@@ -117,7 +117,7 @@ class NotificationTemplateServiceTest {
         assertThat(result.getTitleTemplate()).isEqualTo(titleTemplate);
         assertThat(result.getContentTemplate()).isEqualTo(contentTemplate);
         assertThat(result.getVariables()).isEqualTo(variables);
-        
+
         verify(templateRepository).saveTemplate(any(NotificationTemplate.class));
     }
 
@@ -129,7 +129,7 @@ class NotificationTemplateServiceTest {
         String newTitleTemplate = "Hi {userName}!";
         String newContentTemplate = "Updated progress: {progress}%";
         Map<String, String> newVariables = Map.of("userName", "NewUser");
-        
+
         NotificationTemplate existingTemplate = createTestTemplate(templateId);
         NotificationTemplate updatedTemplate = existingTemplate.updateTemplate(
                 newTitleTemplate, newContentTemplate, newVariables
@@ -149,7 +149,7 @@ class NotificationTemplateServiceTest {
         assertThat(result.getTitleTemplate()).isEqualTo(newTitleTemplate);
         assertThat(result.getContentTemplate()).isEqualTo(newContentTemplate);
         assertThat(result.getVariables()).isEqualTo(newVariables);
-        
+
         verify(templateRepository).findTemplateById(templateId);
         verify(templateRepository).saveTemplate(any(NotificationTemplate.class));
     }
@@ -159,7 +159,7 @@ class NotificationTemplateServiceTest {
     void updateTemplate_NotFound() {
         // given
         String templateId = "nonexistent";
-        
+
         when(templateRepository.findTemplateById(templateId))
                 .thenReturn(Optional.empty());
 
@@ -168,7 +168,7 @@ class NotificationTemplateServiceTest {
             templateService.updateTemplate(templateId, "title", "content", Map.of());
         }).isInstanceOf(IllegalArgumentException.class)
           .hasMessageContaining("템플릿을 찾을 수 없습니다");
-        
+
         verify(templateRepository).findTemplateById(templateId);
         verify(templateRepository, never()).saveTemplate(any());
     }
@@ -199,7 +199,7 @@ class NotificationTemplateServiceTest {
     void deactivateTemplate_NotFound() {
         // given
         String templateId = "nonexistent";
-        
+
         when(templateRepository.findTemplateById(templateId))
                 .thenReturn(Optional.empty());
 
@@ -208,7 +208,7 @@ class NotificationTemplateServiceTest {
             templateService.deactivateTemplate(templateId);
         }).isInstanceOf(IllegalArgumentException.class)
           .hasMessageContaining("템플릿을 찾을 수 없습니다");
-        
+
         verify(templateRepository).findTemplateById(templateId);
         verify(templateRepository, never()).saveTemplate(any());
     }
@@ -235,7 +235,7 @@ class NotificationTemplateServiceTest {
         assertThat(result).containsKey("content");
         assertThat(result.get("title")).isEqualTo("Hello John!");
         assertThat(result.get("content")).isEqualTo("Your progress: 85%");
-        
+
         verify(templateRepository).findTemplateById(templateId);
     }
 
@@ -244,7 +244,7 @@ class NotificationTemplateServiceTest {
     void previewTemplate_NotFound() {
         // given
         String templateId = "nonexistent";
-        
+
         when(templateRepository.findTemplateById(templateId))
                 .thenReturn(Optional.empty());
 
@@ -253,7 +253,7 @@ class NotificationTemplateServiceTest {
             templateService.previewTemplate(templateId, Map.of());
         }).isInstanceOf(IllegalArgumentException.class)
           .hasMessageContaining("템플릿을 찾을 수 없습니다");
-        
+
         verify(templateRepository).findTemplateById(templateId);
     }
 
@@ -269,4 +269,4 @@ class NotificationTemplateServiceTest {
                 .version(0)
                 .build();
     }
-} 
+}
