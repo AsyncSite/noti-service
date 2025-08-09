@@ -93,4 +93,13 @@ public class NotificationController {
                 });
     }
 
+    @GetMapping("/event-types")
+    public ResponseEntity<EventType[]> getEventTypes() {
+        return ResponseEntity.ok(EventType.values());
+    }
+
+    @GetMapping("/channel-types")
+    public ResponseEntity<ChannelType[]> getChannelTypes() {
+        return ResponseEntity.ok(ChannelType.values());
+    }
 }
