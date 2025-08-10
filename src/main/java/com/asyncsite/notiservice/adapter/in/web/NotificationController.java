@@ -1,5 +1,6 @@
 package com.asyncsite.notiservice.adapter.in.web;
 
+import com.asyncsite.notiservice.adapter.in.dto.ApiResponse;
 import com.asyncsite.notiservice.adapter.in.dto.NotificationResponse;
 import com.asyncsite.notiservice.adapter.in.dto.SendNotificationRequest;
 import com.asyncsite.notiservice.domain.model.Notification;
@@ -25,7 +26,7 @@ public class NotificationController {
     private final NotificationUseCase notificationUseCase;
 
     @PostMapping
-    public CompletableFuture<ResponseEntity<NotificationResponse>> sendNotification(
+    public CompletableFuture<ApiResponse<NotificationResponse>> sendNotification(
             @Valid @RequestBody SendNotificationRequest request) {
 
         log.info("알림 발송 요청: userId={}, channelType={}, eventType={}", request.userId(), request.channelType(), request.eventType());
@@ -39,28 +40,27 @@ public class NotificationController {
                 .thenApply(notification -> {
                     if (notification != null) {
                         NotificationResponse response = NotificationResponse.from(notification);
-                        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+                        return ApiResponse.success(response);
                     } else {
-                        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+                        return ApiResponse.error(HttpStatus.INTERNAL_SERVER_ERROR.toString(), "알림 발송 오류");
                     }
                 });
     }
 
     @GetMapping("/{notificationId}")
-    public ResponseEntity<NotificationResponse> getNotification(
+    public ApiResponse<NotificationResponse> getNotification(
             @PathVariable String notificationId) {
         log.info("알림 조회 요청: notificationId={}", notificationId);
 
         return notificationUseCase.getNotificationById(notificationId)
                 .map(notification -> {
                     NotificationResponse response = NotificationResponse.from(notification);
-                    return ResponseEntity.ok(response);
-                })
-                .orElse(ResponseEntity.notFound().build());
+                    return ApiResponse.success(response);
+                }).get();
     }
 
     @GetMapping
-    public ResponseEntity<List<NotificationResponse>> getNotifications(
+    public ApiResponse<List<NotificationResponse>> getNotifications(
             @RequestParam String userId,
             @RequestParam(defaultValue = "EMAIL") String channelType,
             @RequestParam(defaultValue = "0") int page,
@@ -73,11 +73,11 @@ public class NotificationController {
                 .map(NotificationResponse::from)
                 .toList();
 
-        return ResponseEntity.ok(responses);
+        return ApiResponse.success(responses);
     }
 
     @PatchMapping("/{notificationId}/retry")
-    public CompletableFuture<ResponseEntity<NotificationResponse>> retryNotification(
+    public CompletableFuture<ApiResponse<NotificationResponse>> retryNotification(
             @PathVariable String notificationId) {
 
         log.info("알림 재시도 요청: notificationId={}", notificationId);
@@ -86,20 +86,20 @@ public class NotificationController {
                 .thenApply(notification -> {
                     if (notification != null) {
                         NotificationResponse response = NotificationResponse.from(notification);
-                        return ResponseEntity.ok(response);
+                        return ApiResponse.success(response);
                     } else {
-                        return ResponseEntity.notFound().build();
+                        return ApiResponse.error("", "error");
                     }
                 });
     }
 
     @GetMapping("/event-types")
-    public ResponseEntity<EventType[]> getEventTypes() {
-        return ResponseEntity.ok(EventType.values());
+    public ApiResponse<EventType[]> getEventTypes() {
+        return ApiResponse.success(EventType.values());
     }
 
     @GetMapping("/channel-types")
-    public ResponseEntity<ChannelType[]> getChannelTypes() {
-        return ResponseEntity.ok(ChannelType.values());
+    public ApiResponse<ChannelType[]> getChannelTypes() {
+        return ApiResponse.success(ChannelType.values());
     }
 }

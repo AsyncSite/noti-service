@@ -1,5 +1,6 @@
 package com.asyncsite.notiservice.adapter.in.web;
 
+import com.asyncsite.notiservice.adapter.in.dto.ApiResponse;
 import com.asyncsite.notiservice.adapter.in.dto.NotificationSettingsResponse;
 import com.asyncsite.notiservice.adapter.in.dto.UpdateNotificationSettingsRequest;
 import com.asyncsite.notiservice.domain.model.NotificationSettings;
@@ -20,19 +21,19 @@ public class NotificationSettingsController {
     private final NotificationSettingsUseCase notificationSettingsUseCase;
 
     @GetMapping("/{userId}")
-    public ResponseEntity<NotificationSettingsResponse> getNotificationSettings(@PathVariable String userId) {
+    public ApiResponse<NotificationSettingsResponse> getNotificationSettings(@PathVariable String userId) {
         log.info("알림 설정 조회: userId={}", userId);
 
-        return ResponseEntity.ok(NotificationSettingsResponse.from( settingsUseCase.getNotificationSettings(userId)));
+        return ApiResponse.success(NotificationSettingsResponse.from( settingsUseCase.getNotificationSettings(userId)));
     }
 
     @PutMapping("/{userId}")
-    public ResponseEntity<NotificationSettingsResponse> updateNotificationSettings(
+    public ApiResponse<NotificationSettingsResponse> updateNotificationSettings(
             @PathVariable String userId,
             @Valid @RequestBody UpdateNotificationSettingsRequest request) {
 
         log.info("알림 설정 업데이트: userId={}", userId);
-        return ResponseEntity.ok(NotificationSettingsResponse.from(notificationSettingsUseCase.updateNotificationSettings(
+        return ApiResponse.success(NotificationSettingsResponse.from(notificationSettingsUseCase.updateNotificationSettings(
                 userId,
                 request.studyUpdates(),
                 request.marketing(),
@@ -43,12 +44,12 @@ public class NotificationSettingsController {
     }
 
     @PostMapping("/{userId}/reset")
-    public ResponseEntity<NotificationSettingsResponse> resetNotificationSettings(@PathVariable String userId) {
+    public ApiResponse<NotificationSettingsResponse> resetNotificationSettings(@PathVariable String userId) {
         log.info("알림 설정 초기화: userId={}", userId);
 
         NotificationSettings resetSettings = settingsUseCase.resetNotificationSettings(userId);
         NotificationSettingsResponse response = NotificationSettingsResponse.from(resetSettings);
 
-        return ResponseEntity.ok(response);
+        return ApiResponse.success(response);
     }
 }
