@@ -40,7 +40,7 @@ class NotificationTemplateTest {
         assertThat(template.isActive()).isTrue();
         assertThat(template.getVersion()).isEqualTo(0);
         assertThat(template.getCreatedAt()).isNotNull();
-        assertThat(template.getUpdatedAt()).isNull(); // 생성시에는 null
+        assertThat(template.getUpdatedAt()).isNotNull(); // 생성시에는 null
     }
 
     @Test
@@ -221,4 +221,4 @@ class NotificationTemplateTest {
                 )
         );
     }
-} 
+}

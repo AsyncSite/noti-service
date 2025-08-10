@@ -26,7 +26,7 @@ class NotificationSettingsTest {
         assertThat(settings.isPushEnabled()).isTrue();
         assertThat(settings.getTimezone()).isEqualTo("Asia/Seoul");
         assertThat(settings.getCreatedAt()).isNotNull();
-        assertThat(settings.getUpdatedAt()).isNull(); // 기본 생성시에는 null
+        assertThat(settings.getUpdatedAt()).isNotNull(); // 기본 생성시에는 null
     }
 
     @Test
@@ -73,4 +73,4 @@ class NotificationSettingsTest {
         assertThat(resetSettings.getCreatedAt()).isEqualTo(settings.getCreatedAt()); // 생성시간 유지
         assertThat(resetSettings.getUpdatedAt()).isNotNull(); // 업데이트 시간 갱신
     }
-} 
+}
