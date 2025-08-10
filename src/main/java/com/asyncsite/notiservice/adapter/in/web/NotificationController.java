@@ -26,7 +26,7 @@ public class NotificationController {
     private final NotificationUseCase notificationUseCase;
 
     @PostMapping
-    public CompletableFuture<ApiResponse<NotificationResponse>> sendNotification(
+    public CompletableFuture<ResponseEntity<ApiResponse<NotificationResponse>>> sendNotification(
             @Valid @RequestBody SendNotificationRequest request) {
 
         log.info("알림 발송 요청: userId={}, channelType={}, eventType={}", request.userId(), request.channelType(), request.eventType());
@@ -48,7 +48,7 @@ public class NotificationController {
     }
 
     @GetMapping("/{notificationId}")
-    public ApiResponse<NotificationResponse> getNotification(
+    public ResponseEntity<ApiResponse<NotificationResponse>> getNotification(
             @PathVariable String notificationId) {
         log.info("알림 조회 요청: notificationId={}", notificationId);
 
@@ -60,7 +60,7 @@ public class NotificationController {
     }
 
     @GetMapping
-    public ApiResponse<List<NotificationResponse>> getNotifications(
+    public ResponseEntity<ApiResponse<List<NotificationResponse>>> getNotifications(
             @RequestParam String userId,
             @RequestParam(defaultValue = "EMAIL") String channelType,
             @RequestParam(defaultValue = "0") int page,
@@ -77,7 +77,7 @@ public class NotificationController {
     }
 
     @PatchMapping("/{notificationId}/retry")
-    public CompletableFuture<ApiResponse<NotificationResponse>> retryNotification(
+    public CompletableFuture<ResponseEntity<ApiResponse<NotificationResponse>>> retryNotification(
             @PathVariable String notificationId) {
 
         log.info("알림 재시도 요청: notificationId={}", notificationId);
@@ -94,12 +94,12 @@ public class NotificationController {
     }
 
     @GetMapping("/event-types")
-    public ApiResponse<EventType[]> getEventTypes() {
+    public ResponseEntity<ApiResponse<EventType[]>> getEventTypes() {
         return ApiResponse.success(EventType.values());
     }
 
     @GetMapping("/channel-types")
-    public ApiResponse<ChannelType[]> getChannelTypes() {
+    public ResponseEntity<ApiResponse<ChannelType[]>> getChannelTypes() {
         return ApiResponse.success(ChannelType.values());
     }
 }

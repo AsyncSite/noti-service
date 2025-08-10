@@ -21,14 +21,14 @@ public class NotificationSettingsController {
     private final NotificationSettingsUseCase notificationSettingsUseCase;
 
     @GetMapping("/{userId}")
-    public ApiResponse<NotificationSettingsResponse> getNotificationSettings(@PathVariable String userId) {
+    public ResponseEntity<ApiResponse<NotificationSettingsResponse>> getNotificationSettings(@PathVariable String userId) {
         log.info("알림 설정 조회: userId={}", userId);
 
         return ApiResponse.success(NotificationSettingsResponse.from( settingsUseCase.getNotificationSettings(userId)));
     }
 
     @PutMapping("/{userId}")
-    public ApiResponse<NotificationSettingsResponse> updateNotificationSettings(
+    public ResponseEntity<ApiResponse<NotificationSettingsResponse>> updateNotificationSettings(
             @PathVariable String userId,
             @Valid @RequestBody UpdateNotificationSettingsRequest request) {
 
@@ -44,7 +44,7 @@ public class NotificationSettingsController {
     }
 
     @PostMapping("/{userId}/reset")
-    public ApiResponse<NotificationSettingsResponse> resetNotificationSettings(@PathVariable String userId) {
+    public ResponseEntity<ApiResponse<NotificationSettingsResponse>> resetNotificationSettings(@PathVariable String userId) {
         log.info("알림 설정 초기화: userId={}", userId);
 
         NotificationSettings resetSettings = settingsUseCase.resetNotificationSettings(userId);

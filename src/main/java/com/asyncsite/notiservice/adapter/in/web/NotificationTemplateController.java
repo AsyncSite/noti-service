@@ -9,6 +9,7 @@ import com.asyncsite.notiservice.domain.port.in.NotificationTemplateUseCase;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -23,7 +24,7 @@ public class NotificationTemplateController {
     private final NotificationTemplateUseCase notificationTemplateUseCase;
 
     @GetMapping
-    public ApiResponse<List<NotificationTemplateResponse>> getTemplates(
+    public ResponseEntity<ApiResponse<List<NotificationTemplateResponse>>> getTemplates(
             @RequestParam(required = false) String channelType,
             @RequestParam(required = false, defaultValue = "true") Boolean active) {
 
@@ -38,7 +39,7 @@ public class NotificationTemplateController {
     }
 
     @GetMapping("/{templateId}")
-    public ApiResponse<NotificationTemplateResponse> getTemplate(
+    public ResponseEntity<ApiResponse<NotificationTemplateResponse>> getTemplate(
             @PathVariable String templateId) {
 
         log.info("템플릿 상세 조회: templateId={}", templateId);
@@ -49,14 +50,14 @@ public class NotificationTemplateController {
     }
 
     @PostMapping
-    public ApiResponse<NotificationTemplateResponse> createTemplate(
+    public ResponseEntity<ApiResponse<NotificationTemplateResponse>> createTemplate(
             @Valid @RequestBody CreateNotificationTemplateRequest request) {
         // Mapper를 사용하여 Request에서 Domain 객체로 변환
         return ApiResponse.success(NotificationTemplateResponse.from(notificationTemplateUseCase.createTemplate(request.channelType(), request.eventType(), request.titleTemplate(), request.contentTemplate(), request.variables())));
     }
 
     @PutMapping("/{templateId}")
-    public ApiResponse<NotificationTemplateResponse> updateTemplate(
+    public ResponseEntity<ApiResponse<NotificationTemplateResponse>> updateTemplate(
             @PathVariable String templateId,
             @Valid @RequestBody UpdateNotificationTemplateRequest request) {
 
@@ -67,7 +68,7 @@ public class NotificationTemplateController {
     }
 
     @PatchMapping("/{templateId}/deactivate")
-    public ApiResponse<Void> deactivateTemplate(
+    public ResponseEntity<ApiResponse<Void>> deactivateTemplate(
             @PathVariable String templateId) {
 
         log.info("템플릿 비활성화 요청: templateId={}", templateId);
@@ -78,7 +79,7 @@ public class NotificationTemplateController {
 
     // FIXME 작업중
     @PostMapping("/{templateId}/preview")
-    public ApiResponse<Map<String, String>> previewTemplate(
+    public ResponseEntity<ApiResponse<Map<String, String>>> previewTemplate(
             @PathVariable String templateId,
             @RequestBody Map<String, Object> variables) {
 

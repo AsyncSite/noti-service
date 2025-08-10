@@ -1,13 +1,13 @@
 ### ⚙️ Notification Settings API 시나리오 테스트
 
-@baseUrl = http://localhost:8084
+@baseUrl = http://localhost:8089
 @userId = user123
 
 ### 📋 1. 사용자 알림 설정 조회
-GET {{baseUrl}}/api/v1/users/{{userId}}/notification-settings
+GET {{baseUrl}}/api/noti/settings/{{userId}}
 
 ### ✏️ 2. 기본 알림 설정 업데이트
-PUT {{baseUrl}}/api/v1/users/{{userId}}/notification-settings
+PUT {{baseUrl}}/api/noti/settings/{{userId}}
 Content-Type: application/json
 
 {
