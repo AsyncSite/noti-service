@@ -33,6 +33,7 @@ public class NotificationSettings {
                 .pushEnabled(true)
                 .timezone("Asia/Seoul")
                 .createdAt(now)
+                .updatedAt(now)
                 .build();
     }
 

@@ -48,6 +48,7 @@ public class NotificationTemplate {
                 .active(true)
                 .version(0)
                 .createdAt(now)
+                .updatedAt(now)
                 .build();
     }
 
