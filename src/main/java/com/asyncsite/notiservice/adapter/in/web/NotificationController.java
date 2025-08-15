@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import java.util.Map;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -29,13 +30,17 @@ public class NotificationController {
     public CompletableFuture<ResponseEntity<ApiResponse<NotificationResponse>>> sendNotification(
             @Valid @RequestBody SendNotificationRequest request) {
 
-        log.info("알림 발송 요청: userId={}, channelType={}, eventType={}", request.userId(), request.channelType(), request.eventType());
+        log.info("알림 발송 요청: userId={}, channelType={}, templateId={}", request.userId(), request.channelType(), request.templateId());
 
         return notificationUseCase.sendNotification(
-                request.userId(),
-                ChannelType.valueOf(request.channelType()),
-                EventType.valueOf(request.eventType()),
-                request.metadata(),
+                        request.userId(),
+                        ChannelType.valueOf(request.channelType()),
+                        // eventType은 더 이상 선택에 사용하지 않음. 서비스에서 templateId 기반으로 처리
+                        null,
+                        Map.of(
+                                "templateId", request.templateId(),
+                                "variables", request.variables() == null ? Map.of() : request.variables()
+                        ),
                         request.recipientContact())
                 .thenApply(notification -> {
                     if (notification != null) {

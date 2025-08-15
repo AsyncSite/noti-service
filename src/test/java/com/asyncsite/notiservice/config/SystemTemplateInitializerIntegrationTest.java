@@ -89,7 +89,7 @@ class SystemTemplateInitializerIntegrationTest {
         assertThat(reset.getEventType().name()).isEqualTo("PASSWORD_RESET");
         assertThat(reset.getVariables()).containsKeys("userName", "resetUrl");
         assertThat(reset.getContentTemplate())
-            .contains("비밀번호 재설정을 요청하셨습니다")
+            .contains("비밀번호 재설정을 요청하셨어요")
             .contains("비밀번호 재설정하기")
             .contains("{resetUrl}");
     }

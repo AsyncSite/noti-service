@@ -45,19 +45,32 @@ public class NotificationService implements NotificationUseCase {
         Optional<NotificationSettings> settingsOpt = settingsRepository.findByUserId(userId);
         NotificationSettings settings = settingsOpt.orElse(NotificationSettings.createDefault(userId));
         // TODO setting에 따른 알림 취소 처리
-        // 2. 채널별 템플릿 조회
-        Optional<NotificationTemplate> template = templateRepository.findTemplateByChannelAndEventType(channelType, eventType);
-
-        if (template.isEmpty()) {
-            log.warn("템플릿을 찾을 수 없음: channelType={}", channelType);
-            throw new RuntimeException("템플릿을 찾을 수 없음");
+        // 2. templateId 기반 템플릿 조회 (필수)
+        String templateId = (String) metadata.get("templateId");
+        if (templateId == null || templateId.isBlank()) {
+            throw new IllegalArgumentException("templateId is required");
         }
 
-        // 첫 번째 활성화된 템플릿 사용
-        NotificationTemplate useTemplate = template.get();
-        //FIXME
-        String title = useTemplate.renderTitle(metadata);
-        String content = useTemplate.renderContent(metadata);
+        Map<String, Object> variables = (Map<String, Object>) metadata.getOrDefault("variables", java.util.Map.of());
+
+        Optional<NotificationTemplate> templateOpt = templateRepository.findTemplateById(templateId);
+        if (templateOpt.isEmpty()) {
+            throw new IllegalArgumentException("템플릿을 찾을 수 없습니다: " + templateId);
+        }
+
+        NotificationTemplate useTemplate = templateOpt.get();
+
+        // 채널 일치 검증
+        if (useTemplate.getChannelType() != channelType) {
+            throw new IllegalArgumentException("요청 채널과 템플릿 채널이 일치하지 않습니다.");
+        }
+
+        if (!useTemplate.isActive()) {
+            throw new IllegalArgumentException("비활성화된 템플릿입니다: " + templateId);
+        }
+
+        String title = useTemplate.renderTitle(variables);
+        String content = useTemplate.renderContent(variables);
         // 3. 알림 생성
         Notification notification = Notification.create(
                 userId,

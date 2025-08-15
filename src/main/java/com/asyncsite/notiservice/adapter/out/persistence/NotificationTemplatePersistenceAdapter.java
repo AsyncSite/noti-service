@@ -44,10 +44,7 @@ public class NotificationTemplatePersistenceAdapter implements NotificationTempl
         return templateRepository.findAll().stream().map(NotificationTemplateEntity::toDomain).collect(Collectors.toList());
     }
 
-    @Override
-    public Optional<NotificationTemplate> findTemplateByChannelAndEventType(ChannelType channelType, EventType eventType) {
-        return templateRepository.findByChannelTypeAndEventType(channelType, eventType).map(NotificationTemplateEntity::toDomain);
-    }
+    // (channel,event) 단일 조회는 제거되었습니다. templateId로만 선택합니다.
 
     @Override
     public List<NotificationTemplate> findTemplatesByFilters(ChannelType channelType, Boolean isActive) {

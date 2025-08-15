@@ -8,11 +8,12 @@ templates:
       contentTemplate: |
         <h2>안녕하세요!</h2>
         <p>패스키 등록을 위한 인증 코드입니다.</p>
-        <div style="background-color: #f0f0f0; padding: 20px; text-align: center; margin: 20px 0; border-radius: 8px;">
+        <div style="background-color: rgba(195, 232, 141, 0.15); padding: 20px; text-align: center; margin: 20px 0; border-radius: 8px; border: 1px solid rgba(195, 232, 141, 0.25);">
           <h1 style="font-size: 36px; letter-spacing: 10px; color: #333; margin: 10px 0;">{code}</h1>
         </div>
         <p>이 코드는 <strong>{expiryMinutes}분</strong> 후 만료됩니다.</p>
         <p style="color: #666; font-size: 14px;">본인이 요청하지 않으셨다면 이 메일을 무시해주세요.</p>
+        <p style="color: #666; font-size: 13px; margin-top: 16px;">도움이 필요하시면 <strong>asyncsite@gmail.com</strong>으로 연락해주세요.</p>
         <hr style="margin: 30px 0; border: none; border-top: 1px solid #e0e0e0;">
         <p style="color: #999; font-size: 12px;">AsyncSite - 함께 성장하는 개발자 커뮤니티</p>
       variables:
@@ -27,9 +28,9 @@ templates:
       titleTemplate: "[AsyncSite] 비밀번호 재설정 안내"
       contentTemplate: |
         <h2>안녕하세요, {userName}님!</h2>
-        <p>비밀번호 재설정을 요청하셨습니다.</p>
+        <p>비밀번호 재설정을 요청하셨어요. 아래 버튼으로 바로 진행해보세요.</p>
         <div style="margin: 30px 0; text-align: center;">
-          <a href="{resetUrl}" style="display: inline-block; background-color: #4CAF50; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; font-weight: bold;">
+          <a href="{resetUrl}" style="display: inline-block; background: linear-gradient(135deg, #C3E88D 0%, #A8D66F 100%); color: #05060A; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: 700;">
             비밀번호 재설정하기
           </a>
         </div>
@@ -42,6 +43,7 @@ templates:
           이 링크는 <strong>1시간</strong> 후 만료됩니다.<br>
           본인이 요청하지 않으셨다면 비밀번호를 변경하고 고객센터에 문의해주세요.
         </p>
+        <p style="color: #666; font-size: 13px; margin-top: 16px;">궁금한 점이 있으면 <strong>asyncsite@gmail.com</strong>으로 편하게 문의해주세요.</p>
         <hr style="margin: 30px 0; border: none; border-top: 1px solid #e0e0e0;">
         <p style="color: #999; font-size: 12px;">AsyncSite - 함께 성장하는 개발자 커뮤니티</p>
       variables:
@@ -53,16 +55,16 @@ templates:
     - templateId: "welcome"
       channelType: "EMAIL"
       eventType: "NOTI"
-      titleTemplate: "[AsyncSite] {userName}님, 환영합니다! 🎉"
+      titleTemplate: "[AsyncSite] 환영합니다! 🎉"
       contentTemplate: |
-        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px 20px; text-align: center; border-radius: 8px 8px 0 0;">
+        <div style="background: linear-gradient(135deg, #C3E88D 0%, #82AAFF 100%); padding: 40px 20px; text-align: center; border-radius: 8px 8px 0 0;">
           <h1 style="color: white; margin: 0;">Welcome to AsyncSite!</h1>
         </div>
         <div style="padding: 30px;">
-          <h2>{userName}님, AsyncSite 가입을 축하합니다! 🎊</h2>
-          <p>함께 성장하는 개발자 커뮤니티에 참여해주셔서 감사합니다.</p>
+          <h2>AsyncSite 가입을 축하합니다! 🎊</h2>
+          <p>함께 성장하는 개발자 커뮤니티에 참여해주셔서 감사해요.</p>
           
-          <h3 style="margin-top: 30px;">🚀 AsyncSite에서 할 수 있는 것들</h3>
+          <h3 style="margin-top: 30px;">AsyncSite에서 할 수 있는 것들이에요. ✨</h3>
           <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
             <ul style="list-style: none; padding: 0;">
               <li style="padding: 10px 0;">
@@ -85,21 +87,21 @@ templates:
           </div>
           
           <div style="text-align: center; margin: 30px 0;">
-            <a href="https://asyncsite.com/study" style="display: inline-block; background-color: #667eea; color: white; padding: 15px 40px; text-decoration: none; border-radius: 5px; font-weight: bold;">
+            <a href="https://asyncsite.com/study" style="display: inline-block; background: linear-gradient(135deg, #C3E88D 0%, #A8D66F 100%); color: #05060A; padding: 15px 40px; text-decoration: none; border-radius: 8px; font-weight: 700;">
               스터디 둘러보기
             </a>
           </div>
           
           <p style="color: #666; font-size: 14px;">
             궁금한 점이 있으시면 언제든 문의해주세요.<br>
-            support@asyncsite.com
+            asyncsite@gmail.com
           </p>
         </div>
         <div style="background-color: #f8f9fa; padding: 20px; text-align: center; border-radius: 0 0 8px 8px;">
           <p style="color: #999; font-size: 12px; margin: 0;">AsyncSite - 함께 성장하는 개발자 커뮤니티</p>
         </div>
       variables:
-        userName: "새로운 회원"
+        userName: ""
       active: true
 
     # 스터디 승인
@@ -108,7 +110,7 @@ templates:
       eventType: "STUDY"
       titleTemplate: "[AsyncSite] 스터디 '{studyTitle}'가 승인되었습니다"
       contentTemplate: |
-        <div style="background-color: #28a745; padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
+        <div style="background: linear-gradient(135deg, #C3E88D 0%, #82AAFF 100%); padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
           <h1 style="color: white; margin: 0;">스터디 승인 완료! 🎊</h1>
         </div>
         <div style="padding: 30px;">
@@ -146,10 +148,10 @@ templates:
           </ol>
           
           <div style="text-align: center; margin: 30px 0;">
-            <a href="https://asyncsite.com/study/{studyId}/manage" style="display: inline-block; background-color: #007bff; color: white; padding: 15px 40px; text-decoration: none; border-radius: 5px; font-weight: bold; margin: 0 10px;">
+            <a href="https://asyncsite.com/study/{studyId}/manage" style="display: inline-block; background: linear-gradient(135deg, #C3E88D 0%, #A8D66F 100%); color: #05060A; padding: 15px 40px; text-decoration: none; border-radius: 8px; font-weight: 700; margin: 0 10px;">
               스터디 관리하기
             </a>
-            <a href="https://asyncsite.com/study/{studyId}" style="display: inline-block; background-color: #6c757d; color: white; padding: 15px 40px; text-decoration: none; border-radius: 5px; font-weight: bold; margin: 0 10px;">
+            <a href="https://asyncsite.com/study/{studyId}" style="display: inline-block; background-color: #6c757d; color: white; padding: 15px 40px; text-decoration: none; border-radius: 8px; font-weight: 700; margin: 0 10px;">
               스터디 페이지 보기
             </a>
           </div>

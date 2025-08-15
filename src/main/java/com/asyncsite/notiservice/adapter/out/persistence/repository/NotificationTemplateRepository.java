@@ -12,7 +12,7 @@ import java.util.Optional;
 @Repository
 public interface  NotificationTemplateRepository extends JpaRepository<NotificationTemplateEntity, String> {
 
-    Optional<NotificationTemplateEntity> findByChannelTypeAndEventType(ChannelType channelType, EventType eventType);
+    // (channel,event) 단일 조회는 제거되었습니다. templateId로만 선택합니다.
     List<NotificationTemplateEntity> findAllByChannelType(ChannelType channelType);
     List<NotificationTemplateEntity> findAllByChannelTypeAndActive(ChannelType channelType, boolean active);
 }
