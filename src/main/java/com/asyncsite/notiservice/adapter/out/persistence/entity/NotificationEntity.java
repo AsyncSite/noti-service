@@ -28,8 +28,13 @@ public class NotificationEntity {
     private String userId;
     private String templateId;
     private ChannelType channelType;
+    
+    @Column(columnDefinition = "TEXT")
     private String title;
+    
+    @Column(columnDefinition = "TEXT")
     private String content;
+    
     private String recipientContact;
     private NotificationStatus status;
     private LocalDateTime createdAt;

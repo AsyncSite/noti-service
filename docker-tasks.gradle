@@ -40,7 +40,7 @@ def executeDockerCommand(String... args) {
         def output = new ByteArrayOutputStream()
         def result = exec {
             // 전체 명령어 배열 생성 (docker 실행 파일 경로 포함)
-            def fullCommand = args[0] == "docker" ? [dockerPath] + args.drop(1) : [dockerPath] + args
+            def fullCommand = [dockerPath] + args.toList()
             
             commandLine fullCommand
             workingDir = projectDir
@@ -186,11 +186,13 @@ tasks.named('bootJar') {
 
 task dockerRebuildAndRunNotiOnly {
     group = 'docker-simple'
-    description = 'Completely rebuild and run noti service (removes old container and image)'
+    description = 'Test, completely rebuild and run noti service (removes old container and image)'
     
-    dependsOn 'clean', 'bootJar'
+    dependsOn 'clean', 'test', 'bootJar'
     
     doLast {
+        println "✅ All tests passed successfully!"
+        
         // Stop and remove container
         if (dockerComposeWithFile("docker-compose.noti-only.yml", "down")) {
             println "✅ Noti service stopped and removed"
@@ -208,6 +210,10 @@ task dockerRebuildAndRunNotiOnly {
             if (dockerComposeWithFile("docker-compose.noti-only.yml", "up", "-d")) {
                 println "✅ Noti service started successfully"
                 println "View logs: ./gradlew dockerLogsNotiOnly"
+                println "Service endpoints:"
+                println "  - Health: http://localhost:8089/actuator/health"
+                println "  - Swagger: http://localhost:8089/swagger-ui/index.html"
+                println "  - API: http://localhost:8089/api/notifications"
             } else {
                 println "❌ Failed to start noti service"
             }

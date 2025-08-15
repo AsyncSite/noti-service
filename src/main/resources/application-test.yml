@@ -42,7 +42,8 @@ application:
 
 logging:
   level:
-    com.asyncsite: INFO
+    com.asyncsite: DEBUG
+    com.asyncsite.notiservice.config: DEBUG
     org.springframework.web: WARN
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE

@@ -1,0 +1,176 @@
+version: "1.0.0"
+templates:
+    # 패스키 OTP 이메일
+    - templateId: "passkey-otp"
+      channelType: "EMAIL"
+      eventType: "ACTION"
+      titleTemplate: "[AsyncSite] 패스키 인증 코드: {code}"
+      contentTemplate: |
+        <h2>안녕하세요!</h2>
+        <p>패스키 등록을 위한 인증 코드입니다.</p>
+        <div style="background-color: #f0f0f0; padding: 20px; text-align: center; margin: 20px 0; border-radius: 8px;">
+          <h1 style="font-size: 36px; letter-spacing: 10px; color: #333; margin: 10px 0;">{code}</h1>
+        </div>
+        <p>이 코드는 <strong>{expiryMinutes}분</strong> 후 만료됩니다.</p>
+        <p style="color: #666; font-size: 14px;">본인이 요청하지 않으셨다면 이 메일을 무시해주세요.</p>
+        <hr style="margin: 30px 0; border: none; border-top: 1px solid #e0e0e0;">
+        <p style="color: #999; font-size: 12px;">AsyncSite - 함께 성장하는 개발자 커뮤니티</p>
+      variables:
+        code: "000000"
+        expiryMinutes: "5"
+      active: true
+    
+    # 비밀번호 재설정
+    - templateId: "password-reset"
+      channelType: "EMAIL"
+      eventType: "PASSWORD_RESET"
+      titleTemplate: "[AsyncSite] 비밀번호 재설정 안내"
+      contentTemplate: |
+        <h2>안녕하세요, {userName}님!</h2>
+        <p>비밀번호 재설정을 요청하셨습니다.</p>
+        <div style="margin: 30px 0; text-align: center;">
+          <a href="{resetUrl}" style="display: inline-block; background-color: #4CAF50; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; font-weight: bold;">
+            비밀번호 재설정하기
+          </a>
+        </div>
+        <p>버튼이 작동하지 않으면 아래 링크를 복사하여 브라우저에 붙여넣으세요:</p>
+        <p style="word-break: break-all; background-color: #f5f5f5; padding: 10px; border-radius: 4px; font-size: 14px;">
+          {resetUrl}
+        </p>
+        <p style="color: #ff6b6b; margin-top: 20px;">
+          <strong>⚠️ 보안 안내</strong><br>
+          이 링크는 <strong>1시간</strong> 후 만료됩니다.<br>
+          본인이 요청하지 않으셨다면 비밀번호를 변경하고 고객센터에 문의해주세요.
+        </p>
+        <hr style="margin: 30px 0; border: none; border-top: 1px solid #e0e0e0;">
+        <p style="color: #999; font-size: 12px;">AsyncSite - 함께 성장하는 개발자 커뮤니티</p>
+      variables:
+        userName: "사용자"
+        resetUrl: "https://asyncsite.com/reset-password?token=example"
+      active: true
+    
+    # 회원가입 환영
+    - templateId: "welcome"
+      channelType: "EMAIL"
+      eventType: "NOTI"
+      titleTemplate: "[AsyncSite] {userName}님, 환영합니다! 🎉"
+      contentTemplate: |
+        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px 20px; text-align: center; border-radius: 8px 8px 0 0;">
+          <h1 style="color: white; margin: 0;">Welcome to AsyncSite!</h1>
+        </div>
+        <div style="padding: 30px;">
+          <h2>{userName}님, AsyncSite 가입을 축하합니다! 🎊</h2>
+          <p>함께 성장하는 개발자 커뮤니티에 참여해주셔서 감사합니다.</p>
+          
+          <h3 style="margin-top: 30px;">🚀 AsyncSite에서 할 수 있는 것들</h3>
+          <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <ul style="list-style: none; padding: 0;">
+              <li style="padding: 10px 0;">
+                <strong>🎯 다양한 스터디 참여</strong><br>
+                <span style="color: #666;">관심 분야의 스터디를 찾아 함께 학습하세요</span>
+              </li>
+              <li style="padding: 10px 0;">
+                <strong>💡 지식 공유</strong><br>
+                <span style="color: #666;">배운 내용을 공유하고 피드백을 받아보세요</span>
+              </li>
+              <li style="padding: 10px 0;">
+                <strong>🤝 네트워킹</strong><br>
+                <span style="color: #666;">같은 목표를 가진 개발자들과 연결되세요</span>
+              </li>
+              <li style="padding: 10px 0;">
+                <strong>🏆 성장 기록</strong><br>
+                <span style="color: #666;">학습 여정을 기록하고 성장을 추적하세요</span>
+              </li>
+            </ul>
+          </div>
+          
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="https://asyncsite.com/study" style="display: inline-block; background-color: #667eea; color: white; padding: 15px 40px; text-decoration: none; border-radius: 5px; font-weight: bold;">
+              스터디 둘러보기
+            </a>
+          </div>
+          
+          <p style="color: #666; font-size: 14px;">
+            궁금한 점이 있으시면 언제든 문의해주세요.<br>
+            support@asyncsite.com
+          </p>
+        </div>
+        <div style="background-color: #f8f9fa; padding: 20px; text-align: center; border-radius: 0 0 8px 8px;">
+          <p style="color: #999; font-size: 12px; margin: 0;">AsyncSite - 함께 성장하는 개발자 커뮤니티</p>
+        </div>
+      variables:
+        userName: "새로운 회원"
+      active: true
+
+    # 스터디 승인
+    - templateId: "study-approved"
+      channelType: "EMAIL"
+      eventType: "STUDY"
+      titleTemplate: "[AsyncSite] 스터디 '{studyTitle}'가 승인되었습니다"
+      contentTemplate: |
+        <div style="background-color: #28a745; padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
+          <h1 style="color: white; margin: 0;">스터디 승인 완료! 🎊</h1>
+        </div>
+        <div style="padding: 30px;">
+          <h2>{proposerName}님, 축하합니다!</h2>
+          <p>제안하신 스터디가 승인되었습니다.</p>
+          
+          <div style="background-color: #f0f8ff; padding: 20px; border-left: 4px solid #007bff; margin: 20px 0;">
+            <h3 style="margin-top: 0; color: #007bff;">{studyTitle}</h3>
+            <table style="width: 100%; border-collapse: collapse;">
+              <tr>
+                <td style="padding: 8px 0; color: #666;">시작일:</td>
+                <td style="padding: 8px 0;"><strong>{startDate}</strong></td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0; color: #666;">종료일:</td>
+                <td style="padding: 8px 0;"><strong>{endDate}</strong></td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0; color: #666;">모집 인원:</td>
+                <td style="padding: 8px 0;"><strong>{maxMembers}명</strong></td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0; color: #666;">카테고리:</td>
+                <td style="padding: 8px 0;"><strong>{category}</strong></td>
+              </tr>
+            </table>
+          </div>
+          
+          <h3>📋 다음 단계</h3>
+          <ol style="line-height: 1.8;">
+            <li><strong>스터디 페이지 확인</strong> - 상세 정보가 올바른지 확인하세요</li>
+            <li><strong>멤버 모집 시작</strong> - 스터디 홍보를 시작하세요</li>
+            <li><strong>첫 모임 준비</strong> - 오리엔테이션을 준비하세요</li>
+            <li><strong>커뮤니케이션 채널 설정</strong> - Discord/Slack 등을 설정하세요</li>
+          </ol>
+          
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="https://asyncsite.com/study/{studyId}/manage" style="display: inline-block; background-color: #007bff; color: white; padding: 15px 40px; text-decoration: none; border-radius: 5px; font-weight: bold; margin: 0 10px;">
+              스터디 관리하기
+            </a>
+            <a href="https://asyncsite.com/study/{studyId}" style="display: inline-block; background-color: #6c757d; color: white; padding: 15px 40px; text-decoration: none; border-radius: 5px; font-weight: bold; margin: 0 10px;">
+              스터디 페이지 보기
+            </a>
+          </div>
+          
+          <div style="background-color: #fff3cd; padding: 15px; border-radius: 8px; margin-top: 20px;">
+            <p style="margin: 0; color: #856404;">
+              <strong>💡 팁:</strong> 성공적인 스터디 운영을 위해 
+              <a href="https://asyncsite.com/guide/study-leader" style="color: #007bff;">스터디 리더 가이드</a>를 
+              참고하세요!
+            </p>
+          </div>
+        </div>
+        <div style="background-color: #f8f9fa; padding: 20px; text-align: center; border-radius: 0 0 8px 8px;">
+          <p style="color: #999; font-size: 12px; margin: 0;">AsyncSite - 함께 성장하는 개발자 커뮤니티</p>
+        </div>
+      variables:
+        proposerName: "스터디 제안자"
+        studyTitle: "스터디 제목"
+        studyId: "study-id"
+        startDate: "2025-01-01"
+        endDate: "2025-03-31"
+        maxMembers: "10"
+        category: "Backend"
+      active: true

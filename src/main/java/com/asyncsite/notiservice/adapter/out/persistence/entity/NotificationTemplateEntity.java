@@ -23,7 +23,6 @@ import java.util.Objects;
 public class NotificationTemplateEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
     private String templateId;
     @Version
     private Integer version;
@@ -33,7 +32,7 @@ public class NotificationTemplateEntity {
     private String titleTemplate;
     @Column(columnDefinition = "TEXT")
     private String contentTemplate;
-    @Column(columnDefinition = "JSON")
+    @Column(columnDefinition = "TEXT")
     private String variables;
     private boolean active;
     private LocalDateTime createdAt;
@@ -56,6 +55,18 @@ public class NotificationTemplateEntity {
     }
 
     public NotificationTemplate toDomain() {
+        Map<String, String> parsedVariables = null;
+        if (this.variables != null && !this.variables.isEmpty()) {
+            try {
+                // HTML 디코딩 처리 (만약 HTML 인코딩된 경우)
+                String cleanJson = this.variables.replace("&quot;", "\"");
+                parsedVariables = (Map<String, String>) JsonUtil.fromJson(cleanJson, Map.class);
+            } catch (Exception e) {
+                // 파싱 실패 시 로그 남기고 null 반환
+                e.printStackTrace();
+            }
+        }
+        
         return NotificationTemplate.builder()
                 .templateId(templateId)
                 .version(version)
@@ -63,7 +74,7 @@ public class NotificationTemplateEntity {
                 .eventType(eventType)
                 .titleTemplate(titleTemplate)
                 .contentTemplate(contentTemplate)
-                .variables(Objects.isNull(this.variables) ? null : (Map<String, String>) JsonUtil.fromJson(variables, Map.class))
+                .variables(parsedVariables)
                 .active(active)
                 .createdAt(createdAt)
                 .updatedAt(updatedAt)
