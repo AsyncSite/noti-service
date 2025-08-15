@@ -1,5 +1,6 @@
 package com.asyncsite.notiservice.domain.model;
 
+import com.asyncsite.notiservice.domain.model.vo.ChannelType;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -72,5 +73,20 @@ public class NotificationSettings {
                 .createdAt(this.createdAt)
                 .updatedAt(LocalDateTime.now())
                 .build();
+    }
+
+    public boolean isNotificationEnabled(ChannelType channelType) {
+        switch (channelType) {
+            case ChannelType.EMAIL -> {
+                return this.emailEnabled;
+            }
+            case ChannelType.DISCORD -> {
+                return this.discordEnabled;
+            }
+            case ChannelType.PUSH -> {
+                return this.pushEnabled;
+            }
+        }
+        return false;
     }
 }
