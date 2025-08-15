@@ -25,7 +25,8 @@ public interface NotificationTemplateRepositoryPort {
     List<NotificationTemplate> findTemplateByChannel(ChannelType channelType);
     List<NotificationTemplate> findTemplates();
 
-    // 템플릿 선택은 templateId로만 수행. (channel,event) 조회는 제거
+    Optional<NotificationTemplate> findDefaultTemplate(ChannelType channelType, EventType eventType);
+    List<NotificationTemplate> findActiveTemplatesByChannelAndEvent(ChannelType channelType, EventType eventType);
 
     /**
      * 필터 조건으로 템플릿 목록을 조회합니다.

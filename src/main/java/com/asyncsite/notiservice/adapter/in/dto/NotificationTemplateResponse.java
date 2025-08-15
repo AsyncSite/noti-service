@@ -15,6 +15,8 @@ public record NotificationTemplateResponse(
         String contentTemplate,
         Map<String, String> variables,
         boolean active,
+        boolean isDefault,
+        int priority,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {
@@ -27,6 +29,8 @@ public record NotificationTemplateResponse(
                 template.getContentTemplate(),
                 template.getVariables(),
                 template.isActive(),
+                template.isDefault(),
+                template.getPriority(),
                 template.getCreatedAt(),
                 template.getUpdatedAt()
         );

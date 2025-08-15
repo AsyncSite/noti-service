@@ -45,28 +45,38 @@ public class NotificationService implements NotificationUseCase {
         Optional<NotificationSettings> settingsOpt = settingsRepository.findByUserId(userId);
         NotificationSettings settings = settingsOpt.orElse(NotificationSettings.createDefault(userId));
         // TODO setting에 따른 알림 취소 처리
-        // 2. templateId 기반 템플릿 조회 (필수)
-        String templateId = (String) metadata.get("templateId");
-        if (templateId == null || templateId.isBlank()) {
-            throw new IllegalArgumentException("templateId is required");
-        }
-
+        // 2. 템플릿 선택: templateId가 있으면 우선 사용, 없으면 (channel,event) 규칙으로 선택
         Map<String, Object> variables = (Map<String, Object>) metadata.getOrDefault("variables", java.util.Map.of());
+        NotificationTemplate useTemplate;
 
-        Optional<NotificationTemplate> templateOpt = templateRepository.findTemplateById(templateId);
-        if (templateOpt.isEmpty()) {
-            throw new IllegalArgumentException("템플릿을 찾을 수 없습니다: " + templateId);
+        String templateId = (String) metadata.get("templateId");
+        if (templateId != null && !templateId.isBlank()) {
+            Optional<NotificationTemplate> templateOpt = templateRepository.findTemplateById(templateId);
+            if (templateOpt.isEmpty()) {
+                throw new IllegalArgumentException("템플릿을 찾을 수 없습니다: " + templateId);
+            }
+            useTemplate = templateOpt.get();
+        } else {
+            // 기본 템플릿 우선
+            Optional<NotificationTemplate> defaultOpt = templateRepository.findDefaultTemplate(channelType, eventType);
+            if (defaultOpt.isPresent()) {
+                useTemplate = defaultOpt.get();
+            } else {
+                // 우선순위/최신순 폴백
+                List<NotificationTemplate> candidates = templateRepository.findActiveTemplatesByChannelAndEvent(channelType, eventType);
+                if (candidates.isEmpty()) {
+                    throw new IllegalArgumentException("해당 채널/이벤트의 활성 템플릿이 없습니다.");
+                }
+                useTemplate = candidates.get(0);
+            }
         }
 
-        NotificationTemplate useTemplate = templateOpt.get();
-
-        // 채널 일치 검증
+        // 채널 일치/활성 검증
         if (useTemplate.getChannelType() != channelType) {
             throw new IllegalArgumentException("요청 채널과 템플릿 채널이 일치하지 않습니다.");
         }
-
         if (!useTemplate.isActive()) {
-            throw new IllegalArgumentException("비활성화된 템플릿입니다: " + templateId);
+            throw new IllegalArgumentException("비활성화된 템플릿입니다: " + useTemplate.getTemplateId());
         }
 
         String title = useTemplate.renderTitle(variables);

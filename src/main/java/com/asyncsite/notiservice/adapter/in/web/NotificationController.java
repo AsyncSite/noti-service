@@ -32,15 +32,17 @@ public class NotificationController {
 
         log.info("알림 발송 요청: userId={}, channelType={}, templateId={}", request.userId(), request.channelType(), request.templateId());
 
+        Map<String, Object> meta = new java.util.HashMap<>();
+        if (request.templateId() != null && !request.templateId().isBlank()) {
+            meta.put("templateId", request.templateId());
+        }
+        meta.put("variables", request.variables() == null ? java.util.Map.of() : request.variables());
+
         return notificationUseCase.sendNotification(
                         request.userId(),
                         ChannelType.valueOf(request.channelType()),
-                        // eventType은 더 이상 선택에 사용하지 않음. 서비스에서 templateId 기반으로 처리
-                        null,
-                        Map.of(
-                                "templateId", request.templateId(),
-                                "variables", request.variables() == null ? Map.of() : request.variables()
-                        ),
+                        EventType.valueOf(request.eventType()),
+                        meta,
                         request.recipientContact())
                 .thenApply(notification -> {
                     if (notification != null) {

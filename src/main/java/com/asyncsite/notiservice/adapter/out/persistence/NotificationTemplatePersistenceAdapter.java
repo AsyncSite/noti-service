@@ -51,4 +51,18 @@ public class NotificationTemplatePersistenceAdapter implements NotificationTempl
         return templateRepository.findAllByChannelTypeAndActive(channelType, isActive)
                 .stream().map(NotificationTemplateEntity::toDomain).toList();
     }
+
+    @Override
+    public Optional<NotificationTemplate> findDefaultTemplate(ChannelType channelType, EventType eventType) {
+        return templateRepository
+                .findFirstByChannelTypeAndEventTypeAndActiveAndIsDefault(channelType, eventType, true, true)
+                .map(NotificationTemplateEntity::toDomain);
+    }
+
+    @Override
+    public List<NotificationTemplate> findActiveTemplatesByChannelAndEvent(ChannelType channelType, EventType eventType) {
+        return templateRepository
+                .findAllByChannelTypeAndEventTypeAndActiveOrderByPriorityDescUpdatedAtDesc(channelType, eventType, true)
+                .stream().map(NotificationTemplateEntity::toDomain).toList();
+    }
 }

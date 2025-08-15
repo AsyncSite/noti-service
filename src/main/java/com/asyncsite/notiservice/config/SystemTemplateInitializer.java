@@ -202,6 +202,8 @@ public class SystemTemplateInitializer implements ApplicationRunner {
             .titleTemplate(config.getTitleTemplate())
             .contentTemplate(config.getContentTemplate())
             .variables(config.getVariables())
+            .isDefault(false)
+            .priority(0)
             .active(config.isActive())
             .version(null)  // JPA @Version 필드는 null로 시작
             .createdAt(now)

@@ -35,6 +35,8 @@ public class NotificationTemplateEntity {
     @Column(columnDefinition = "TEXT")
     private String variables;
     private boolean active;
+    private boolean isDefault;
+    private int priority;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -49,6 +51,8 @@ public class NotificationTemplateEntity {
                 .contentTemplate(template.getContentTemplate())
                 .variables(Objects.isNull(template.getVariables()) ? null : JsonUtil.toJson(template.getVariables()))
                 .active(template.isActive())
+                .isDefault(template.isDefault())
+                .priority(template.getPriority())
                 .createdAt(template.getCreatedAt())
                 .updatedAt(template.getUpdatedAt())
                 .build();
@@ -76,6 +80,8 @@ public class NotificationTemplateEntity {
                 .contentTemplate(contentTemplate)
                 .variables(parsedVariables)
                 .active(active)
+                .isDefault(isDefault)
+                .priority(priority)
                 .createdAt(createdAt)
                 .updatedAt(updatedAt)
                 .build();
