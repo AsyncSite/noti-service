@@ -20,6 +20,8 @@ public class NotificationTemplate {
     private String contentTemplate;
     private Map<String, String> variables;
     private boolean active;
+    private boolean isDefault;
+    private int priority;
     private Integer version;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

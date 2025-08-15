@@ -77,6 +77,20 @@ public class NotificationTemplateController {
         return ApiResponse.success(null);
     }
 
+    @PatchMapping("/{templateId}/default")
+    public ResponseEntity<ApiResponse<Void>> setDefault(@PathVariable String templateId) {
+        notificationTemplateUseCase.setDefaultTemplate(templateId);
+        return ApiResponse.success(null);
+    }
+
+    @PatchMapping("/{templateId}/priority")
+    public ResponseEntity<ApiResponse<Void>> updatePriority(
+            @PathVariable String templateId,
+            @RequestParam int value) {
+        notificationTemplateUseCase.updatePriority(templateId, value);
+        return ApiResponse.success(null);
+    }
+
     // FIXME 작업중
     @PostMapping("/{templateId}/preview")
     public ResponseEntity<ApiResponse<Map<String, String>>> previewTemplate(

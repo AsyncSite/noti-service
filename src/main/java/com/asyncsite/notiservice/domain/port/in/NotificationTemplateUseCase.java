@@ -48,4 +48,14 @@ public interface NotificationTemplateUseCase {
      * 템플릿 미리보기를 생성합니다.
      */
     Map<String, String> previewTemplate(String templateId, Map<String, Object> variables);
+
+    /**
+     * 지정한 템플릿을 (channel,event) 조합의 기본 템플릿으로 설정합니다.
+     */
+    void setDefaultTemplate(String templateId);
+
+    /**
+     * 템플릿 우선순위를 변경합니다.
+     */
+    void updatePriority(String templateId, int priority);
 }

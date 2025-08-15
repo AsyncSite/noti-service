@@ -25,10 +25,8 @@ public interface NotificationTemplateRepositoryPort {
     List<NotificationTemplate> findTemplateByChannel(ChannelType channelType);
     List<NotificationTemplate> findTemplates();
 
-    /**
-     * 이벤트 타입과 채널 타입으로 템플릿을 조회합니다.
-     */
-    Optional<NotificationTemplate> findTemplateByChannelAndEventType(ChannelType channelType, EventType eventType);
+    Optional<NotificationTemplate> findDefaultTemplate(ChannelType channelType, EventType eventType);
+    List<NotificationTemplate> findActiveTemplatesByChannelAndEvent(ChannelType channelType, EventType eventType);
 
     /**
      * 필터 조건으로 템플릿 목록을 조회합니다.

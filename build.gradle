@@ -55,6 +55,7 @@ dependencies {
 
     // JSON Processing
     implementation 'com.fasterxml.jackson.core:jackson-databind'
+    implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml'
 
     // Logging
     implementation 'net.logstash.logback:logstash-logback-encoder:8.0'
@@ -96,6 +97,8 @@ dependencyManagement {
 
 tasks.named('test') {
     useJUnitPlatform()
+    // Ensure Spring uses the test profile during tests
+    systemProperty 'spring.profiles.active', 'test'
 }
 
 // QueryDSL 설정

@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import java.util.Map;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -29,13 +30,19 @@ public class NotificationController {
     public CompletableFuture<ResponseEntity<ApiResponse<NotificationResponse>>> sendNotification(
             @Valid @RequestBody SendNotificationRequest request) {
 
-        log.info("알림 발송 요청: userId={}, channelType={}, eventType={}", request.userId(), request.channelType(), request.eventType());
+        log.info("알림 발송 요청: userId={}, channelType={}, templateId={}", request.userId(), request.channelType(), request.templateId());
+
+        Map<String, Object> meta = new java.util.HashMap<>();
+        if (request.templateId() != null && !request.templateId().isBlank()) {
+            meta.put("templateId", request.templateId());
+        }
+        meta.put("variables", request.variables() == null ? java.util.Map.of() : request.variables());
 
         return notificationUseCase.sendNotification(
-                request.userId(),
-                ChannelType.valueOf(request.channelType()),
-                EventType.valueOf(request.eventType()),
-                request.metadata(),
+                        request.userId(),
+                        ChannelType.valueOf(request.channelType()),
+                        EventType.valueOf(request.eventType()),
+                        meta,
                         request.recipientContact())
                 .thenApply(notification -> {
                     if (notification != null) {

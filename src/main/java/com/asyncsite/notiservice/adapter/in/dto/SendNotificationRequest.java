@@ -11,9 +11,15 @@ public record SendNotificationRequest(
 
     @NotBlank(message = "채널 타입은 필수입니다.")
     String channelType,
+
     @NotBlank(message = "채널 이벤트는 필수입니다.")
     String eventType,
+
+    // 선택: 특정 템플릿을 강제로 지정하고 싶을 때만 사용
+    String templateId,
+
     String recipientContact,
 
-    Map<String, Object> metadata
+    // 템플릿 렌더링 변수
+    Map<String, Object> variables
 ) {}

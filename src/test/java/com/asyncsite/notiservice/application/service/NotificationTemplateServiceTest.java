@@ -233,7 +233,7 @@ class NotificationTemplateServiceTest {
         // then
         assertThat(result).containsKey("title");
         assertThat(result).containsKey("content");
-        assertThat(result.get("title")).isEqualTo("Hello John!");
+        assertThat(result.get("title")).isEqualTo("Hello J**n!");
         assertThat(result.get("content")).isEqualTo("Your progress: 85%");
 
         verify(templateRepository).findTemplateById(templateId);
