@@ -44,7 +44,7 @@ public class NotificationService implements NotificationUseCase {
         // 1. 알림 설정 조회 (기본값으로 처리)
         Optional<NotificationSettings> settingsOpt = settingsRepository.findByUserId(userId);
         NotificationSettings settings = settingsOpt.orElse(NotificationSettings.createDefault(userId));
-        // TODO setting에 따른 알림 취소 처리
+        // 1-1. 알림 발송 여부 체크
         if(!settings.isNotificationEnabled(channelType))
             return null;
         // 2. 템플릿 선택: templateId가 있으면 우선 사용, 없으면 (channel,event) 규칙으로 선택
