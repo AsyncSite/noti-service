@@ -102,13 +102,40 @@ public class NotificationTemplateService implements NotificationTemplateUseCase 
         }
 
         NotificationTemplate templateData = template.get();
-        String renderedTitle = templateData.renderTitle(variables);
-        String renderedContent = templateData.renderContent(variables);
+        Map<String, Object> maskedVars = com.asyncsite.notiservice.common.MaskingUtil.maskVariablesForDisplay(variables);
+        String renderedTitle = templateData.renderTitle(maskedVars);
+        String renderedContent = templateData.renderContent(maskedVars);
 
         Map<String, String> preview = new HashMap<>();
         preview.put("title", renderedTitle);
         preview.put("content", renderedContent);
 
         return preview;
+    }
+
+    @Override
+    public void setDefaultTemplate(String templateId) {
+        NotificationTemplate target = templateRepository.findTemplateById(templateId)
+                .orElseThrow(() -> new IllegalArgumentException("템플릿을 찾을 수 없습니다: " + templateId));
+
+        // 동일 (channel,event)의 기존 기본 해제
+        List<NotificationTemplate> candidates = templateRepository
+                .findActiveTemplatesByChannelAndEvent(target.getChannelType(), target.getEventType());
+        for (NotificationTemplate t : candidates) {
+            if (t.isDefault() && !t.getTemplateId().equals(templateId)) {
+                NotificationTemplate off = t.toBuilder().isDefault(false).build();
+                templateRepository.saveTemplate(off);
+            }
+        }
+        NotificationTemplate on = target.toBuilder().isDefault(true).build();
+        templateRepository.saveTemplate(on);
+    }
+
+    @Override
+    public void updatePriority(String templateId, int priority) {
+        NotificationTemplate target = templateRepository.findTemplateById(templateId)
+                .orElseThrow(() -> new IllegalArgumentException("템플릿을 찾을 수 없습니다: " + templateId));
+        NotificationTemplate updated = target.toBuilder().priority(priority).build();
+        templateRepository.saveTemplate(updated);
     }
 }

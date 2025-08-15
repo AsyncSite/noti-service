@@ -47,6 +47,7 @@ public class NotificationService implements NotificationUseCase {
         // TODO setting에 따른 알림 취소 처리
         // 2. 템플릿 선택: templateId가 있으면 우선 사용, 없으면 (channel,event) 규칙으로 선택
         Map<String, Object> variables = (Map<String, Object>) metadata.getOrDefault("variables", java.util.Map.of());
+        variables = com.asyncsite.notiservice.common.MaskingUtil.maskVariablesForDisplay(variables);
         NotificationTemplate useTemplate;
 
         String templateId = (String) metadata.get("templateId");
