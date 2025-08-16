@@ -22,7 +22,8 @@ public class ThymeleafConfig {
         templateResolver.setTemplateMode(TemplateMode.HTML);
         templateResolver.setCacheable(false); // 개발 중에는 false, 운영에서는 true
         templateResolver.setCharacterEncoding("UTF-8");
-        templateResolver.setCheckExistence(true);
+        // Spring Boot 3.2+ nested JAR 문제 해결
+        templateResolver.setCheckExistence(false); // nested JAR에서 존재 확인이 작동하지 않을 수 있음
         
         // 디버깅: 템플릿 경로 및 리소스 확인
         log.info("=== Thymeleaf Template Resolver 설정 ===");
