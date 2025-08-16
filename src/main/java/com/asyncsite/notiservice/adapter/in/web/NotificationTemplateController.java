@@ -1,9 +1,9 @@
 package com.asyncsite.notiservice.adapter.in.web;
 
-import com.asyncsite.notiservice.adapter.in.dto.ApiResponse;
-import com.asyncsite.notiservice.adapter.in.dto.CreateNotificationTemplateRequest;
-import com.asyncsite.notiservice.adapter.in.dto.NotificationTemplateResponse;
-import com.asyncsite.notiservice.adapter.in.dto.UpdateNotificationTemplateRequest;
+import com.asyncsite.notiservice.adapter.in.web.dto.ApiResponse;
+import com.asyncsite.notiservice.adapter.in.web.dto.CreateNotificationTemplateRequest;
+import com.asyncsite.notiservice.adapter.in.web.dto.NotificationTemplateResponse;
+import com.asyncsite.notiservice.adapter.in.web.dto.UpdateNotificationTemplateRequest;
 import com.asyncsite.notiservice.domain.model.NotificationTemplate;
 import com.asyncsite.notiservice.domain.port.in.NotificationTemplateUseCase;
 import jakarta.validation.Valid;
@@ -21,7 +21,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class NotificationTemplateController {
 
-    private final NotificationTemplateUseCase notificationTemplateUseCase;
+    private final NotificationTemplateUseCase templateUseCase;
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<NotificationTemplateResponse>>> getTemplates(
@@ -29,7 +29,7 @@ public class NotificationTemplateController {
             @RequestParam(required = false, defaultValue = "true") Boolean active) {
 
 
-        List<NotificationTemplate> templates = notificationTemplateUseCase.getTemplates(
+        List<NotificationTemplate> templates = templateUseCase.getTemplates(
                 channelType, active);
 
         List<NotificationTemplateResponse> responses = templates.stream()
@@ -44,7 +44,7 @@ public class NotificationTemplateController {
 
         log.info("템플릿 상세 조회: templateId={}", templateId);
 
-        return notificationTemplateUseCase.getTemplateById(templateId)
+        return templateUseCase.getTemplateById(templateId)
                 .map(template -> ApiResponse.success(NotificationTemplateResponse.from(template)))
                 .get();
     }
@@ -53,7 +53,7 @@ public class NotificationTemplateController {
     public ResponseEntity<ApiResponse<NotificationTemplateResponse>> createTemplate(
             @Valid @RequestBody CreateNotificationTemplateRequest request) {
         // Mapper를 사용하여 Request에서 Domain 객체로 변환
-        return ApiResponse.success(NotificationTemplateResponse.from(notificationTemplateUseCase.createTemplate(request.channelType(), request.eventType(), request.titleTemplate(), request.contentTemplate(), request.variables())));
+        return ApiResponse.success(NotificationTemplateResponse.from(templateUseCase.createTemplate(request.channelType(), request.eventType(), request.titleTemplate(), request.contentTemplate(), request.variables())));
     }
 
     @PutMapping("/{templateId}")
@@ -64,7 +64,7 @@ public class NotificationTemplateController {
         log.info("템플릿 수정 요청: templateId={}", templateId);
 
         // 기존 템플릿 조회 후 업데이트
-        return ApiResponse.success(NotificationTemplateResponse.from(notificationTemplateUseCase.updateTemplate(templateId, request.titleTemplate(), request.contentTemplate(), request.variables())));
+        return ApiResponse.success(NotificationTemplateResponse.from(templateUseCase.updateTemplate(templateId, request.titleTemplate(), request.contentTemplate(), request.variables())));
     }
 
     @PatchMapping("/{templateId}/deactivate")
@@ -73,13 +73,13 @@ public class NotificationTemplateController {
 
         log.info("템플릿 비활성화 요청: templateId={}", templateId);
 
-        notificationTemplateUseCase.deactivateTemplate(templateId);
+        templateUseCase.deactivateTemplate(templateId);
         return ApiResponse.success(null);
     }
 
     @PatchMapping("/{templateId}/default")
     public ResponseEntity<ApiResponse<Void>> setDefault(@PathVariable String templateId) {
-        notificationTemplateUseCase.setDefaultTemplate(templateId);
+        templateUseCase.setDefaultTemplate(templateId);
         return ApiResponse.success(null);
     }
 
@@ -87,7 +87,7 @@ public class NotificationTemplateController {
     public ResponseEntity<ApiResponse<Void>> updatePriority(
             @PathVariable String templateId,
             @RequestParam int value) {
-        notificationTemplateUseCase.updatePriority(templateId, value);
+        templateUseCase.updatePriority(templateId, value);
         return ApiResponse.success(null);
     }
 
@@ -99,7 +99,7 @@ public class NotificationTemplateController {
 
         log.info("템플릿 미리보기 요청: templateId={}", templateId);
 
-        Map<String, String> preview = notificationTemplateUseCase.previewTemplate(templateId, variables);
+        Map<String, String> preview = templateUseCase.previewTemplate(templateId, variables);
         return ApiResponse.success(preview);
     }
 }

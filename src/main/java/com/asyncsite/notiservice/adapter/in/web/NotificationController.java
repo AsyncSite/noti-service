@@ -1,23 +1,21 @@
 package com.asyncsite.notiservice.adapter.in.web;
 
-import com.asyncsite.notiservice.adapter.in.dto.ApiResponse;
-import com.asyncsite.notiservice.adapter.in.dto.NotificationResponse;
-import com.asyncsite.notiservice.adapter.in.dto.SendNotificationBulkRequest;
-import com.asyncsite.notiservice.adapter.in.dto.SendNotificationRequest;
+import com.asyncsite.notiservice.adapter.in.web.dto.ApiResponse;
+import com.asyncsite.notiservice.adapter.in.web.dto.NotificationResponse;
+import com.asyncsite.notiservice.adapter.in.web.dto.SendNotificationBulkRequest;
+import com.asyncsite.notiservice.adapter.in.web.dto.SendNotificationRequest;
 import com.asyncsite.notiservice.domain.model.Notification;
 import com.asyncsite.notiservice.domain.model.vo.ChannelType;
 import com.asyncsite.notiservice.domain.model.vo.EventType;
 import com.asyncsite.notiservice.domain.port.in.NotificationUseCase;
+import jakarta.mail.MessagingException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import java.util.Map;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 
 @Slf4j
 @RestController
@@ -25,64 +23,37 @@ import java.util.concurrent.CompletableFuture;
 @RequiredArgsConstructor
 public class NotificationController {
 
-    private final NotificationUseCase notificationUseCase;
+    private final NotificationUseCase notiUseCase;
 
     @PostMapping
-    public CompletableFuture<ResponseEntity<ApiResponse<NotificationResponse>>> sendNotification(
+    public ResponseEntity<ApiResponse<NotificationResponse>> sendNotification(
             @Valid @RequestBody SendNotificationRequest request) {
-
         log.info("알림 발송 요청: userId={}, channelType={}, templateId={}", request.userId(), request.channelType(), request.templateId());
 
-        Map<String, Object> meta = new java.util.HashMap<>();
-        if (request.templateId() != null && !request.templateId().isBlank()) {
-            meta.put("templateId", request.templateId());
-        }
-        meta.put("variables", request.variables() == null ? java.util.Map.of() : request.variables());
-
-        return notificationUseCase.sendNotification(
+        Notification notification = notiUseCase.createNotification(
                         request.userId(),
                         ChannelType.valueOf(request.channelType()),
                         EventType.valueOf(request.eventType()),
-                        meta,
+                        request.getMetaData(),
                         request.recipientContact()
-                )
-                .thenApply(notification -> {
-                    if (notification != null) {
-                        NotificationResponse response = NotificationResponse.from(notification);
-                        return ApiResponse.success(response);
-                    } else {
-                        return ApiResponse.error(HttpStatus.INTERNAL_SERVER_ERROR.toString(), "알림 발송 오류");
-                    }
-                });
+                );
+
+        return ApiResponse.success(NotificationResponse.from(notification));
     }
 
-    @PostMapping
-    public CompletableFuture<ResponseEntity<ApiResponse<NotificationResponse>>> sendNotification(
+    @PostMapping("/bulk")
+    public ResponseEntity<ApiResponse<NotificationResponse>> sendNotificationBulk(
             @Valid @RequestBody SendNotificationBulkRequest request) {
-
         log.info("알림 발송 요청: userId={}, channelType={}, templateId={}", request.userId(), request.channelType(), request.templateId());
 
-        Map<String, Object> meta = new java.util.HashMap<>();
-        if (request.templateId() != null && !request.templateId().isBlank()) {
-            meta.put("templateId", request.templateId());
-        }
-        meta.put("variables", request.variables() == null ? java.util.Map.of() : request.variables());
-
-        return notificationUseCase.sendNotificationBulk(
+        Notification res = notiUseCase.createNotificationBulk(
                         request.userId(),
                         ChannelType.valueOf(request.channelType()),
                         EventType.valueOf(request.eventType()),
-                        meta,
+                        request.getMetaData(),
                         request.recipientContacts()
-                )
-                .thenApply(notification -> {
-                    if (notification != null) {
-                        NotificationResponse response = NotificationResponse.from(notification);
-                        return ApiResponse.success(response);
-                    } else {
-                        return ApiResponse.error(HttpStatus.INTERNAL_SERVER_ERROR.toString(), "알림 발송 오류");
-                    }
-                });
+                );
+        return ApiResponse.success(NotificationResponse.from(res));
     }
 
     @GetMapping("/{notificationId}")
@@ -90,11 +61,8 @@ public class NotificationController {
             @PathVariable String notificationId) {
         log.info("알림 조회 요청: notificationId={}", notificationId);
 
-        return notificationUseCase.getNotificationById(notificationId)
-                .map(notification -> {
-                    NotificationResponse response = NotificationResponse.from(notification);
-                    return ApiResponse.success(response);
-                }).get();
+        Notification notification = notiUseCase.getNotificationById(notificationId);
+        return ApiResponse.success(NotificationResponse.from(notification));
     }
 
     @GetMapping
@@ -106,7 +74,7 @@ public class NotificationController {
 
         log.info("사용자 알림 목록 조회: userId={}, channelType={} page={}, size={}", userId, channelType, page, size);
 
-        List<Notification> notifications = notificationUseCase.getNotificationsByUserId(userId, ChannelType.valueOf(channelType), page, size);
+        List<Notification> notifications = notiUseCase.getNotificationsByUserId(userId, ChannelType.valueOf(channelType), page, size);
         List<NotificationResponse> responses = notifications.stream()
                 .map(NotificationResponse::from)
                 .toList();
@@ -115,20 +83,12 @@ public class NotificationController {
     }
 
     @PatchMapping("/{notificationId}/retry")
-    public CompletableFuture<ResponseEntity<ApiResponse<NotificationResponse>>> retryNotification(
-            @PathVariable String notificationId) {
+    public ResponseEntity<ApiResponse<NotificationResponse>> retryNotification(
+            @PathVariable String notificationId) throws MessagingException {
 
         log.info("알림 재시도 요청: notificationId={}", notificationId);
 
-        return notificationUseCase.retryNotification(notificationId)
-                .thenApply(notification -> {
-                    if (notification != null) {
-                        NotificationResponse response = NotificationResponse.from(notification);
-                        return ApiResponse.success(response);
-                    } else {
-                        return ApiResponse.error("", "error");
-                    }
-                });
+        return ApiResponse.success(NotificationResponse.from(notiUseCase.retryNotification(notificationId)));
     }
 
     @GetMapping("/event-types")

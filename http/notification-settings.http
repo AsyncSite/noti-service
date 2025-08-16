@@ -6,14 +6,17 @@
 ### 📋 1. 사용자 알림 설정 조회
 GET {{baseUrl}}/api/noti/settings/{{userId}}
 
-### ✏️ 2. 기본 알림 설정 업데이트
+### ✏️ 2. 알림 설정 업데이트
 PUT {{baseUrl}}/api/noti/settings/{{userId}}
 Content-Type: application/json
 
 {
   "studyUpdates": true,
-  "marketing": true,
+  "marketing": false,
   "emailEnabled": true,
   "discordEnabled": true,
-  "pushEnabled": true
+  "pushEnabled": false
 }
+
+### 🔄 3. 알림 설정 초기화
+POST {{baseUrl}}/api/noti/settings/{{userId}}/reset

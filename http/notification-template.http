@@ -1,17 +1,24 @@
 ### 📝 Notification Template API 시나리오 테스트
 
-@baseUrl = http://localhost:8084
+@baseUrl = http://localhost:8089
+@templateId = study-approved
 
-### 📋 1. 필터링된 템플릿 조회 (이메일, 한국어, 활성화)
-GET {{baseUrl}}/api/v1/notification-templates?channelType=EMAIL
+### 📋 1. 템플릿 목록 조회 (필터링 옵션)
+GET {{baseUrl}}/api/noti/templates?channelType=EMAIL&active=true
 
-### ➕ 2. 스터디 승인 이메일 템플릿 생성
-POST {{baseUrl}}/api/v1/notification-templates
+### 📋 2. 모든 템플릿 조회
+GET {{baseUrl}}/api/noti/templates
+
+### 🔍 3. 템플릿 단건 조회
+GET {{baseUrl}}/api/noti/templates/{{templateId}}
+
+### ➕ 4. 스터디 승인 이메일 템플릿 생성
+POST {{baseUrl}}/api/noti/templates
 Content-Type: application/json
 
 {
   "channelType": "EMAIL",
-  "eventType": "STUDY",
+  "eventType": "STUDY_APPROVED",
   "titleTemplate": "🎉 스터디 승인: {studyTitle}",
   "contentTemplate": "안녕하세요 {userName}님,\n\n귀하가 신청하신 \"{studyTitle}\" 스터디가 승인되었습니다!\n\n✅ 승인자: {approvedBy}\n📅 승인일: {approvalDate}\n🔗 스터디 링크: {studyUrl}\n\n스터디에 참여해 주셔서 감사합니다.\n\n스터디 플랫폼 팀 드림",
   "variables": {
@@ -23,16 +30,13 @@ Content-Type: application/json
   }
 }
 
-### 3. 탬플릿 단건 조회
-GET {{baseUrl}}/api/v1/notification-templates/2ad178fe-41a6-48e9-8b6f-9a5ef57fff22
-
-### ➕ 4. 탬플릿 수정
-PUT {{baseUrl}}/api/v1/notification-templates/2ad178fe-41a6-48e9-8b6f-9a5ef57fff22
+### ✏️ 5. 템플릿 수정
+PUT {{baseUrl}}/api/noti/templates/{{templateId}}
 Content-Type: application/json
 
 {
   "titleTemplate": "🎉 스터디 승인 수정: {studyTitle}",
-  "contentTemplate": "안녕하세요 {userName}님,\n\n귀하가 신청하신 \"{studyTitle}\" 스터디가 승인되었습니다!\n\n✅ 승인자: {approvedBy}\n📅 승인일: {approvalDate}\n🔗 스터디 링크: {studyUrl}\n\n스터디에 참여해 주셔서 감사합니다.\n\n스터디 플랫폼 팀 드림",
+  "contentTemplate": "안녕하세요 {userName}님,\n\n귀하가 신청하신 \"{studyTitle}\" 스터디가 승인되었습니다!\n\n✅ 승인자: {approvedBy}\n📅 승인일: {approvalDate}\n🔗 스터디 링크: {studyUrl}\n\n스터디에 참여해 주셔서 감사합니다.\n\n[수정된 내용]\n\n스터디 플랫폼 팀 드림",
   "variables": {
     "userName": "김개발",
     "studyTitle": "Java Spring Boot 마스터",
@@ -42,5 +46,23 @@ Content-Type: application/json
   }
 }
 
-### 3. 탬플릿 비활성화
-PATCH {{baseUrl}}/api/v1/notification-templates/2ad178fe-41a6-48e9-8b6f-9a5ef57fff22/deactivate
+### ❌ 6. 템플릿 비활성화
+PATCH {{baseUrl}}/api/noti/templates/{{templateId}}/deactivate
+
+### ⭐ 7. 템플릿 기본값 설정
+PATCH {{baseUrl}}/api/noti/templates/{{templateId}}/default
+
+### 🔢 8. 템플릿 우선순위 업데이트
+PATCH {{baseUrl}}/api/noti/templates/{{templateId}}/priority?value=1
+
+### 🔍 9. 템플릿 미리보기
+POST {{baseUrl}}/api/noti/templates/{{templateId}}/preview
+Content-Type: application/json
+
+{
+  "userName": "홍길동",
+  "studyTitle": "React 전문가 과정",
+  "approvedBy": "최관리자",
+  "approvalDate": "2024-12-21",
+  "studyUrl": "https://example.com/study/789"
+}

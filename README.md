@@ -25,22 +25,6 @@ Noti Service는 다양한 채널(이메일, 디스코드, 푸시)을 통해 사�
 - **Documentation**: Swagger/OpenAPI 3
 - **Test**: JUnit 5, Mockito, Spring Boot Test
 
-## ⚠️ 중요 주의사항
-
-### Spring Boot 3.2+ Nested JAR 이슈
-Spring Boot 3.2부터 JAR 파일 포맷이 변경되어 **반드시 ClassLoaderTemplateResolver를 사용**해야 합니다:
-- ❌ SpringResourceTemplateResolver: nested JAR에서 템플릿 로딩 실패
-- ✅ ClassLoaderTemplateResolver: 정상 작동
-
-자세한 내용은 [TROUBLESHOOTING.md](./TROUBLESHOOTING.md)를 참조하세요.
-
-### Docker 환경 테스트 필수
-로컬 개발 환경과 Docker/배포 환경의 차이로 인한 문제를 방지하기 위해:
-```bash
-# 반드시 Docker 환경에서 테스트
-./gradlew dockerRebuildAndRunNotiOnly
-```
-
 ## 📊 ERD (Entity Relationship Diagram)
 
 ```mermaid
@@ -292,41 +276,116 @@ docker-compose logs -f noti-service
 
 ### 주요 API 엔드포인트
 
-#### 알림 발송
+#### 알림 발송 (`/api/noti`)
 ```http
-POST /api/v1/notifications
+# 단일 알림 발송
+POST /api/noti
+Content-Type: application/json
+
+{
+  "userId": "user123",
+  "channelType": "EMAIL",
+  "eventType": "STUDY_APPROVED",
+  "recipientContact": "user@example.com",
+  "variables": {
+    "userName": "홍길동",
+    "studyTitle": "Java Spring Boot 스터디",
+    "approvedBy": "관리자"
+  }
+}
+
+# 벌크 알림 발송
+POST /api/noti/bulk
 Content-Type: application/json
 
 {
   "userId": "user123",
   "channelType": "EMAIL",
   "eventType": "STUDY",
-  "recipientContact": "user@example.com",
-  "metadata": {
+  "recipientContacts": ["user1@example.com", "user2@example.com"],
+  "variables": {
     "userName": "홍길동",
-    "progress": 85
+    "studyTitle": "Java Spring Boot 스터디"
   }
 }
 ```
 
-#### 알림 조회
+#### 알림 조회 및 관리
 ```http
-GET /api/v1/notifications/{notificationId}
-GET /api/v1/notifications?userId=user123&channelType=EMAIL&page=0&size=20
+# 단건 조회
+GET /api/noti/{notificationId}
+
+# 사용자별 목록 조회 (페이징)
+GET /api/noti?userId=user123&channelType=EMAIL&page=0&size=20
+
+# 알림 재시도
+PATCH /api/noti/{notificationId}/retry
+
+# 이벤트/채널 타입 조회
+GET /api/noti/event-types
+GET /api/noti/channel-types
 ```
 
-#### 알림 설정 관리
+#### 알림 설정 관리 (`/api/noti/settings`)
 ```http
-GET /api/v1/users/{userId}/notification-settings
-PUT /api/v1/users/{userId}/notification-settings
-POST /api/v1/users/{userId}/notification-settings/reset
+# 설정 조회
+GET /api/noti/settings/{userId}
+
+# 설정 업데이트
+PUT /api/noti/settings/{userId}
+Content-Type: application/json
+
+{
+  "studyUpdates": true,
+  "marketing": false,
+  "emailEnabled": true,
+  "discordEnabled": true,
+  "pushEnabled": false
+}
+
+# 설정 초기화
+POST /api/noti/settings/{userId}/reset
 ```
 
-#### 템플릿 관리
+#### 템플릿 관리 (`/api/noti/templates`)
 ```http
-GET /api/v1/notification-templates?channelType=EMAIL&active=true
-POST /api/v1/notification-templates
-PUT /api/v1/notification-templates/{templateId}
+# 템플릿 목록 조회
+GET /api/noti/templates?channelType=EMAIL&active=true
+
+# 템플릿 단건 조회
+GET /api/noti/templates/{templateId}
+
+# 템플릿 생성
+POST /api/noti/templates
+Content-Type: application/json
+
+{
+  "channelType": "EMAIL",
+  "eventType": "STUDY_APPROVED",
+  "titleTemplate": "🎉 스터디 승인: {studyTitle}",
+  "contentTemplate": "안녕하세요 {userName}님...",
+  "variables": {
+    "userName": "기본사용자",
+    "studyTitle": "기본스터디"
+  }
+}
+
+# 템플릿 수정
+PUT /api/noti/templates/{templateId}
+
+# 템플릿 관리
+PATCH /api/noti/templates/{templateId}/deactivate
+PATCH /api/noti/templates/{templateId}/default
+PATCH /api/noti/templates/{templateId}/priority?value=1
+
+# 템플릿 미리보기
+POST /api/noti/templates/{templateId}/preview
+Content-Type: application/json
+
+{
+  "userName": "홍길동",
+  "studyTitle": "React 전문가 과정"
+}
 ```
 
 ## 🧪 테스트
@@ -378,7 +437,7 @@ curl http://localhost:8089/actuator/prometheus
 
 | 설정 키 | 기본값 | 설명 |
 |--------|--------|------|
-| `server.port` | 8084 | 서버 포트 |
+| `server.port` | 8089 | 서버 포트 |
 | `spring.datasource.url` | `jdbc:mysql://localhost:3306/notidb` | 데이터베이스 URL |
 | `spring.mail.host` | `smtp.gmail.com` | SMTP 서버 |
 | `eureka.client.service-url.defaultZone` | `http://localhost:8761/eureka/` | Eureka 서버 |
@@ -400,8 +459,8 @@ curl http://localhost:8089/actuator/prometheus
 - 증상: 패스키 로그인 이메일 미수신, 로그에 `jakarta.mail.internet.AddressException: Illegal address` 발생
 - 원인: 로컬/docker 실행 시 `docker-compose*`가 빈 `SPRING_MAIL_USERNAME/PASSWORD`를 주입하여 `application-docker.yml` 기본값을 덮어씀. 코드가 `spring.mail.username`을 그대로 발신자 주소로 사용하면서 From 주소가 비어 오류 발생
 - 조치:
-  - 코드: `EmailNotificationSender`가 `application.notification.email.from-address` → 없으면 `spring.mail.username` 순으로 발신자 주소를 해석하도록 수정
-  - 구성: `docker-compose*`에서 `SPRING_MAIL_USERNAME/PASSWORD`와 `APPLICATION_NOTIFICATION_EMAIL_FROM_ADDRESS`의 기본값을 유효한 Gmail 값으로 설정
+    - 코드: `EmailNotificationSender`가 `application.notification.email.from-address` → 없으면 `spring.mail.username` 순으로 발신자 주소를 해석하도록 수정
+    - 구성: `docker-compose*`에서 `SPRING_MAIL_USERNAME/PASSWORD`와 `APPLICATION_NOTIFICATION_EMAIL_FROM_ADDRESS`의 기본값을 유효한 Gmail 값으로 설정
 - 검증: 로컬 `dockerRebuildAndRunNotiOnly` 후, 로그에 `이메일 발송 성공` 확인
 - 권고: 공개 레포에서는 기본 자격증명 제거 후, `.env` 또는 CI 시크릿으로 주입할 것
 

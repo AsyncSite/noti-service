@@ -3,11 +3,10 @@ package com.asyncsite.notiservice.domain.port.in;
 import com.asyncsite.notiservice.domain.model.Notification;
 import com.asyncsite.notiservice.domain.model.vo.ChannelType;
 import com.asyncsite.notiservice.domain.model.vo.EventType;
+import jakarta.mail.MessagingException;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 
 public interface NotificationUseCase {
     /**
@@ -16,7 +15,7 @@ public interface NotificationUseCase {
      * @param notificationId 알림 ID
      * @return 알림 정보 (없으면 empty)
      */
-    Optional<Notification> getNotificationById(String notificationId);
+    Notification getNotificationById(String notificationId);
 
     /**
      * 사용자의 알림 목록을 조회합니다.
@@ -36,8 +35,10 @@ public interface NotificationUseCase {
      * @param metadata 메타데이터
      * @return 발송된 알림 정보
      */
-    CompletableFuture<Notification> sendNotification(String userId, ChannelType channelType, EventType eventType, Map<String, Object> metadata, String recipientContact);
-    CompletableFuture<Notification> sendNotificationBulk(String userId, ChannelType channelType, EventType eventType, Map<String, Object> metadata, List<String> recipientContacts);
+    Notification createNotification(String userId, ChannelType channelType, EventType eventType, Map<String, Object> metadata, String recipientContact);
+    Notification createNotificationBulk(String userId, ChannelType channelType, EventType eventType, Map<String, Object> metadata, List<String> recipientContacts);
+
+    Notification sendNotification(Notification notification) throws MessagingException;
 
     /**
      * 알림을 재시도합니다.
@@ -45,5 +46,5 @@ public interface NotificationUseCase {
      * @param notificationId 알림 ID
      * @return 재시도된 알림 정보
      */
-    CompletableFuture<Notification> retryNotification(String notificationId);
+    Notification retryNotification(String notificationId) throws MessagingException;
 }

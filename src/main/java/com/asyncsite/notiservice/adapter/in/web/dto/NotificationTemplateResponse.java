@@ -1,4 +1,4 @@
-package com.asyncsite.notiservice.adapter.in.dto;
+package com.asyncsite.notiservice.adapter.in.web.dto;
 
 import com.asyncsite.notiservice.domain.model.NotificationTemplate;
 import com.asyncsite.notiservice.domain.model.vo.ChannelType;

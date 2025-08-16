@@ -1,8 +1,8 @@
 package com.asyncsite.notiservice.adapter.in.web;
 
-import com.asyncsite.notiservice.adapter.in.dto.ApiResponse;
-import com.asyncsite.notiservice.adapter.in.dto.NotificationSettingsResponse;
-import com.asyncsite.notiservice.adapter.in.dto.UpdateNotificationSettingsRequest;
+import com.asyncsite.notiservice.adapter.in.web.dto.ApiResponse;
+import com.asyncsite.notiservice.adapter.in.web.dto.NotificationSettingsResponse;
+import com.asyncsite.notiservice.adapter.in.web.dto.UpdateNotificationSettingsRequest;
 import com.asyncsite.notiservice.domain.model.NotificationSettings;
 import com.asyncsite.notiservice.domain.port.in.NotificationSettingsUseCase;
 import jakarta.validation.Valid;
@@ -18,7 +18,6 @@ import org.springframework.web.bind.annotation.*;
 public class NotificationSettingsController {
 
     private final NotificationSettingsUseCase settingsUseCase;
-    private final NotificationSettingsUseCase notificationSettingsUseCase;
 
     @GetMapping("/{userId}")
     public ResponseEntity<ApiResponse<NotificationSettingsResponse>> getNotificationSettings(@PathVariable String userId) {
@@ -33,7 +32,7 @@ public class NotificationSettingsController {
             @Valid @RequestBody UpdateNotificationSettingsRequest request) {
 
         log.info("알림 설정 업데이트: userId={}", userId);
-        return ApiResponse.success(NotificationSettingsResponse.from(notificationSettingsUseCase.updateNotificationSettings(
+        return ApiResponse.success(NotificationSettingsResponse.from(settingsUseCase.updateNotificationSettings(
                 userId,
                 request.studyUpdates(),
                 request.marketing(),

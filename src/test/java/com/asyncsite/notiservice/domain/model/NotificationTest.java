@@ -65,11 +65,13 @@ class NotificationTest {
         Notification notification = createTestNotification();
 
         // when
-        notification.fail();
+        String failMessage = "틀림";
+        notification.fail(failMessage);
 
         // then
         assertThat(notification.getStatus()).isEqualTo(NotificationStatus.FAILED);
         assertThat(notification.getUpdatedAt()).isNotNull();
+        assertThat(notification.getFailMessage()).isEqualTo(failMessage);
     }
 
     @Test
@@ -77,7 +79,7 @@ class NotificationTest {
     void prepareRetry() {
         // given
         Notification notification = createTestNotification();
-        notification.fail(); // 실패 상태로 변경
+        notification.fail("틀림"); // 실패 상태로 변경
 
         // when
         notification.prepareRetry();
@@ -117,7 +119,8 @@ class NotificationTest {
         Notification sentNotification = createTestNotification();
         sentNotification.markAsSent();
         Notification failedNotification = createTestNotification();
-        failedNotification.fail();
+        String failMessage = "틀림";
+        failedNotification.fail(failMessage);
 
         // then
         assertThat(pendingNotification.isPending()).isTrue();
@@ -129,6 +132,7 @@ class NotificationTest {
         assertThat(sentNotification.isProcessing()).isFalse();
 
         assertThat(failedNotification.isFailed()).isTrue();
+        assertThat(failedNotification.getFailMessage()).isEqualTo(failMessage);
         assertThat(failedNotification.canRetry()).isTrue();
         assertThat(failedNotification.isCompleted()).isFalse();
     }

@@ -1,31 +1,54 @@
 ### 📧 Notification Service API 시나리오 테스트
 
-@baseUrl = http://localhost:8084
+@baseUrl = http://localhost:8089
 @userId = user123
 @email = leegeondev@gmail.com
 @discordWebhook = https://discord.com/api/webhooks/test
 
 ### 🚀 1. 스터디 승인 알림 발송 (이메일)
-POST {{baseUrl}}/api/v1/notifications
+POST {{baseUrl}}/api/noti
+Content-Type: application/json
+
+{
+  "userId": "{{userId}}",
+  "channelType": "EMAIL",
+  "eventType": "STUDY_APPROVED",
+  "recipientContact": "{{email}}",
+  "variables": {
+    "userName": "김개발",
+    "studyTitle": "Java Spring Boot 스터디",
+    "approvedBy": "관리자",
+    "studyUrl": "https://example.com/study/456"
+  }
+}
+
+### 🚀 2. 벌크 알림 발송 (여러 수신자)
+POST {{baseUrl}}/api/noti/bulk
 Content-Type: application/json
 
 {
   "userId": "{{userId}}",
   "channelType": "EMAIL",
   "eventType": "STUDY",
-  "recipientContact": "{{email}}",
-  "metadata": {
-    "studyId": 456,
-    "studyTitle": "Java Spring Boot 스터디",
+  "recipientContacts": ["{{email}}", "user2@example.com"],
+  "variables": {
     "userName": "김개발",
-    "approvedBy": "관리자",
-    "studyUrl": "https://example.com/study/456"
+    "studyTitle": "Java Spring Boot 스터디"
   }
 }
 
-### 🔍 5. 알림 단건 조회 (응답에서 notificationId 복사 후 사용)
+### 🔍 3. 알림 단건 조회 (응답에서 notificationId 복사 후 사용)
 # @name getNotification
-GET {{baseUrl}}/api/v1/notifications/7192a810-b316-47dd-9fa4-a156ab099da0
+GET {{baseUrl}}/api/noti/7192a810-b316-47dd-9fa4-a156ab099da0
 
-### 📋 6. 사용자 알림 목록 조회 (페이징)
-GET {{baseUrl}}/api/v1/notifications?userId={{userId}}&page=0&size=20
+### 📋 4. 사용자 알림 목록 조회 (페이징)
+GET {{baseUrl}}/api/noti?userId={{userId}}&channelType=EMAIL&page=0&size=20
+
+### 🔄 5. 알림 재시도
+PATCH {{baseUrl}}/api/noti/7192a810-b316-47dd-9fa4-a156ab099da0/retry
+
+### 📊 6. 이벤트 타입 목록 조회
+GET {{baseUrl}}/api/noti/event-types
+
+### 📊 7. 채널 타입 목록 조회
+GET {{baseUrl}}/api/noti/channel-types

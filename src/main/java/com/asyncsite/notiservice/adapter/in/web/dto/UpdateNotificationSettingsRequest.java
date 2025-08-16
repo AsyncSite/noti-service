@@ -1,4 +1,4 @@
-package com.asyncsite.notiservice.adapter.in.dto;
+package com.asyncsite.notiservice.adapter.in.web.dto;
 
 public record UpdateNotificationSettingsRequest(
         boolean studyUpdates,

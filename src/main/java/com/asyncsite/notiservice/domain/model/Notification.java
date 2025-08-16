@@ -22,6 +22,7 @@ public class Notification {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private LocalDateTime sentAt;
+    private String failMessage;
     private Integer retryCount;
     private Long version;
 
@@ -51,9 +52,10 @@ public class Notification {
 
     // === 도메인 행위 메서드 ===
 
-    public void fail() {
+    public void fail(String message) {
         this.status = NotificationStatus.FAILED;
         this.updatedAt = LocalDateTime.now();
+        this.failMessage = message;
     }
 
     /**

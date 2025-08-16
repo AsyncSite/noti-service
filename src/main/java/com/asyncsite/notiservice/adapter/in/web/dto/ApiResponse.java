@@ -1,4 +1,4 @@
-package com.asyncsite.notiservice.adapter.in.dto;
+package com.asyncsite.notiservice.adapter.in.web.dto;
 
 import org.springframework.http.ResponseEntity;
 

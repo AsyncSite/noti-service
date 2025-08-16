@@ -5,6 +5,7 @@ import com.asyncsite.notiservice.domain.model.NotificationTemplate;
 import com.asyncsite.notiservice.domain.model.vo.ChannelType;
 import com.asyncsite.notiservice.domain.port.out.NotificationSenderPort;
 import com.asyncsite.notiservice.domain.port.out.NotificationTemplateRepositoryPort;
+import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,7 +18,6 @@ import org.thymeleaf.spring6.SpringTemplateEngine;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 
 @Slf4j
 @Component
@@ -36,93 +36,87 @@ public class EmailNotificationSender implements NotificationSenderPort {
     private String mailUsername;
 
     @Override
-    public CompletableFuture<Notification> sendNotification(Notification notification) {
-        return CompletableFuture.supplyAsync(() -> {
-            try {
-                log.info("이메일 발송 시작: notificationId={}, userId={}",
-                        notification.getNotificationId(), notification.getUserId());
+    public Notification sendNotification(Notification notification) throws MessagingException {
+        log.info("이메일 발송 시작: notificationId={}, userId={}",
+                notification.getNotificationId(), notification.getUserId());
 
-                // 1. 템플릿 조회 및 렌더링
-                Optional<NotificationTemplate> templateOpt = templateRepository
-                        .findTemplateById(notification.getTemplateId());
+        // 1. 템플릿 조회 및 렌더링
+        Optional<NotificationTemplate> templateOpt = templateRepository
+                .findTemplateById(notification.getTemplateId());
 
-                if (templateOpt.isEmpty()) {
-                    log.warn("템플릿을 찾을 수 없습니다: templateId={}", notification.getTemplateId());
-                    return markNotificationAsFailed(notification, "템플릿을 찾을 수 없습니다.");
-                }
+        if (templateOpt.isEmpty()) {
+            log.warn("템플릿을 찾을 수 없습니다: templateId={}", notification.getTemplateId());
+            notification.fail("템플릿을 찾을 수 없습니다.");
+            return notification;
+        }
 
-                NotificationTemplate template = templateOpt.get();
+        NotificationTemplate template = templateOpt.get();
 
-                // 템플릿이 EMAIL 채널에 맞는지 확인
-                if (template.getChannelType() != ChannelType.EMAIL) {
-                    log.warn("EMAIL 채널에 적합하지 않은 템플릿: templateId={}, channelType={}",
-                            notification.getTemplateId(), template.getChannelType());
-                    return markNotificationAsFailed(notification, "EMAIL 채널에 적합하지 않은 템플릿입니다.");
-                }
+        // 템플릿이 EMAIL 채널에 맞는지 확인
+        if (template.getChannelType() != ChannelType.EMAIL) {
+            log.warn("EMAIL 채널에 적합하지 않은 템플릿: templateId={}, channelType={}",
+                    notification.getTemplateId(), template.getChannelType());
+            notification.fail("EMAIL 채널에 적합하지 않은 템플릿입니다.");
+            return notification;
+        }
 
-                String title = notification.getTitle();
-                String content = notification.getContent();
+        String title = notification.getTitle();
+        String content = notification.getContent();
 
-                // 2. 수신자 이메일 추출
-                List<String> recipientEmails = notification.getRecipientContacts();
+        // 2. 수신자 이메일 추출
+        List<String> recipientEmails = notification.getRecipientContacts();
 
-                if (recipientEmails == null || recipientEmails.isEmpty()) {
-                    log.warn("수신자 이메일이 없습니다: notificationId={}", notification.getNotificationId());
-                    return markNotificationAsFailed(notification, "수신자 이메일이 없습니다.");
-                }
+        if (recipientEmails == null || recipientEmails.isEmpty()) {
+            log.warn("수신자 이메일이 없습니다: notificationId={}", notification.getNotificationId());
+            notification.fail("수신자 이메일이 없습니다.");
+            return notification;
+        }
 
-                // 3. 이메일 메시지 구성 및 발송
-                MimeMessage message = mailSender.createMimeMessage();
-                MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+        // 3. 이메일 메시지 구성 및 발송
+        MimeMessage message = mailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
-                Context context = new Context();
-                context.setVariable("title", title);
-                context.setVariable("content", content);
-                
-                // 디버깅: 템플릿 처리 전 로그
-                log.info("템플릿 처리 시작 - templateEngine: {}, context variables: title={}, content length={}", 
-                    templateEngine.getClass().getName(), 
-                    title != null ? title.substring(0, Math.min(title.length(), 50)) : "null",
-                    content != null ? content.length() : 0);
-                
-                String html = null;
-                try {
-                    html = templateEngine.process("email", context);
-                    log.info("템플릿 처리 성공 - HTML 길이: {}", html != null ? html.length() : 0);
-                } catch (Exception e) {
-                    log.error("템플릿 처리 실패 - 상세 에러: ", e);
-                    // 템플릿 리졸버 정보 출력
-                    log.error("Template Engine Configuration: {}", templateEngine.getConfiguration());
-                    throw e;
-                }
+        Context context = new Context();
+        context.setVariable("title", title);
+        context.setVariable("content", content);
 
-                String resolvedFrom = (configuredFromAddress != null && !configuredFromAddress.isBlank())
-                        ? configuredFromAddress
-                        : mailUsername;
+        // 디버깅: 템플릿 처리 전 로그
+        log.info("템플릿 처리 시작 - templateEngine: {}, context variables: title={}, content length={}",
+            templateEngine.getClass().getName(),
+            title != null ? title.substring(0, Math.min(title.length(), 50)) : "null",
+            content != null ? content.length() : 0);
 
-                if (resolvedFrom == null || resolvedFrom.isBlank()) {
-                    log.warn("발신자 이메일(from-address)이 비어 있습니다. 설정값을 확인해주세요. application.notification.email.from-address 또는 spring.mail.username");
-                    throw new jakarta.mail.internet.AddressException("From address is empty");
-                }
+        String html = null;
+        try {
+            html = templateEngine.process("email", context);
+            log.info("템플릿 처리 성공 - HTML 길이: {}", html != null ? html.length() : 0);
+        } catch (Exception e) {
+            log.error("템플릿 처리 실패 - 상세 에러: ", e);
+            // 템플릿 리졸버 정보 출력
+            log.error("Template Engine Configuration: {}", templateEngine.getConfiguration());
+            throw e;
+        }
 
-                helper.setFrom(resolvedFrom);
-                helper.setTo(recipientEmails.toArray(new String[0]));
-                helper.setSubject(title);
-                helper.setText(html, true);
-                mailSender.send(message);
+        String resolvedFrom = (configuredFromAddress != null && !configuredFromAddress.isBlank())
+                ? configuredFromAddress
+                : mailUsername;
 
-                log.info("이메일 발송 성공: notificationId={}, recipient={}", notification.getNotificationId(), recipientEmails);
+        if (resolvedFrom == null || resolvedFrom.isBlank()) {
+            log.warn("발신자 이메일(from-address)이 비어 있습니다. 설정값을 확인해주세요. application.notification.email.from-address 또는 spring.mail.username");
+            throw new jakarta.mail.internet.AddressException("From address is empty");
+        }
 
-                // 알림을 발송 완료 상태로 변경하여 반환
-                notification.markAsSent();
-                return notification;
+        helper.setFrom(resolvedFrom);
+        helper.setTo(recipientEmails.toArray(new String[0]));
+        helper.setSubject(title);
+        helper.setText(html, true);
+        mailSender.send(message);
 
-            } catch (Exception e) {
-                log.error("이메일 발송 실패: notificationId={}, userId={}",
-                notification.getNotificationId(), notification.getUserId(), e);
-                return markNotificationAsFailed(notification, "이메일 발송 실패: " + e.getMessage());
-            }
-        });
+        log.info("이메일 발송 성공: notificationId={}, recipient={}", notification.getNotificationId(), recipientEmails);
+
+        // 알림을 발송 완료 상태로 변경하여 반환
+        notification.markAsSent();
+        return notification;
     }
 
     @Override
@@ -130,15 +124,4 @@ public class EmailNotificationSender implements NotificationSenderPort {
         return channelType == ChannelType.EMAIL;
     }
 
-    /**
-     * 알림을 실패 상태로 표시합니다.
-     */
-    private Notification markNotificationAsFailed(Notification notification, String errorMessage) {
-        return notification.toBuilder()
-                .status(com.asyncsite.notiservice.domain.model.vo.NotificationStatus.FAILED)
-                .updatedAt(java.time.LocalDateTime.now())
-                .build();
-    }
-
-    
 }
