@@ -37,6 +37,7 @@ public interface NotificationUseCase {
      * @return 발송된 알림 정보
      */
     CompletableFuture<Notification> sendNotification(String userId, ChannelType channelType, EventType eventType, Map<String, Object> metadata, String recipientContact);
+    CompletableFuture<Notification> sendNotificationBulk(String userId, ChannelType channelType, EventType eventType, Map<String, Object> metadata, List<String> recipientContacts);
 
     /**
      * 알림을 재시도합니다.

@@ -2,6 +2,7 @@ package com.asyncsite.notiservice.adapter.in.web;
 
 import com.asyncsite.notiservice.adapter.in.dto.ApiResponse;
 import com.asyncsite.notiservice.adapter.in.dto.NotificationResponse;
+import com.asyncsite.notiservice.adapter.in.dto.SendNotificationBulkRequest;
 import com.asyncsite.notiservice.adapter.in.dto.SendNotificationRequest;
 import com.asyncsite.notiservice.domain.model.Notification;
 import com.asyncsite.notiservice.domain.model.vo.ChannelType;
@@ -43,7 +44,37 @@ public class NotificationController {
                         ChannelType.valueOf(request.channelType()),
                         EventType.valueOf(request.eventType()),
                         meta,
-                        request.recipientContact())
+                        request.recipientContact()
+                )
+                .thenApply(notification -> {
+                    if (notification != null) {
+                        NotificationResponse response = NotificationResponse.from(notification);
+                        return ApiResponse.success(response);
+                    } else {
+                        return ApiResponse.error(HttpStatus.INTERNAL_SERVER_ERROR.toString(), "알림 발송 오류");
+                    }
+                });
+    }
+
+    @PostMapping
+    public CompletableFuture<ResponseEntity<ApiResponse<NotificationResponse>>> sendNotification(
+            @Valid @RequestBody SendNotificationBulkRequest request) {
+
+        log.info("알림 발송 요청: userId={}, channelType={}, templateId={}", request.userId(), request.channelType(), request.templateId());
+
+        Map<String, Object> meta = new java.util.HashMap<>();
+        if (request.templateId() != null && !request.templateId().isBlank()) {
+            meta.put("templateId", request.templateId());
+        }
+        meta.put("variables", request.variables() == null ? java.util.Map.of() : request.variables());
+
+        return notificationUseCase.sendNotificationBulk(
+                        request.userId(),
+                        ChannelType.valueOf(request.channelType()),
+                        EventType.valueOf(request.eventType()),
+                        meta,
+                        request.recipientContacts()
+                )
                 .thenApply(notification -> {
                     if (notification != null) {
                         NotificationResponse response = NotificationResponse.from(notification);

@@ -1,5 +1,6 @@
 package com.asyncsite.notiservice.adapter.out.persistence.entity;
 
+import com.asyncsite.notiservice.common.JsonUtil;
 import com.asyncsite.notiservice.domain.model.Notification;
 import com.asyncsite.notiservice.domain.model.vo.ChannelType;
 import com.asyncsite.notiservice.domain.model.vo.NotificationStatus;
@@ -10,6 +11,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "notifications")
@@ -35,7 +37,7 @@ public class NotificationEntity {
     @Column(columnDefinition = "TEXT")
     private String content;
     
-    private String recipientContact;
+    private String recipientContactJson;
     private NotificationStatus status;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
@@ -50,7 +52,7 @@ public class NotificationEntity {
                 .channelType(notification.getChannelType())
                 .title(notification.getTitle())
                 .content(notification.getContent())
-                .recipientContact(notification.getRecipientContact())
+                .recipientContactJson(JsonUtil.toJson(notification.getRecipientContacts()))
                 .status(notification.getStatus())
                 .createdAt(notification.getCreatedAt())
                 .updatedAt(notification.getUpdatedAt())
@@ -68,7 +70,7 @@ public class NotificationEntity {
                 .channelType(this.channelType)
                 .title(this.title)
                 .content(this.content)
-                .recipientContact(this.recipientContact)
+                .recipientContacts(JsonUtil.fromJson(this.recipientContactJson, List.class))
                 .status(this.status)
                 .createdAt(this.createdAt)
                 .updatedAt(this.updatedAt)

@@ -5,6 +5,7 @@ import com.asyncsite.notiservice.domain.model.vo.ChannelType;
 import com.asyncsite.notiservice.domain.model.vo.NotificationStatus;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 public record NotificationResponse(
         String notificationId,
@@ -13,7 +14,7 @@ public record NotificationResponse(
         ChannelType channelType,
         String title,
         String content,
-        String recipientContact,
+        List<String> recipientContacts,
         NotificationStatus status,
         LocalDateTime createdAt,
         LocalDateTime updatedAt,
@@ -28,7 +29,7 @@ public record NotificationResponse(
                 notification.getChannelType(),
                 notification.getTitle(),
                 notification.getContent(),
-                notification.getRecipientContact(),
+                notification.getRecipientContacts(),
                 notification.getStatus(),
                 notification.getCreatedAt(),
                 notification.getUpdatedAt(),

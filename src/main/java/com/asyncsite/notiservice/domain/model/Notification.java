@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @Builder(toBuilder = true)
@@ -16,7 +17,7 @@ public class Notification {
     private ChannelType channelType;
     private String title;
     private String content;
-    private String recipientContact;
+    private List<String> recipientContacts;
     private NotificationStatus status;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
@@ -30,7 +31,7 @@ public class Notification {
     /**
      * 새로운 알림을 생성합니다.
      */
-    public static Notification create(String userId, String templateId, ChannelType channelType, String title, String content, String recipientContact
+    public static Notification create(String userId, String templateId, ChannelType channelType, String title, String content, List<String> recipientContacts
     ) {
         LocalDateTime now = LocalDateTime.now();
         return Notification.builder()
@@ -39,7 +40,7 @@ public class Notification {
                 .channelType(channelType)
                 .title(title)
                 .content(content)
-                .recipientContact(recipientContact)
+                .recipientContacts(recipientContacts)
                 .status(NotificationStatus.PENDING)
                 .createdAt(now)
                 .updatedAt(now)

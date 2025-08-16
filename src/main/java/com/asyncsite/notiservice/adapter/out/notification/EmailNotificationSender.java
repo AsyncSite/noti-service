@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.spring6.SpringTemplateEngine;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
@@ -63,9 +64,9 @@ public class EmailNotificationSender implements NotificationSenderPort {
                 String content = notification.getContent();
 
                 // 2. 수신자 이메일 추출
-                String recipientEmail = notification.getRecipientContact();
+                List<String> recipientEmails = notification.getRecipientContacts();
 
-                if (recipientEmail == null || recipientEmail.isEmpty()) {
+                if (recipientEmails == null || recipientEmails.isEmpty()) {
                     log.warn("수신자 이메일이 없습니다: notificationId={}", notification.getNotificationId());
                     return markNotificationAsFailed(notification, "수신자 이메일이 없습니다.");
                 }
@@ -105,13 +106,12 @@ public class EmailNotificationSender implements NotificationSenderPort {
                 }
 
                 helper.setFrom(resolvedFrom);
-                helper.setTo(recipientEmail);
+                helper.setTo(recipientEmails.toArray(new String[0]));
                 helper.setSubject(title);
                 helper.setText(html, true);
                 mailSender.send(message);
 
-                log.info("이메일 발송 성공: notificationId={}, recipient={}",
-                        notification.getNotificationId(), recipientEmail);
+                log.info("이메일 발송 성공: notificationId={}, recipient={}", notification.getNotificationId(), recipientEmails);
 
                 // 알림을 발송 완료 상태로 변경하여 반환
                 notification.markAsSent();
@@ -119,7 +119,7 @@ public class EmailNotificationSender implements NotificationSenderPort {
 
             } catch (Exception e) {
                 log.error("이메일 발송 실패: notificationId={}, userId={}",
-                        notification.getNotificationId(), notification.getUserId(), e);
+                notification.getNotificationId(), notification.getUserId(), e);
                 return markNotificationAsFailed(notification, "이메일 발송 실패: " + e.getMessage());
             }
         });

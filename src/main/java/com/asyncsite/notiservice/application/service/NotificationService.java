@@ -39,8 +39,16 @@ public class NotificationService implements NotificationUseCase {
 
     @Override
     public CompletableFuture<Notification> sendNotification(String userId, ChannelType channelType, EventType eventType, Map<String, Object> metadata, String recipientContact) {
-        log.info("알림 발송 시작: userId={}, channelType={}", userId, channelType);
+        return send(userId, channelType, eventType, metadata, List.of(recipientContact));
+    }
 
+    @Override
+    public CompletableFuture<Notification> sendNotificationBulk(String userId, ChannelType channelType, EventType eventType, Map<String, Object> metadata, List<String> recipientContacts) {
+        return send(userId, channelType, eventType, metadata, recipientContacts);
+    }
+
+    private CompletableFuture<Notification> send(String userId, ChannelType channelType, EventType eventType, Map<String, Object> metadata, List<String> recipientContacts) {
+        log.info("알림 발송 시작: userId={}, channelType={}", userId, channelType);
         // 1. 알림 설정 조회 (기본값으로 처리)
         Optional<NotificationSettings> settingsOpt = settingsRepository.findByUserId(userId);
         NotificationSettings settings = settingsOpt.orElse(NotificationSettings.createDefault(userId));
@@ -91,7 +99,7 @@ public class NotificationService implements NotificationUseCase {
                 channelType,
                 title,
                 content,
-                recipientContact
+                recipientContacts
         );
 
         notification = notificationRepository.saveNotification(notification);

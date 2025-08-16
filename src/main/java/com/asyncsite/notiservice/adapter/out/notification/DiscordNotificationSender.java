@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -56,7 +57,7 @@ public class DiscordNotificationSender implements NotificationSenderPort {
                 String content = notification.getContent();
 
                 // 2. 수신자 정보 추출 (metadata에서 webhook URL 또는 설정값 사용)
-                String targetWebhookUrl = notification.getRecipientContact();
+                List<String> targetWebhookUrl = notification.getRecipientContacts();
 
                 if (targetWebhookUrl == null || targetWebhookUrl.isEmpty()) {
                     log.warn("Discord webhook URL이 설정되지 않았습니다.");
@@ -68,7 +69,7 @@ public class DiscordNotificationSender implements NotificationSenderPort {
 
                 // 4. Discord API 호출
                 String response = webClient.post()
-                        .uri(targetWebhookUrl)
+                        .uri(targetWebhookUrl.getFirst())
                         .bodyValue(payload)
                         .retrieve()
                         .bodyToMono(String.class)

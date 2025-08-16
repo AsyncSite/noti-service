@@ -5,6 +5,8 @@ import com.asyncsite.notiservice.domain.model.vo.NotificationStatus;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
 
+import java.util.List;
+
 import static org.assertj.core.api.Assertions.*;
 
 @DisplayName("Notification 도메인 모델 테스트")
@@ -23,7 +25,7 @@ class NotificationTest {
 
         // when
         Notification notification = Notification.create(
-                userId, templateId, channelType, title, content, recipientContact
+                userId, templateId, channelType, title, content, List.of(recipientContact)
         );
 
         // then
@@ -32,7 +34,7 @@ class NotificationTest {
         assertThat(notification.getChannelType()).isEqualTo(channelType);
         assertThat(notification.getTitle()).isEqualTo(title);
         assertThat(notification.getContent()).isEqualTo(content);
-        assertThat(notification.getRecipientContact()).isEqualTo(recipientContact);
+        assertThat(notification.getRecipientContacts()).isEqualTo(List.of(recipientContact));
         assertThat(notification.getStatus()).isEqualTo(NotificationStatus.PENDING);
         assertThat(notification.getRetryCount()).isEqualTo(0);
         assertThat(notification.getVersion()).isEqualTo(0L);
@@ -96,7 +98,7 @@ class NotificationTest {
                 .channelType(ChannelType.EMAIL)
                 .title("Test Title")
                 .content("Test Content")
-                .recipientContact("test@example.com")
+                .recipientContacts(List.of("test@example.com"))
                 .status(NotificationStatus.FAILED)
                 .retryCount(3)
                 .build();
@@ -141,7 +143,7 @@ class NotificationTest {
                 .channelType(ChannelType.EMAIL)
                 .title("Test Title")
                 .content("Test Content")
-                .recipientContact("test@example.com")
+                .recipientContacts(List.of("test@example.com"))
                 .status(NotificationStatus.FAILED)
                 .retryCount(3)
                 .build();
@@ -158,7 +160,7 @@ class NotificationTest {
                 ChannelType.EMAIL,
                 "Test Title",
                 "Test Content",
-                "test@example.com"
+                List.of("test@example.com")
         );
     }
 } 
