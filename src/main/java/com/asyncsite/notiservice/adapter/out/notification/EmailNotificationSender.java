@@ -28,10 +28,10 @@ public class EmailNotificationSender implements NotificationSenderPort {
 
     private final NotificationTemplateRepositoryPort templateRepository;
 
-    @Value("${application.notification.email.from-address:}")
+    @Value("${application.notification.email.from-address:asyncsite@gmail.com}")
     private String configuredFromAddress;
 
-    @Value("${spring.mail.username:}")
+    @Value("${spring.mail.username:asyncsite@gmail.com}")
     private String mailUsername;
 
     @Override
