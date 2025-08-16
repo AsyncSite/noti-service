@@ -21,8 +21,8 @@ USER appuser
 # Expose application port
 EXPOSE 8089
 
-# Set JVM options for container environment
-ENV JAVA_OPTS="-Xmx512m -Xms256m"
+# Set JVM options for container environment with UTF-8 encoding
+ENV JAVA_OPTS="-Xmx512m -Xms256m -Dfile.encoding=UTF-8 -Dsun.jnu.encoding=UTF-8"
 
 # Run the application
 ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]

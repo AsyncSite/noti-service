@@ -149,6 +149,14 @@ public class SystemTemplateInitializer implements ApplicationRunner {
         boolean activeChanged = existing.isActive() != config.isActive();
         boolean variablesChanged = !nullSafeMapEquals(existing.getVariables(), config.getVariables());
         
+        // 문자셋 손상 감지 - 템플릿에 '?' 문자가 포함되어 있으면 강제 업데이트
+        boolean charsetCorrupted = isCharsetCorrupted(existing);
+        
+        if (charsetCorrupted) {
+            log.warn("⚠️ 템플릿 문자셋 손상 감지 - ID: {}, 강제 업데이트 수행", existing.getTemplateId());
+            return true;
+        }
+        
         if (titleChanged || contentChanged || activeChanged || variablesChanged) {
             log.debug("템플릿 변경 감지 - ID: {}, 제목변경: {}, 내용변경: {}, 활성화변경: {}, 변수변경: {}",
                 existing.getTemplateId(), titleChanged, contentChanged, activeChanged, variablesChanged);
@@ -156,6 +164,35 @@ public class SystemTemplateInitializer implements ApplicationRunner {
         }
         
         return false;
+    }
+    
+    private boolean isCharsetCorrupted(NotificationTemplate template) {
+        // 한글이 깨져서 '?'로 표시되는 경우를 감지
+        // 정상적인 템플릿에서는 연속된 '?' 문자가 나타나지 않아야 함
+        String title = template.getTitleTemplate();
+        String content = template.getContentTemplate();
+        
+        // 연속된 물음표 패턴 감지 (한글이 깨진 경우 보통 "???"처럼 나타남)
+        String corruptedPattern = "\\?{2,}";
+        
+        boolean titleCorrupted = title != null && title.matches(".*" + corruptedPattern + ".*");
+        boolean contentCorrupted = content != null && content.matches(".*" + corruptedPattern + ".*");
+        
+        // 단일 '?'가 비정상적으로 많은 경우도 감지
+        boolean titleSuspicious = title != null && countCharOccurrences(title, '?') > 3;
+        boolean contentSuspicious = content != null && countCharOccurrences(content, '?') > 5;
+        
+        return titleCorrupted || contentCorrupted || titleSuspicious || contentSuspicious;
+    }
+    
+    private int countCharOccurrences(String str, char ch) {
+        int count = 0;
+        for (int i = 0; i < str.length(); i++) {
+            if (str.charAt(i) == ch) {
+                count++;
+            }
+        }
+        return count;
     }
     
     private boolean nullSafeEquals(String a, String b) {
