@@ -1,5 +1,61 @@
 # Noti Service Troubleshooting Guide
 
+## 🚨 핵심 이슈: Spring Boot 3.2+ Nested JAR 문제
+
+### Spring Boot 3.2+ JAR 구조 변경으로 인한 Thymeleaf 템플릿 로딩 실패
+
+#### 증상
+- **로컬 환경(IDE)**: 이메일 발송 정상 작동 ✅
+- **로컬 Docker(bootJar)**: `FileNotFoundException: class path resource [templates/email.html] cannot be opened` ❌
+- **서버 배포**: 동일한 템플릿 로딩 오류 발생 ❌
+- 오류 메시지: `Error resolving template [email], template might not exist`
+
+#### 근본 원인
+Spring Boot 3.2부터 executable JAR 포맷이 변경됨:
+- **이전**: `jar:file:/app.jar!/BOOT-INF/classes/templates/email.html`
+- **3.2+**: `jar:nested:/app.jar/!BOOT-INF/classes/!/templates/email.html`
+
+`SpringResourceTemplateResolver`가 nested JAR 프로토콜을 처리하지 못함!
+
+#### ✅ 해결책: ClassLoaderTemplateResolver 사용
+
+`ThymeleafConfig.java`:
+```java
+@Configuration
+public class ThymeleafConfig {
+    
+    @Bean
+    public ClassLoaderTemplateResolver templateResolver() {
+        ClassLoaderTemplateResolver templateResolver = new ClassLoaderTemplateResolver();
+        // 중요: "classpath:" 없이 상대 경로 사용!
+        templateResolver.setPrefix("templates/");  
+        templateResolver.setSuffix(".html");
+        templateResolver.setTemplateMode(TemplateMode.HTML);
+        templateResolver.setCharacterEncoding("UTF-8");
+        return templateResolver;
+    }
+    
+    @Bean
+    public SpringTemplateEngine templateEngine(ClassLoaderTemplateResolver templateResolver) {
+        SpringTemplateEngine templateEngine = new SpringTemplateEngine();
+        templateEngine.setTemplateResolver(templateResolver);
+        return templateEngine;
+    }
+}
+```
+
+#### ❌ 실패한 시도들 (시간 낭비 주의)
+1. **SpringResourceTemplateResolver**: nested JAR 지원 안 함
+2. **checkExistence(false)**: 문제 해결 안 됨
+3. **Spring Boot Loader CLASSIC**: 불필요한 복잡성 추가
+
+#### 예방 방법
+1. **개발 초기부터 Docker 환경에서 테스트**
+2. **bootJar로 빌드한 JAR 파일을 직접 실행해서 검증**
+3. **ClassLoaderTemplateResolver를 기본으로 사용**
+
+---
+
 ## 문제 해결 가이드
 
 ### 1. MySQL Character Set 문제 (한글 깨짐)
@@ -139,7 +195,38 @@ public SpringResourceTemplateResolver templateResolver(ApplicationContext applic
 
 ---
 
-### 3. 이메일 발송 실패
+### 3. CI/CD 환경변수 오버라이드 문제
+
+#### 증상
+- 이메일 발송 시 `jakarta.mail.internet.AddressException: From address is empty` 오류
+- application-docker.yml에 기본값이 설정되어 있음에도 빈 값으로 처리됨
+
+#### 원인
+CI/CD 파이프라인에서 빈 GitHub Secrets가 환경변수로 설정되어 yml 기본값을 덮어씀:
+```yaml
+# 문제가 되는 설정
+- SPRING_MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}  # 빈 값이면 ""로 오버라이드
+- APPLICATION_NOTIFICATION_EMAIL_FROM_ADDRESS=${{ secrets.MAIL_FROM }}  # 빈 값
+```
+
+#### 해결책
+빈 환경변수를 CI/CD에서 제거하여 application.yml의 기본값이 사용되도록 함:
+```yaml
+# .github/workflows/ci-cd.yml
+environment:
+  - SPRING_PROFILES_ACTIVE=docker
+  - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=...
+  # 메일 관련 환경변수 제거! yml 기본값 사용
+```
+
+#### 교훈
+- **빈 환경변수는 null이 아닌 빈 문자열("")로 설정됨**
+- **Spring Boot는 빈 문자열도 유효한 값으로 처리하여 yml 기본값을 무시**
+- **CI/CD 환경변수는 필수 값만 설정하고, 선택적 값은 yml에서 관리**
+
+---
+
+### 4. 이메일 발송 실패
 
 #### 증상
 - SMTP 연결 실패

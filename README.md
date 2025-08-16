@@ -25,6 +25,22 @@ Noti Service는 다양한 채널(이메일, 디스코드, 푸시)을 통해 사�
 - **Documentation**: Swagger/OpenAPI 3
 - **Test**: JUnit 5, Mockito, Spring Boot Test
 
+## ⚠️ 중요 주의사항
+
+### Spring Boot 3.2+ Nested JAR 이슈
+Spring Boot 3.2부터 JAR 파일 포맷이 변경되어 **반드시 ClassLoaderTemplateResolver를 사용**해야 합니다:
+- ❌ SpringResourceTemplateResolver: nested JAR에서 템플릿 로딩 실패
+- ✅ ClassLoaderTemplateResolver: 정상 작동
+
+자세한 내용은 [TROUBLESHOOTING.md](./TROUBLESHOOTING.md)를 참조하세요.
+
+### Docker 환경 테스트 필수
+로컬 개발 환경과 Docker/배포 환경의 차이로 인한 문제를 방지하기 위해:
+```bash
+# 반드시 Docker 환경에서 테스트
+./gradlew dockerRebuildAndRunNotiOnly
+```
+
 ## 📊 ERD (Entity Relationship Diagram)
 
 ```mermaid

@@ -228,8 +228,54 @@ com
 
 ## 7\. AI 어시스턴트 중요 참고사항
 
+### 🚨 Spring Boot 3.2+ Nested JAR 이슈 - 필독!
+
+#### 문제 설명
+Spring Boot 3.2부터 JAR 파일 포맷이 변경되어 Thymeleaf 템플릿 로딩이 실패할 수 있습니다:
+- **증상**: 로컬에서는 작동하지만 Docker/서버에서 `FileNotFoundException: templates/email.html`
+- **원인**: `jar:nested:` 프로토콜을 SpringResourceTemplateResolver가 처리 못함
+
+#### 해결책
+**반드시 ClassLoaderTemplateResolver 사용**:
+```java
+@Bean
+public ClassLoaderTemplateResolver templateResolver() {
+    ClassLoaderTemplateResolver resolver = new ClassLoaderTemplateResolver();
+    resolver.setPrefix("templates/");  // "classpath:" 없이!
+    resolver.setSuffix(".html");
+    return resolver;
+}
+```
+
+#### 검증 방법
+```bash
+# 반드시 Docker 환경에서 테스트
+./gradlew clean bootJar
+docker build -t test-service .
+docker run test-service
+```
+
+### CI/CD 환경변수 주의사항
+
+#### 문제
+빈 GitHub Secrets가 환경변수로 설정되면 yml 기본값을 덮어씀:
+```yaml
+# 잘못된 예시 - 빈 secret이 ""로 설정됨
+- MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}  # 빈 값이면 yml 기본값 무시됨
+```
+
+#### 해결책
+필수 환경변수만 CI/CD에 설정하고, 선택적 값은 yml에서 관리:
+```yaml
+# application-docker.yml
+spring.mail.username: ${MAIL_USERNAME:default@example.com}  # 기본값 제공
+```
+
+### 일반 가이드라인
+
 1.  **기존 코드 패턴 확인**: 새 기능 구현 전, 기존 코드의 패턴과 일관성을 유지하세요.
 2.  **클린 아키텍처 준수**: 모든 기능은 Ports and Adapters 패턴에 따라 설계 및 구현해야 합니다. **Domain/Application 계층은 절대로 Adapter 계층에 의존해서는 안 됩니다.**
 3.  **전문적인 익명 커밋 로그 유지**: 커밋 메시지에 "Claude", "AI", "assistant" 등 AI 자신을 나타내는 단어를 절대 포함하지 마세요. 모든 커밋은 팀의 인간 개발자가 작성한 것처럼 전문적이어야 합니다.
 4.  **독립 실행성 보장**: 모든 모듈은 독립적으로 실행 가능해야 합니다.
 5.  **의존성 관리**: 의존성 추가 시 호환성 매트릭스를 확인하고 신중하게 추가하세요.
+6.  **로컬과 서버 환경 차이 주의**: 항상 Docker 환경에서 최종 테스트 수행
