@@ -78,7 +78,13 @@ public class EmailNotificationSender implements NotificationSenderPort {
                 context.setVariable("title", title);
                 context.setVariable("content", content);
 
-                String html = templateEngine.process("email", context);
+                String html;
+                try {
+                    html = templateEngine.process("email", context);
+                } catch (org.thymeleaf.exceptions.TemplateInputException tie) {
+                    log.warn("Thymeleaf template 'email'을 찾지 못해 기본 HTML 템플릿으로 대체합니다.");
+                    html = buildFallbackEmailHtml(title, content);
+                }
 
                 String resolvedFrom = (configuredFromAddress != null && !configuredFromAddress.isBlank())
                         ? configuredFromAddress
@@ -123,5 +129,19 @@ public class EmailNotificationSender implements NotificationSenderPort {
                 .status(com.asyncsite.notiservice.domain.model.vo.NotificationStatus.FAILED)
                 .updatedAt(java.time.LocalDateTime.now())
                 .build();
+    }
+
+    private String buildFallbackEmailHtml(String title, String content) {
+        String safeTitle = title == null ? "" : title;
+        String safeContent = content == null ? "" : content;
+        return "<!DOCTYPE html>" +
+                "<html lang=\"ko\">" +
+                "<head><meta charset=\"UTF-8\"><title>" + safeTitle + "</title></head>" +
+                "<body style=\"font-family:Arial,Helvetica,sans-serif; background:#f7f7f7; padding:20px;\">" +
+                "<div style=\"max-width:600px; margin:0 auto; background:#ffffff; border-radius:8px; box-shadow:0 4px 10px rgba(0,0,0,0.05);\">" +
+                "<div style=\"padding:24px 24px 8px 24px;\"><h2 style=\"margin:0; color:#111;\">" + safeTitle + "</h2></div>" +
+                "<div style=\"padding:8px 24px 24px 24px; color:#444; line-height:1.6;\">" + safeContent + "</div>" +
+                "</div>" +
+                "</body></html>";
     }
 }
