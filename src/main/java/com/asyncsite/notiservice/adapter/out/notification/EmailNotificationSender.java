@@ -77,8 +77,23 @@ public class EmailNotificationSender implements NotificationSenderPort {
                 Context context = new Context();
                 context.setVariable("title", title);
                 context.setVariable("content", content);
-
-                String html = templateEngine.process("email", context);
+                
+                // 디버깅: 템플릿 처리 전 로그
+                log.info("템플릿 처리 시작 - templateEngine: {}, context variables: title={}, content length={}", 
+                    templateEngine.getClass().getName(), 
+                    title != null ? title.substring(0, Math.min(title.length(), 50)) : "null",
+                    content != null ? content.length() : 0);
+                
+                String html = null;
+                try {
+                    html = templateEngine.process("email", context);
+                    log.info("템플릿 처리 성공 - HTML 길이: {}", html != null ? html.length() : 0);
+                } catch (Exception e) {
+                    log.error("템플릿 처리 실패 - 상세 에러: ", e);
+                    // 템플릿 리졸버 정보 출력
+                    log.error("Template Engine Configuration: {}", templateEngine.getConfiguration());
+                    throw e;
+                }
 
                 String resolvedFrom = (configuredFromAddress != null && !configuredFromAddress.isBlank())
                         ? configuredFromAddress
