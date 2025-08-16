@@ -233,6 +233,25 @@ docker volume create asyncsite-mysql-data
 ```
 
 ### 9.3 데이터베이스 연결 실패
+### 9.4 이메일 발송 실패 (Illegal address)
+
+증상:
+- 로그에 `jakarta.mail.internet.AddressException: Illegal address` 가 출력되고 상태가 FAILED로 기록됨
+
+주요 원인:
+- `docker-compose*`에서 `SPRING_MAIL_USERNAME`/`SPRING_MAIL_PASSWORD`가 빈 값으로 주입되어 앱의 기본값을 덮어쓰는 경우
+- 코드에서 발신자 주소를 `spring.mail.username` 단일 소스에 의존
+
+해결:
+- 구성: `SPRING_MAIL_USERNAME`/`SPRING_MAIL_PASSWORD`에 유효한 기본값을 지정하거나, 해당 env를 제거하여 `application-docker.yml` 기본값이 적용되게 함
+- 코드: 발신자 주소는 `application.notification.email.from-address` → 없으면 `spring.mail.username` 순으로 폴백하도록 구현됨(2025-08-16)
+
+점검 체크리스트:
+```bash
+docker compose config | rg -n "SPRING_MAIL_|APPLICATION_NOTIFICATION_EMAIL_FROM_ADDRESS"
+curl -s localhost:8089/actuator/env | rg -n "spring.mail|application.notification.email.from-address"
+```
+
 
 1. MySQL 컨테이너 상태 확인: `docker ps | grep mysql`
 2. 데이터베이스 존재 확인: `docker exec -it asyncsite-mysql mysql -p`

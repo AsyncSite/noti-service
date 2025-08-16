@@ -270,8 +270,9 @@ docker-compose logs -f noti-service
 
 애플리케이션 실행 후 다음 URL에서 API 문서를 확인할 수 있습니다.
 
-- **Swagger UI**: http://localhost:8084/swagger-ui.html
-- **OpenAPI JSON**: http://localhost:8084/v3/api-docs
+- (docker 프로필 기준) 포트는 `8089` 입니다.
+- **Swagger UI**: http://localhost:8089/swagger-ui/index.html
+- **OpenAPI JSON**: http://localhost:8089/v3/api-docs
 
 ### 주요 API 엔드포인트
 
@@ -338,21 +339,21 @@ PUT /api/v1/notification-templates/{templateId}
 ### Health Check
 
 ```bash
-# 애플리케이션 상태 확인
-curl http://localhost:8084/actuator/health
+# 애플리케이션 상태 확인 (docker 프로필: 8089)
+curl http://localhost:8089/actuator/health
 
 # 상세 정보 포함
-curl http://localhost:8084/actuator/health?include=details
+curl http://localhost:8089/actuator/health?include=details
 ```
 
 ### Metrics
 
 ```bash
 # 메트릭 정보
-curl http://localhost:8084/actuator/metrics
+curl http://localhost:8089/actuator/metrics
 
 # Prometheus 형식
-curl http://localhost:8084/actuator/prometheus
+curl http://localhost:8089/actuator/prometheus
 ```
 
 ## 🔧 설정
@@ -377,6 +378,16 @@ curl http://localhost:8084/actuator/prometheus
       cache: true
   ```
 - noti-service는 MVC + 동기 I/O 중심이므로 `spring-boot-starter-webflux`를 제거하고 Discord 전송은 RestTemplate로 전환할 계획입니다. WebFlux 공존 시 자동구성 경계로 인해 Thymeleaf 리졸브가 흔들릴 수 있으므로 정리합니다.
+
+### 이메일 발송 장애 회고 및 수정 가이드 (2025-08-16)
+
+- 증상: 패스키 로그인 이메일 미수신, 로그에 `jakarta.mail.internet.AddressException: Illegal address` 발생
+- 원인: 로컬/docker 실행 시 `docker-compose*`가 빈 `SPRING_MAIL_USERNAME/PASSWORD`를 주입하여 `application-docker.yml` 기본값을 덮어씀. 코드가 `spring.mail.username`을 그대로 발신자 주소로 사용하면서 From 주소가 비어 오류 발생
+- 조치:
+  - 코드: `EmailNotificationSender`가 `application.notification.email.from-address` → 없으면 `spring.mail.username` 순으로 발신자 주소를 해석하도록 수정
+  - 구성: `docker-compose*`에서 `SPRING_MAIL_USERNAME/PASSWORD`와 `APPLICATION_NOTIFICATION_EMAIL_FROM_ADDRESS`의 기본값을 유효한 Gmail 값으로 설정
+- 검증: 로컬 `dockerRebuildAndRunNotiOnly` 후, 로그에 `이메일 발송 성공` 확인
+- 권고: 공개 레포에서는 기본 자격증명 제거 후, `.env` 또는 CI 시크릿으로 주입할 것
 
 ### 프로파일별 설정
 

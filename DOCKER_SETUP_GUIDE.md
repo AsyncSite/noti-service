@@ -74,15 +74,12 @@ COPY --chown=appuser:appgroup build/libs/*.jar app.jar
 
 # 헬스체크 설정
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-    CMD curl -f http://localhost:8084/actuator/health || exit 1
+    CMD curl -f http://localhost:8089/actuator/health || exit 1
 
 USER appuser
-EXPOSE 8084
+EXPOSE 8089
 
-ENTRYPOINT ["java", \
-    "-Dspring.profiles.active=${SPRING_PROFILES_ACTIVE:-docker}", \
-    "-jar", \
-    "app.jar"]
+ENTRYPOINT ["java", "-jar", "app.jar"]
 ```
 
 ### 4.2. 멀티스테이지 Dockerfile (CI/CD용)
@@ -117,10 +114,10 @@ RUN groupadd -g 1001 appgroup && \
 COPY --from=builder --chown=appuser:appgroup /workspace/build/libs/*.jar app.jar
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-    CMD curl -f http://localhost:8084/actuator/health || exit 1
+    CMD curl -f http://localhost:8089/actuator/health || exit 1
 
 USER appuser
-EXPOSE 8084
+EXPOSE 8089
 
 ENTRYPOINT ["java", "-jar", "app.jar"]
 ```
@@ -143,7 +140,7 @@ services:
       dockerfile: Dockerfile
     container_name: noti-service
     ports:
-      - "8084:8084"
+       - "8089:8089"
     environment:
       # Spring 프로파일
       - SPRING_PROFILES_ACTIVE=docker,microservices
@@ -162,7 +159,7 @@ services:
     volumes:
       - ./logs:/app/logs
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8084/actuator/health"]
+       test: ["CMD", "curl", "-f", "http://localhost:8089/actuator/health"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -220,7 +217,7 @@ services:
       dockerfile: Dockerfile
     container_name: noti-service
     ports:
-      - "8084:8084"
+       - "8089:8089"
     environment:
       - SPRING_PROFILES_ACTIVE=docker,microservices
       - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka/
