@@ -169,6 +169,8 @@ jobs:
           docker rm asyncsite-noti-service 2>/dev/null || true
           
           # Create docker-compose file
+          # Note: 빈 secrets 값이 환경변수로 설정되지 않도록 주의!
+          # 빈 값으로 설정되면 application-docker.yml의 기본값이 무시됨
           cat > docker-compose.yml << COMPOSE_EOF
           services:
             noti-service:
@@ -182,12 +184,6 @@ jobs:
                 - SPRING_DATASOURCE_URL=jdbc:mysql://asyncsite-mysql:3306/notidb?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true&characterEncoding=utf8&useUnicode=true&createDatabaseIfNotExist=true
                 - SPRING_DATASOURCE_USERNAME=root
                 - SPRING_DATASOURCE_PASSWORD=asyncsite_root_2024!
-                - SPRING_MAIL_HOST=${{ secrets.MAIL_HOST }}
-                - SPRING_MAIL_PORT=${{ secrets.MAIL_PORT }}
-                - SPRING_MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}
-                - SPRING_MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}
-                - APPLICATION_NOTIFICATION_EMAIL_FROM_ADDRESS=${{ secrets.MAIL_FROM }}
-                - APPLICATION_NOTIFICATION_DISCORD_WEBHOOK_URL=${{ secrets.DISCORD_WEBHOOK_URL }}
                 - LOGGING_LEVEL_ROOT=INFO
                 - LOGGING_LEVEL_COM_ASYNCSITE_NOTISERVICE=DEBUG
               volumes:
