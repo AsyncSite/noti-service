@@ -40,6 +40,12 @@ spring:
           timeout: 5000
           write-timeout: 5000
 
+  # Thymeleaf Configuration (explicit to ensure template resolution in docker profile)
+  thymeleaf:
+    prefix: classpath:/templates/
+    suffix: .html
+    cache: true
+
 # Eureka Client Configuration
 eureka:
   instance:
