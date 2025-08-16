@@ -28,8 +28,8 @@ spring:
   mail:
     host: ${SPRING_MAIL_HOST:smtp.gmail.com}
     port: ${SPRING_MAIL_PORT:587}
-    username: ${SPRING_MAIL_USERNAME:}
-    password: ${SPRING_MAIL_PASSWORD:}
+    username: ${SPRING_MAIL_USERNAME:asyncsite@gmail.com}
+    password: ${SPRING_MAIL_PASSWORD:unkhpoegvshusagl}
     properties:
       mail:
         smtp:
@@ -89,7 +89,7 @@ application:
       enabled: ${APPLICATION_NOTIFICATION_EMAIL_ENABLED:true}
       retry-attempts: ${APPLICATION_NOTIFICATION_EMAIL_RETRY_ATTEMPTS:3}
       retry-delay: ${APPLICATION_NOTIFICATION_EMAIL_RETRY_DELAY:5000}
-      from-address: ${APPLICATION_NOTIFICATION_EMAIL_FROM_ADDRESS:noreply@asyncsite.com}
+      from-address: ${APPLICATION_NOTIFICATION_EMAIL_FROM_ADDRESS:asyncsite@gmail.com}
     discord:
       enabled: ${APPLICATION_NOTIFICATION_DISCORD_ENABLED:true}
       webhook-url: ${APPLICATION_NOTIFICATION_DISCORD_WEBHOOK_URL:}
