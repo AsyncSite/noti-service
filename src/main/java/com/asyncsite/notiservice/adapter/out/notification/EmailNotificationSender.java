@@ -28,8 +28,11 @@ public class EmailNotificationSender implements NotificationSenderPort {
 
     private final NotificationTemplateRepositoryPort templateRepository;
 
-    @Value("${spring.mail.username}")
-    private String fromEmail;
+    @Value("${application.notification.email.from-address:}")
+    private String configuredFromAddress;
+
+    @Value("${spring.mail.username:}")
+    private String mailUsername;
 
     @Override
     public CompletableFuture<Notification> sendNotification(Notification notification) {
@@ -76,7 +79,17 @@ public class EmailNotificationSender implements NotificationSenderPort {
                 context.setVariable("content", content);
 
                 String html = templateEngine.process("email", context);
-                helper.setFrom(fromEmail);
+
+                String resolvedFrom = (configuredFromAddress != null && !configuredFromAddress.isBlank())
+                        ? configuredFromAddress
+                        : mailUsername;
+
+                if (resolvedFrom == null || resolvedFrom.isBlank()) {
+                    log.warn("발신자 이메일(from-address)이 비어 있습니다. 설정값을 확인해주세요. application.notification.email.from-address 또는 spring.mail.username");
+                    throw new jakarta.mail.internet.AddressException("From address is empty");
+                }
+
+                helper.setFrom(resolvedFrom);
                 helper.setTo(recipientEmail);
                 helper.setSubject(title);
                 helper.setText(html, true);
