@@ -366,6 +366,18 @@ curl http://localhost:8084/actuator/prometheus
 | `spring.mail.host` | `smtp.gmail.com` | SMTP 서버 |
 | `eureka.client.service-url.defaultZone` | `http://localhost:8761/eureka/` | Eureka 서버 |
 
+### 프로파일별 Thymeleaf 주의사항 및 WebFlux 제거 계획 (2025-08-16)
+
+- 운영(docker,microservices) 프로필에서도 템플릿 리졸브가 확실하도록 `application-docker.yml`에 다음을 명시합니다.
+  ```yaml
+  spring:
+    thymeleaf:
+      prefix: classpath:/templates/
+      suffix: .html
+      cache: true
+  ```
+- noti-service는 MVC + 동기 I/O 중심이므로 `spring-boot-starter-webflux`를 제거하고 Discord 전송은 RestTemplate로 전환할 계획입니다. WebFlux 공존 시 자동구성 경계로 인해 Thymeleaf 리졸브가 흔들릴 수 있으므로 정리합니다.
+
 ### 프로파일별 설정
 
 - **default**: 로컬 개발 환경
