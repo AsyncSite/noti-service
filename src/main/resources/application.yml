@@ -109,6 +109,7 @@ springdoc:
 kafka:
   topics:
     passkey-otp: asyncsite.passkey.otp
+    password-reset: asyncsite.password.reset
     user-events: asyncsite.user.events
 
 # Event Configuration  

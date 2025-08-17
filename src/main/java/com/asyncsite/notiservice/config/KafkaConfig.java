@@ -61,7 +61,9 @@ public class KafkaConfig {
         // This is not a workaround but a proper configuration for microservices architecture
         config.put(JsonDeserializer.TYPE_MAPPINGS, 
             "com.asyncsite.userservice.auth.domain.event.PasskeyOtpRequestedEvent:" +
-            "com.asyncsite.notiservice.adapter.in.event.dto.PasskeyOtpRequestedEvent");
+            "com.asyncsite.notiservice.adapter.in.event.dto.PasskeyOtpRequestedEvent," +
+            "com.asyncsite.userservice.auth.domain.event.PasswordResetRequestedEvent:" +
+            "com.asyncsite.notiservice.adapter.in.event.dto.PasswordResetRequestedEvent");
         
         // Additional consumer properties for reliability
         config.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 10);

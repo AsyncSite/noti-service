@@ -21,15 +21,12 @@ services:
         sleep 2
       done
       
-      echo 'Creating noti-service consumer topics if they do not exist...'
+      echo 'Checking for required topics...'
       
-      # Passkey OTP topic (consumed by noti-service)
-      kafka-topics.sh --bootstrap-server asyncsite-kafka:9092 --create --if-not-exists --topic asyncsite.passkey.otp --partitions 3 --replication-factor 1 --config retention.ms=86400000 --config min.insync.replicas=1 || true
+      # Noti-service only consumes topics, doesn't create them
+      # Topics should be created by the producing services
       
-      # User events topic (consumed by noti-service)  
-      kafka-topics.sh --bootstrap-server asyncsite-kafka:9092 --create --if-not-exists --topic asyncsite.user.events --partitions 3 --replication-factor 1 --config retention.ms=604800000 --config min.insync.replicas=1 || true
-      
-      echo 'Topics created successfully!'
+      echo 'Listing available topics:'
       kafka-topics.sh --bootstrap-server asyncsite-kafka:9092 --list
       "
     networks:
