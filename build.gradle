@@ -39,6 +39,9 @@ dependencies {
     // Spring Cloud
     implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
     implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
+    
+    // Kafka
+    implementation 'org.springframework.kafka:spring-kafka'
 
     // Database
     runtimeOnly 'com.mysql:mysql-connector-j'

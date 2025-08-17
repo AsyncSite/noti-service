@@ -7,6 +7,39 @@
 
 services:
   # =============================================================================
+  # Kafka Topic Initializer for Noti Service (Consumer topics)
+  # =============================================================================
+  kafka-init:
+    image: bitnami/kafka:3.7
+    container_name: asyncsite-noti-kafka-init
+    entrypoint: ["/bin/bash", "-c"]
+    command: |
+      "
+      echo 'Waiting for Kafka to be ready...'
+      until kafka-topics.sh --bootstrap-server asyncsite-kafka:9092 --list 2>/dev/null; do
+        echo 'Kafka not ready yet...'
+        sleep 2
+      done
+      
+      echo 'Creating noti-service consumer topics if they do not exist...'
+      
+      # Passkey OTP topic (consumed by noti-service)
+      kafka-topics.sh --bootstrap-server asyncsite-kafka:9092 --create --if-not-exists --topic asyncsite.passkey.otp --partitions 3 --replication-factor 1 --config retention.ms=86400000 --config min.insync.replicas=1 || true
+      
+      # User events topic (consumed by noti-service)  
+      kafka-topics.sh --bootstrap-server asyncsite-kafka:9092 --create --if-not-exists --topic asyncsite.user.events --partitions 3 --replication-factor 1 --config retention.ms=604800000 --config min.insync.replicas=1 || true
+      
+      echo 'Topics created successfully!'
+      kafka-topics.sh --bootstrap-server asyncsite-kafka:9092 --list
+      "
+    networks:
+      - asyncsite-network
+    labels:
+      - "com.asyncsite.service=kafka-init"
+      - "com.asyncsite.tier=infrastructure"
+      - "com.asyncsite.type=init"
+  
+  # =============================================================================
   # Noti Service - Notification Management and Delivery
   # =============================================================================
   noti-service:
@@ -63,6 +96,9 @@ services:
       - LOGGING_LEVEL_COM_ASYNCSITE_NOTISERVICE=INFO
       - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB=INFO
       - LOGGING_LEVEL_ORG_HIBERNATE_SQL=WARN
+      # Kafka Configuration
+      - KAFKA_BOOTSTRAP_SERVERS=asyncsite-kafka:9092
+      - EVENT_ENABLED=true
       # Management and Health
       - MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE=health,info,metrics,prometheus
       - MANAGEMENT_ENDPOINT_HEALTH_SHOW_DETAILS=always

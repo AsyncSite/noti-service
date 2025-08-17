@@ -40,6 +40,20 @@ spring:
     cache: false
     prefix: classpath:/templates/
     suffix: .html
+    
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:asyncsite-kafka:9092}
+    consumer:
+      group-id: ${spring.application.name}
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "com.asyncsite.*"
+        spring.json.type.mapping: "passkeyOtpRequested:com.asyncsite.notiservice.adapter.in.event.dto.PasskeyOtpRequestedEvent"
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
 
 # Eureka Client Configuration
 eureka:
@@ -90,3 +104,13 @@ springdoc:
     operationsSorter: method
     tagsSorter: alpha
     display-request-duration: true
+
+# Application Kafka Topics  
+kafka:
+  topics:
+    passkey-otp: asyncsite.passkey.otp
+    user-events: asyncsite.user.events
+
+# Event Configuration  
+event:
+  enabled: true  # Feature toggle for Kafka consumers
