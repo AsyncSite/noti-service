@@ -22,6 +22,29 @@ cd ~/asyncsite/noti-service
 
 ---
 
+### 🔌 로컬 MySQL 접속 방법
+```bash
+# Docker MySQL 컨테이너 접속
+docker exec -it asyncsite-mysql mysql -uroot -pasyncsite_root_2024!
+
+# Noti DB 선택
+USE notidb;
+
+# 데이터 확인 예시
+SELECT * FROM notifications LIMIT 10;
+SELECT COUNT(*) FROM notifications;
+SELECT * FROM notification_templates;
+```
+
+**데이터베이스 정보:**
+- Host: `localhost` (로컬) / `asyncsite-mysql` (Docker)
+- Port: `3306`
+- Database: `notidb`
+- Username: `root`
+- Password: `asyncsite_root_2024!`
+
+---
+
 ## 1\. 프로젝트 개요
 
 본 프로젝트는 Spring Cloud 기반의 MSA(Microservices Architecture) 코어 플랫폼입니다. MSA 구현에 필요한 기반 환경을 제공하며, 각 서비스는 독립적으로 개발 및 배포될 수 있습니다.
