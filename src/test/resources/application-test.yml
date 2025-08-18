@@ -1,6 +1,16 @@
 spring:
   application:
     name: noti-service-test
+  
+  # Kafka 비활성화 (테스트 환경)
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      auto-startup: false
+      group-id: noti-service-test
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration
 
   # H2 Database Configuration for Testing
   datasource:

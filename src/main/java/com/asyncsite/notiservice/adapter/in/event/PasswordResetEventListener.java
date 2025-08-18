@@ -4,6 +4,8 @@ import com.asyncsite.notiservice.adapter.in.event.dto.PasswordResetRequestedEven
 import com.asyncsite.notiservice.domain.model.vo.ChannelType;
 import com.asyncsite.notiservice.domain.model.vo.EventType;
 import com.asyncsite.notiservice.domain.port.in.NotificationUseCase;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -26,6 +28,7 @@ import java.util.Map;
 public class PasswordResetEventListener {
     
     private final NotificationUseCase notificationUseCase;
+    private final ObjectMapper objectMapper;
     
     @KafkaListener(
         topics = "${kafka.topics.password-reset:asyncsite.password.reset}",
@@ -33,17 +36,19 @@ public class PasswordResetEventListener {
         containerFactory = "kafkaListenerContainerFactory"
     )
     public void handlePasswordResetRequested(
-            @Payload PasswordResetRequestedEvent event,
+            @Payload JsonNode eventNode,
             @Header(KafkaHeaders.RECEIVED_TOPIC) String topic,
             @Header(KafkaHeaders.RECEIVED_PARTITION) int partition,
             @Header(KafkaHeaders.OFFSET) long offset,
             @Header(value = "correlationId", required = false) String correlationId,
             Acknowledgment acknowledgment) {
         
-        log.info("[KAFKA] Received PasswordResetRequestedEvent - EventId: {}, User: {}, Topic: {}, Partition: {}, Offset: {}, CorrelationId: {}",
-                event.getEventId(), event.getEmail(), topic, partition, offset, correlationId);
-        
         try {
+            // Parse the event from JsonNode
+            PasswordResetRequestedEvent event = objectMapper.treeToValue(eventNode, PasswordResetRequestedEvent.class);
+            
+            log.info("[KAFKA] Received PasswordResetRequestedEvent - EventId: {}, User: {}, Topic: {}, Partition: {}, Offset: {}, CorrelationId: {}",
+                    event.getEventId(), event.getEmail(), topic, partition, offset, correlationId);
             // Build metadata for notification
             Map<String, Object> metadata = new HashMap<>();
             metadata.put("templateId", "password-reset");
@@ -78,11 +83,11 @@ public class PasswordResetEventListener {
             }
             
         } catch (Exception e) {
-            log.error("[KAFKA] Failed to process PasswordResetRequestedEvent for user: {} - Error: {}", 
-                    event.getEmail(), e.getMessage(), e);
+            log.error("[KAFKA] Failed to process PasswordResetRequestedEvent - Error: {}", 
+                    e.getMessage(), e);
             
             // Don't acknowledge on error - message will be retried
-            throw e;
+            throw new RuntimeException("Failed to process PasswordResetRequestedEvent", e);
         }
     }
 }

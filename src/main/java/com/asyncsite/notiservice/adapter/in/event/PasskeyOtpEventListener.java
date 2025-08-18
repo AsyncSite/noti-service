@@ -4,6 +4,8 @@ import com.asyncsite.notiservice.adapter.in.event.dto.PasskeyOtpRequestedEvent;
 import com.asyncsite.notiservice.domain.model.vo.ChannelType;
 import com.asyncsite.notiservice.domain.model.vo.EventType;
 import com.asyncsite.notiservice.domain.port.in.NotificationUseCase;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -27,6 +29,7 @@ import java.util.Map;
 public class PasskeyOtpEventListener {
     
     private final NotificationUseCase notificationUseCase;
+    private final ObjectMapper objectMapper;
     
     @KafkaListener(
         topics = "${kafka.topics.passkey-otp:asyncsite.passkey.otp}",
@@ -34,17 +37,19 @@ public class PasskeyOtpEventListener {
         containerFactory = "kafkaListenerContainerFactory"
     )
     public void handlePasskeyOtpRequested(
-            @Payload PasskeyOtpRequestedEvent event,
+            @Payload JsonNode eventNode,
             @Header(KafkaHeaders.RECEIVED_TOPIC) String topic,
             @Header(KafkaHeaders.RECEIVED_PARTITION) int partition,
             @Header(KafkaHeaders.OFFSET) long offset,
             @Header(value = "correlationId", required = false) String correlationId,
             Acknowledgment acknowledgment) {
         
-        log.info("[KAFKA] Received PasskeyOtpRequestedEvent - EventId: {}, User: {}, Topic: {}, Partition: {}, Offset: {}, CorrelationId: {}",
-                event.getEventId(), event.getEmail(), topic, partition, offset, correlationId);
-        
         try {
+            // Parse the event from JsonNode
+            PasskeyOtpRequestedEvent event = objectMapper.treeToValue(eventNode, PasskeyOtpRequestedEvent.class);
+            
+            log.info("[KAFKA] Received PasskeyOtpRequestedEvent - EventId: {}, User: {}, Topic: {}, Partition: {}, Offset: {}, CorrelationId: {}",
+                    event.getEventId(), event.getEmail(), topic, partition, offset, correlationId);
             // Build metadata for notification
             Map<String, Object> metadata = new HashMap<>();
             metadata.put("templateId", "passkey-otp");
@@ -78,12 +83,12 @@ public class PasskeyOtpEventListener {
             }
             
         } catch (Exception e) {
-            log.error("[KAFKA] Failed to process PasskeyOtpRequestedEvent for user: {} - Error: {}", 
-                    event.getEmail(), e.getMessage(), e);
+            log.error("[KAFKA] Failed to process PasskeyOtpRequestedEvent - Error: {}", 
+                    e.getMessage(), e);
             
             // Don't acknowledge on error - message will be retried
             // You might want to implement a dead letter queue for persistent failures
-            throw e;
+            throw new RuntimeException("Failed to process PasskeyOtpRequestedEvent", e);
         }
     }
 }
