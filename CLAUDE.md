@@ -1,5 +1,26 @@
 
-# Core Platform - 개발 가이드라인 (Java Ver.)
+# Noti Service - 개발 가이드라인 (Java Ver.)
+
+## 🚨 필독 - 로컬 빌드 전 반드시 확인!
+
+### ⚠️ Docker 빌드 표준 준수 필수
+**이 서비스를 빌드하기 전에 반드시 [Docker 빌드 표준 문서](../core-platform/docs/development/DOCKER_BUILD_STANDARDS.md)를 읽고 따르세요.**
+
+### 🔨 Noti Service 빌드 방법
+```bash
+# Noti Service 빌드 (테스트 포함 - 필수)
+cd ~/asyncsite/noti-service
+./gradlew dockerRebuildAndRunNotiOnly
+```
+
+**절대 금지사항:**
+- ❌ `./gradlew build -x test` (테스트 스킵 금지)
+- ❌ `docker build/run` 수동 실행 금지
+- ❌ 테스트 실패 무시하고 진행 금지
+
+테스트가 실패하면 **반드시 테스트를 통과시킨 후** 빌드하세요.
+
+---
 
 ## 1\. 프로젝트 개요
 
