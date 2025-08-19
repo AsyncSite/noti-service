@@ -70,6 +70,11 @@ services:
       - noti-service-logs:/app/logs
     networks:
       - asyncsite-network
+    logging: 
+      driver: "json-file"
+      options:
+        max-size: "30m"
+        max-file: "3"
     # Health check configuration
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8089/actuator/health"]
@@ -114,6 +119,11 @@ services:
     environment:
       - ELASTICSEARCH_HOSTS=${ELASTICSEARCH_HOSTS:-elasticsearch:9200}
       - LOGSTASH_HOSTS=${LOGSTASH_HOSTS:-logstash:5044}
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "30m"
+        max-file: "3"
     # Resource limits
     deploy:
       resources:
