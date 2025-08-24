@@ -68,6 +68,11 @@ services:
       - noti-service-logs:/app/logs
     networks:
       - asyncsite-network
+    logging: # 저트래픽 설정 적용
+      driver: "json-file"
+      options:
+        max-size: "30m"
+        max-file: "3"
     # Health check configuration
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8089/actuator/health"]
