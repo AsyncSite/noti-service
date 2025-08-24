@@ -21,6 +21,15 @@ configurations {
 
 repositories {
     mavenCentral()
+    
+    // GitHub Packages for Core Platform Common
+    maven {
+        url = uri("https://maven.pkg.github.com/AsyncSite/core-platform")
+        credentials {
+            username = project.findProperty("gpr.user") as String ?: System.getenv("GITHUB_ACTOR")
+            password = project.findProperty("gpr.key") as String ?: System.getenv("GITHUB_TOKEN")
+        }
+    }
 }
 
 ext {
@@ -28,6 +37,9 @@ ext {
 }
 
 dependencies {
+    // Core Platform Common
+    implementation 'com.asyncsite.coreplatform:common:1.0.0-SNAPSHOT'
+    
     // Spring Boot Starters
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
