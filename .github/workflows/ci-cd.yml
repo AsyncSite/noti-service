@@ -48,8 +48,17 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-gradle-
     
+    - name: Configure Gradle properties
+      run: |
+        mkdir -p ~/.gradle
+        echo "gpr.user=${{ github.actor }}" >> ~/.gradle/gradle.properties
+        echo "gpr.key=${{ secrets.PAT_TOKEN }}" >> ~/.gradle/gradle.properties
+    
     - name: Build with Gradle (skip tests)
       run: ./gradlew build -x test --no-daemon --stacktrace
+      env:
+        GITHUB_ACTOR: ${{ github.actor }}
+        GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
     
     - name: Run tests
       run: ./gradlew test --no-daemon --stacktrace
@@ -93,10 +102,19 @@ jobs:
         distribution: 'temurin'
         cache: 'gradle'
     
+    - name: Configure Gradle properties
+      run: |
+        mkdir -p ~/.gradle
+        echo "gpr.user=${{ github.actor }}" >> ~/.gradle/gradle.properties
+        echo "gpr.key=${{ secrets.PAT_TOKEN }}" >> ~/.gradle/gradle.properties
+    
     - name: Build application
       run: |
         chmod +x gradlew
         ./gradlew clean bootJar --no-daemon
+      env:
+        GITHUB_ACTOR: ${{ github.actor }}
+        GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
     
     - name: Check build artifacts
       run: |
