@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.MDC;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.kafka.support.KafkaHeaders;
@@ -42,6 +43,11 @@ public class PasswordResetEventListener {
             @Header(KafkaHeaders.OFFSET) long offset,
             @Header(value = "correlationId", required = false) String correlationId,
             Acknowledgment acknowledgment) {
+        
+        // Set correlation ID in MDC for tracking
+        if (correlationId != null) {
+            MDC.put("correlationId", correlationId);
+        }
         
         try {
             // Parse the event from JsonNode
@@ -88,6 +94,9 @@ public class PasswordResetEventListener {
             
             // Don't acknowledge on error - message will be retried
             throw new RuntimeException("Failed to process PasswordResetRequestedEvent", e);
+        } finally {
+            // Clean up MDC after processing
+            MDC.remove("correlationId");
         }
     }
 }
