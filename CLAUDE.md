@@ -156,7 +156,38 @@ SELECT * FROM notification_templates;
     ```
 - **유틸리티 클래스의 정적 메서드(Static Methods)**: Java에는 최상위 함수가 없으므로, 순수하고 상태 없는 유틸리티 기능은 `final` 클래스의 `private` 생성자와 `static` 메서드로 제공하여 `StringUtils`, `DateUtils` 같은 객체를 불필요하게 생성하는 것을 방지합니다.
 
-### 4.3. 에러 핸들링 및 Null 안전성
+### 4.3. 문제 해결 접근법 (Problem Solving Approach)
+
+⚠️ **필수 준수 사항**: 모든 문제 해결 시 다음 5단계를 반드시 따라야 합니다.
+
+1. **Think hard and deeply about the root cause**
+   - 표면적 증상이 아닌 실제 문제의 근원을 파악하세요
+   - "왜(Why)"를 최소 5번 반복하여 깊이 있게 분석하세요
+   - 로그, 스택 트레이스, Kafka 이벤트 흐름을 꼼꼼히 확인하세요
+
+2. **Do a global inspection to understand the full context**
+   - 변경이 영향을 미칠 모든 서비스와 컴포넌트를 검토하세요
+   - Noti Service와 연관된 이벤트 발행 서비스들의 의존성을 확인하세요
+   - 기존 코드베이스의 패턴과 Clean Architecture 구조를 이해하세요
+
+3. **Find a stable, best-practice solution**
+   - 검증된 디자인 패턴과 Spring Boot 베스트 프랙티스를 활용하세요
+   - 일회성 해결이 아닌 지속 가능하고 확장 가능한 솔루션을 구현하세요
+   - 성능, 보안, 유지보수성을 항상 고려하세요
+
+4. **Ensure consistency with other services**
+   - 다른 마이크로서비스들의 구현 방식을 참고하세요
+   - 공통 패턴과 코딩 규칙을 일관되게 적용하세요
+   - 중복 코드는 core-platform의 common 모듈로 추출하세요
+
+5. **Read CLAUDE.md if needed**
+   - 불확실한 부분은 항상 이 가이드라인을 재확인하세요
+   - 서비스별 특수 규칙과 제약사항을 체크하세요
+   - core-platform/CLAUDE.md의 known issues도 확인하세요
+
+**이 접근법을 따르지 않으면 불완전하거나 일관성 없는 솔루션이 될 수 있습니다.**
+
+### 4.4. 에러 핸들링 및 Null 안전성
 
 - **명시적인 Null 처리**: `Optional<T>`을 의도적으로 사용하여 값이 없을 수 있음을 명시합니다. `Optional.get()`을 `isPresent()` 확인 없이 호출하는 것을 절대적으로 피해야 합니다.
 - **비즈니스 에러는 예외 대신 `Result` 패턴 사용**: 예측 가능한 비즈니스 실패(e.g., "사용자 없음", "잔액 부족")에 대해 예외를 던지지 마세요. 대신 `Result` 같은 커스텀 타입을 반환하여 호출자가 성공과 실패 케이스를 명시적으로 처리하도록 강제합니다.
@@ -323,3 +354,72 @@ spring.mail.username: ${MAIL_USERNAME:default@example.com}  # 기본값 제공
 4.  **독립 실행성 보장**: 모든 모듈은 독립적으로 실행 가능해야 합니다.
 5.  **의존성 관리**: 의존성 추가 시 호환성 매트릭스를 확인하고 신중하게 추가하세요.
 6.  **로컬과 서버 환경 차이 주의**: 항상 Docker 환경에서 최종 테스트 수행
+
+## 🚨 CRITICAL: AGENTS.md - Essential Development Rules
+
+Problem definition → small, safe change → change review → refactor — repeat the loop.
+
+### Mandatory Rules
+
+- Before changing anything, read the relevant files end to end, including all call/reference paths.
+- Keep tasks, commits, and PRs small.
+- If you make assumptions, record them in the Issue/PR/ADR.
+- Never commit or log secrets; validate all inputs and encode/normalize outputs.
+- Avoid premature abstraction and use intention-revealing names.
+- Compare at least two options before deciding.
+
+### Mindset
+
+- Think like a senior engineer.
+- Don't jump in on guesses or rush to conclusions.
+- Always evaluate multiple approaches; write one line each for pros/cons/risks, then choose the simplest solution.
+
+### Code & File Reference Rules
+
+- Read files thoroughly from start to finish (no partial reads).
+- Before changing code, locate and read definitions, references, call sites, related tests, docs/config/flags.
+- Do not change code without having read the entire file.
+- Before modifying a symbol, run a global search to understand pre/postconditions and leave a 1–3 line impact note.
+
+### Required Coding Rules
+
+- Before coding, write a Problem 1-Pager: Context / Problem / Goal / Non-Goals / Constraints.
+- Enforce limits: file ≤ 300 LOC, function ≤ 50 LOC, parameters ≤ 5, cyclomatic complexity ≤ 10. If exceeded, split/refactor.
+- Prefer explicit code; no hidden "magic."
+- Follow DRY, but avoid premature abstraction.
+- Isolate side effects (I/O, network, global state) at the boundary layer.
+- Catch only specific exceptions and present clear user-facing messages.
+- Use structured logging and do not log sensitive data (propagate request/correlation IDs when possible).
+- Account for time zones and DST.
+
+### Testing Rules
+
+- New code requires new tests; bug fixes must include a regression test (write it to fail first).
+- Tests must be deterministic and independent; replace external systems with fakes/contract tests.
+- Include ≥1 happy path and ≥1 failure path in e2e tests.
+- Proactively assess risks from concurrency/locks/retries (duplication, deadlocks, etc.).
+
+### Security Rules
+
+- Never leave secrets in code/logs/tickets.
+- Validate, normalize, and encode inputs; use parameterized operations.
+- Apply the Principle of Least Privilege.
+
+### Clean Code Rules
+
+- Use intention-revealing names.
+- Each function should do one thing.
+- Keep side effects at the boundary.
+- Prefer guard clauses first.
+- Symbolize constants (no hardcoding).
+- Structure code as Input → Process → Return.
+- Report failures with specific errors/messages.
+- Make tests serve as usage examples; include boundary and failure cases.
+
+### Anti-Pattern Rules
+
+- Don't modify code without reading the whole context.
+- Don't expose secrets.
+- Don't ignore failures or warnings.
+- Don't introduce unjustified optimization or abstraction.
+- Don't overuse broad exceptions.
