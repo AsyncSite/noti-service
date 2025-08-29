@@ -1,3 +1,102 @@
+// Docker 정리 함수 - 안쓰는 리소스를 확실하게 제거
+def dockerAggressiveCleanup() {
+    def dockerPath = findDockerExecutable()
+    if (!dockerPath) {
+        println "❌ Docker not found. Skipping cleanup."
+        return
+    }
+    
+    println "\n🔍 Analyzing Docker resources for cleanup..."
+    
+    // 1. 현재 실행 중인 컨테이너의 이미지 ID 수집 (보호 대상)
+    def runningImages = [] as Set
+    try {
+        def output = new ByteArrayOutputStream()
+        project.exec {
+            commandLine = [dockerPath, "ps", "--format", "{{.Image}}"]
+            standardOutput = output
+            ignoreExitValue = true
+        }
+        runningImages.addAll(output.toString().split("\n").findAll { it.trim() })
+        println "📌 Protected images (currently in use): ${runningImages.size()}"
+    } catch (Exception e) {
+        println "⚠️ Could not get running containers: ${e.message}"
+    }
+    
+    // 2. 중단된 컨테이너 모두 제거
+    println "🧹 Removing stopped containers..."
+    executeDockerCommand("container", "prune", "-f")
+    
+    // 3. Dangling 이미지 제거 (태그 없는 이미지)
+    println "🧹 Removing dangling images..."
+    executeDockerCommand("image", "prune", "-f")
+    
+    // 4. AsyncSite 프로젝트의 미사용 이미지 제거
+    println "🧹 Removing unused AsyncSite images..."
+    try {
+        def output = new ByteArrayOutputStream()
+        project.exec {
+            commandLine = [dockerPath, "images", "--filter", "reference=asyncsite/*", "--format", "{{.Repository}}:{{.Tag}}"]
+            standardOutput = output
+            ignoreExitValue = true
+        }
+        
+        // ghcr.io/asyncsite/* 이미지도 처리
+        def output2 = new ByteArrayOutputStream()
+        project.exec {
+            commandLine = [dockerPath, "images", "--filter", "reference=ghcr.io/asyncsite/*", "--format", "{{.Repository}}:{{.Tag}}"]
+            standardOutput = output2
+            ignoreExitValue = true
+        }
+        
+        def asyncImages = (output.toString().split("\n") + output2.toString().split("\n")).findAll { it.trim() }
+        def removedCount = 0
+        
+        asyncImages.each { image ->
+            if (!runningImages.contains(image) && !image.contains("<none>")) {
+                println "  Removing: $image"
+                if (executeDockerCommand("rmi", image, "-f")) {
+                    removedCount++
+                }
+            }
+        }
+        println "  Removed $removedCount AsyncSite images"
+    } catch (Exception e) {
+        println "⚠️ Error removing AsyncSite images: ${e.message}"
+    }
+    
+    // 5. 빌드 캐시 정리 (24시간 이상 된 것만)
+    println "🧹 Cleaning old build cache (>24h)..."
+    executeDockerCommand("builder", "prune", "-f", "--filter", "until=24h")
+    
+    // 6. 미사용 네트워크 제거 (asyncsite-network는 유지)
+    println "🧹 Removing unused networks..."
+    executeDockerCommand("network", "prune", "-f")
+    
+    // 7. 미사용 볼륨 제거 (옵션 - 기본적으로 비활성화)
+    def cleanVolumes = project.hasProperty("cleanDockerVolumes") && project.cleanDockerVolumes == "true"
+    if (cleanVolumes) {
+        println "⚠️  WARNING: Removing unused volumes (data will be lost!)..."
+        executeDockerCommand("volume", "prune", "-f")
+    }
+    
+    // 8. 최종 디스크 사용량 확인
+    println "\n📊 Docker disk usage after cleanup:"
+    def dfOutput = new ByteArrayOutputStream()
+    try {
+        project.exec {
+            commandLine = [dockerPath, "system", "df"]
+            standardOutput = dfOutput
+            ignoreExitValue = true
+        }
+        println dfOutput.toString()
+    } catch (Exception e) {
+        println "Could not get disk usage: ${e.message}"
+    }
+    
+    println "✨ Docker cleanup completed!\n"
+}
+
 // Docker 실행 파일 찾기
 def findDockerExecutable() {
     def possiblePaths = [
@@ -214,6 +313,14 @@ task dockerRebuildAndRunNotiOnly {
                 println "  - Health: http://localhost:8089/actuator/health"
                 println "  - Swagger: http://localhost:8089/swagger-ui/index.html"
                 println "  - API: http://localhost:8089/api/notifications"
+                
+                // Docker 정리 수행 (안쓰는 리소스 제거)
+                def skipCleanup = project.hasProperty("skipDockerCleanup") && project.skipDockerCleanup == "true"
+                if (!skipCleanup) {
+                    dockerAggressiveCleanup()
+                } else {
+                    println "ℹ️ Skipping Docker cleanup (skipDockerCleanup=true)"
+                }
             } else {
                 println "❌ Failed to start noti service"
             }
@@ -346,6 +453,33 @@ Other Commands:
 Note: Use *NotiOnly commands when MySQL and Eureka are already running.
       Use *WithFilebeat commands when ELK stack is running.
 """
+    }
+}
+
+// Docker 전체 정리 태스크
+task dockerSystemCleanup {
+    group = 'docker-maintenance'
+    description = 'Aggressive cleanup of ALL unused Docker resources across all services'
+    
+    doLast {
+        println "=" * 60
+        println "    DOCKER SYSTEM CLEANUP - ALL UNUSED RESOURCES"
+        println "=" * 60
+        
+        // 실행 중인 서비스 확인
+        println "\n📦 Current running containers:"
+        executeDockerCommand("ps", "--format", "table {{.Names}}\t{{.Image}}\t{{.Status}}")
+        
+        println "\n⚠️  WARNING: This will remove:"
+        println "   - ALL stopped containers"
+        println "   - ALL dangling images"
+        println "   - ALL unused AsyncSite images"
+        println "   - Build cache older than 24h"
+        println "   - Unused networks"
+        println "\nStarting cleanup in 3 seconds..."
+        Thread.sleep(3000)
+        
+        dockerAggressiveCleanup()
     }
 }
 
