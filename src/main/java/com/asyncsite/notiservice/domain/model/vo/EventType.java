@@ -7,6 +7,9 @@ public enum EventType {
 
     // Users
     PASSWORD_RESET,
+    
+    // Documento
+    DOCUMENTO_ANALYZED,
 
     NOTI,
     LOG,

@@ -37,6 +37,25 @@ public class NotificationSettings {
                 .updatedAt(now)
                 .build();
     }
+    
+    /**
+     * Trial 유저용 기본 알림 설정을 생성합니다.
+     * userId가 null이고 모든 알림이 활성화된 상태입니다.
+     */
+    public static NotificationSettings createDefaultForTrial() {
+        LocalDateTime now = LocalDateTime.now();
+        return NotificationSettings.builder()
+                .userId(null)  // Trial user has no userId
+                .studyUpdates(true)
+                .marketing(false)  // Trial users don't get marketing
+                .emailEnabled(true)
+                .discordEnabled(false)  // Email only for trial
+                .pushEnabled(false)
+                .timezone("Asia/Seoul")
+                .createdAt(now)
+                .updatedAt(now)
+                .build();
+    }
 
     /**
      * 커스텀 알림 설정을 생성합니다.

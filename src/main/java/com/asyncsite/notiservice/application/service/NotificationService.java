@@ -48,12 +48,22 @@ public class NotificationService implements NotificationUseCase {
 
     private Notification save(String userId, ChannelType channelType, EventType eventType, Map<String, Object> metadata, List<String> recipientContacts) {
         log.info("알림 발송 시작: userId={}, channelType={}", userId, channelType);
-        // 1. 알림 설정 조회 (기본값으로 처리)
-        Optional<NotificationSettings> settingsOpt = settingsRepository.findByUserId(userId);
-        NotificationSettings settings = settingsOpt.orElse(NotificationSettings.createDefault(userId));
-        // 1-1. 알림 발송 여부 체크
-        if (!settings.isNotificationEnabled(channelType)) {
-            return null;
+        
+        // Trial user handling: skip settings check if userId is null
+        NotificationSettings settings;
+        if (userId == null || userId.isEmpty()) {
+            // Trial user: use default settings (all notifications enabled)
+            log.info("Trial user detected, using default notification settings");
+            settings = NotificationSettings.createDefaultForTrial();
+        } else {
+            // Authenticated user: check user settings
+            Optional<NotificationSettings> settingsOpt = settingsRepository.findByUserId(userId);
+            settings = settingsOpt.orElse(NotificationSettings.createDefault(userId));
+            // Check if notifications are enabled for this channel
+            if (!settings.isNotificationEnabled(channelType)) {
+                log.info("Notifications disabled for user: {} channel: {}", userId, channelType);
+                return null;
+            }
         }
         // 2. 템플릿 선택: templateId가 있으면 우선 사용, 없으면 (channel,event) 규칙으로 선택
         Map<String, Object> variables = (Map<String, Object>) metadata.getOrDefault("variables", java.util.Map.of());

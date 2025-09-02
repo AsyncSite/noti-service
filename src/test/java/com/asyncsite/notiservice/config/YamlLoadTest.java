@@ -29,7 +29,7 @@ class YamlLoadTest {
             assertThat(config).isNotNull();
             assertThat(config.getVersion()).isNotNull();
             assertThat(config.getTemplates()).isNotEmpty();
-            assertThat(config.getTemplates().size()).isEqualTo(4);
+            assertThat(config.getTemplates().size()).isEqualTo(5);
             
             // 템플릿 ID 확인
             var templateIds = config.getTemplates().stream()
@@ -40,6 +40,7 @@ class YamlLoadTest {
                 "passkey-otp",
                 "password-reset",
                 "welcome",
+                "documento-analysis",
                 "study-approved"
             );
         }
