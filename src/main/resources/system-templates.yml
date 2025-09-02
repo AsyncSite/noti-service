@@ -104,14 +104,14 @@ templates:
         userName: ""
       active: true
 
-    # Documento 분석 완료
+    # 도큐멘토 분석 완료
     - templateId: "documento-analysis"
       channelType: "EMAIL"
       eventType: "DOCUMENTO_ANALYZED"
       titleTemplate: "[AsyncSite] {title} 분석 결과가 도착했습니다 📊"
       contentTemplate: |
-        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px 20px; text-align: center; border-radius: 8px 8px 0 0;">
-          <h1 style="color: white; margin: 0;">Documento 분석 완료! 📄</h1>
+        <div style="background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%); padding: 40px 20px; text-align: center; border-radius: 8px 8px 0 0;">
+          <h1 style="color: white; margin: 0;">도큐멘토 분석 완료! 📄</h1>
         </div>
         <div style="padding: 30px;">
           <h2>{userName}님, 분석 결과를 확인해보세요!</h2>
@@ -228,8 +228,8 @@ templates:
           </div>
           
           <div style="text-align: center; margin: 30px 0;">
-            <a href="https://asyncsite.com/studio/documentor/{documentoId}" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px 40px; text-decoration: none; border-radius: 8px; font-weight: 700;">
-              상세 분석 보기
+            <a href="https://asyncsite.com/studio/documentor" style="display: inline-block; background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%); color: white; padding: 15px 40px; text-decoration: none; border-radius: 8px; font-weight: 700;">
+              새 문서 분석하기
             </a>
           </div>
           
@@ -239,7 +239,7 @@ templates:
           </p>
         </div>
         <div style="background-color: #f8f9fa; padding: 20px; text-align: center; border-radius: 0 0 8px 8px;">
-          <p style="color: #999; font-size: 12px; margin: 0;">AsyncSite Documento - AI 기반 문서 분석 서비스</p>
+          <p style="color: #999; font-size: 12px; margin: 0;">AsyncSite 도큐멘토 - AI 기반 문서 분석 서비스</p>
         </div>
       variables:
         userName: "사용자"
