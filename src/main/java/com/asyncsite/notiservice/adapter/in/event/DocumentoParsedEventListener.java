@@ -213,6 +213,13 @@ public class DocumentoParsedEventListener {
             } else {
                 variables.put("overallAssessment", "전반적으로 잘 쓰셨어요! 👏");
             }
+            
+            // Add dynamic encouragement phrase
+            if (event.getAnalysisResult().getEncouragementPhrase() != null) {
+                variables.put("encouragementPhrase", event.getAnalysisResult().getEncouragementPhrase());
+            } else {
+                variables.put("encouragementPhrase", "몇 가지만 보완하면 정말 완벽한 글이 될 거예요!");
+            }
         } else {
             // No analysis result - set empty category list and table
             variables.put("categoryRatings", new ArrayList<>());
@@ -221,6 +228,7 @@ public class DocumentoParsedEventListener {
                 "분석 결과가 없습니다.</td></tr>");
             variables.put("overallScore", "N/A");
             variables.put("overallAssessment", "분석 결과가 없습니다");
+            variables.put("encouragementPhrase", "몇 가지만 보완하면 정말 완벽한 글이 될 거예요!");  // Default encouragement
             
             // Set all legacy variables to N/A
             variables.put("titleRating", "N/A");

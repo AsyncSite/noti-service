@@ -62,6 +62,9 @@ public class DocumentoParsedEvent {
         @JsonProperty("overallAssessment")
         private String overallAssessment;  // New field: Overall encouraging assessment (e.g., "전반적으로 잘 쓰셨어요! 👏")
         
+        @JsonProperty("encouragementPhrase")
+        private String encouragementPhrase;  // Dynamic encouragement phrase from Parser Worker
+        
         @JsonProperty("categoryRatings")
         private List<CategoryRating> categoryRatings;  // Changed from Map to List to match Parser Worker output
         
