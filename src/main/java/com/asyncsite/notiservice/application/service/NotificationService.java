@@ -14,6 +14,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.UnsupportedEncodingException;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -119,7 +120,7 @@ public class NotificationService implements NotificationUseCase {
     }
 
     @Override
-    public Notification retryNotification(String notificationId) throws MessagingException {
+    public Notification retryNotification(String notificationId) throws MessagingException, UnsupportedEncodingException {
         Optional<Notification> notificationOpt = notificationRepository.findNotificationById(notificationId);
         if (notificationOpt.isEmpty()) {
             log.warn("재시도할 알림을 찾을 수 없음: notificationId={}", notificationId);
@@ -129,7 +130,7 @@ public class NotificationService implements NotificationUseCase {
     }
 
     @Override
-    public Notification sendNotification(Notification notification) throws MessagingException {
+    public Notification sendNotification(Notification notification) throws MessagingException, UnsupportedEncodingException {
         // 적절한 Sender 찾기 및 재발송
         Optional<NotificationSenderPort> senderOpt = notificationSenders.stream()
                 .filter(sender -> sender.supportsChannelType(notification.getChannelType()))

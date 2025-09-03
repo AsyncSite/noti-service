@@ -83,6 +83,13 @@ management:
     defaults:
       enabled: true
 
+# Application Configuration
+application:
+  notification:
+    email:
+      from-address: asyncsite@gmail.com
+      from-name: AsyncSite
+
 # Logging Configuration
 logging:
   level:
