@@ -7,6 +7,7 @@ import com.asyncsite.notiservice.domain.port.out.NotificationSenderPort;
 import com.asyncsite.notiservice.domain.port.out.NotificationTemplateRepositoryPort;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
+import java.io.UnsupportedEncodingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -32,11 +33,14 @@ public class EmailNotificationSender implements NotificationSenderPort {
     @Value("${application.notification.email.from-address:}")
     private String configuredFromAddress;
 
+    @Value("${application.notification.email.from-name:AsyncSite}")
+    private String configuredFromName;
+
     @Value("${spring.mail.username:}")
     private String mailUsername;
 
     @Override
-    public Notification sendNotification(Notification notification) throws MessagingException {
+    public Notification sendNotification(Notification notification) throws MessagingException, UnsupportedEncodingException {
         log.info("이메일 발송 시작: notificationId={}, userId={}",
                 notification.getNotificationId(), notification.getUserId());
 
@@ -97,16 +101,22 @@ public class EmailNotificationSender implements NotificationSenderPort {
             throw e;
         }
 
-        String resolvedFrom = (configuredFromAddress != null && !configuredFromAddress.isBlank())
+        String resolvedFromAddress = (configuredFromAddress != null && !configuredFromAddress.isBlank())
                 ? configuredFromAddress
                 : mailUsername;
 
-        if (resolvedFrom == null || resolvedFrom.isBlank()) {
+        if (resolvedFromAddress == null || resolvedFromAddress.isBlank()) {
             log.warn("발신자 이메일(from-address)이 비어 있습니다. 설정값을 확인해주세요. application.notification.email.from-address 또는 spring.mail.username");
             throw new jakarta.mail.internet.AddressException("From address is empty");
         }
 
-        helper.setFrom(resolvedFrom);
+        // 발신자 이름과 이메일 주소를 함께 설정
+        String resolvedFromName = (configuredFromName != null && !configuredFromName.isBlank())
+                ? configuredFromName
+                : "AsyncSite";
+        
+        log.info("이메일 발신자 설정: fromName='{}', fromAddress='{}'", resolvedFromName, resolvedFromAddress);
+        helper.setFrom(resolvedFromAddress, resolvedFromName);
         helper.setTo(recipientEmails.toArray(new String[0]));
         helper.setSubject(title);
         helper.setText(html, true);

@@ -11,6 +11,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.UnsupportedEncodingException;
+
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -21,7 +23,7 @@ public class NotiEventHandler {
     @Async
     @EventListener
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void on(NotificationCreated event) throws MessagingException {
+    public void on(NotificationCreated event) throws MessagingException, UnsupportedEncodingException {
         log.info("Notification send Eevent FROM Notification Id: {}", event.notification().getNotificationId() );
         notificationUseCase.sendNotification(event.notification());
     }

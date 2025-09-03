@@ -5,6 +5,7 @@ import com.asyncsite.notiservice.domain.model.vo.ChannelType;
 import com.asyncsite.notiservice.domain.model.vo.EventType;
 import jakarta.mail.MessagingException;
 
+import java.io.UnsupportedEncodingException;
 import java.util.List;
 import java.util.Map;
 
@@ -38,7 +39,7 @@ public interface NotificationUseCase {
     Notification createNotification(String userId, ChannelType channelType, EventType eventType, Map<String, Object> metadata, String recipientContact);
     Notification createNotificationBulk(String userId, ChannelType channelType, EventType eventType, Map<String, Object> metadata, List<String> recipientContacts);
 
-    Notification sendNotification(Notification notification) throws MessagingException;
+    Notification sendNotification(Notification notification) throws MessagingException, UnsupportedEncodingException;
 
     /**
      * 알림을 재시도합니다.
@@ -46,5 +47,5 @@ public interface NotificationUseCase {
      * @param notificationId 알림 ID
      * @return 재시도된 알림 정보
      */
-    Notification retryNotification(String notificationId) throws MessagingException;
+    Notification retryNotification(String notificationId) throws MessagingException, UnsupportedEncodingException;
 }

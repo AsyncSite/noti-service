@@ -15,6 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.UnsupportedEncodingException;
 import java.util.List;
 
 @Slf4j
@@ -84,7 +85,7 @@ public class NotificationController {
 
     @PatchMapping("/{notificationId}/retry")
     public ResponseEntity<ApiResponse<NotificationResponse>> retryNotification(
-            @PathVariable String notificationId) throws MessagingException {
+            @PathVariable String notificationId) throws MessagingException, UnsupportedEncodingException {
 
         log.info("알림 재시도 요청: notificationId={}", notificationId);
 

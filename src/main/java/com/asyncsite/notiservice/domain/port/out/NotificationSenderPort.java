@@ -3,6 +3,7 @@ package com.asyncsite.notiservice.domain.port.out;
 import com.asyncsite.notiservice.domain.model.Notification;
 import com.asyncsite.notiservice.domain.model.vo.ChannelType;
 import jakarta.mail.MessagingException;
+import java.io.UnsupportedEncodingException;
 
 public interface NotificationSenderPort {
 
@@ -12,6 +13,6 @@ public interface NotificationSenderPort {
      * @param notification 발송할 정보
      * @return 발송 결과
      */
-    Notification sendNotification(Notification notification) throws MessagingException;
+    Notification sendNotification(Notification notification) throws MessagingException, UnsupportedEncodingException;
     boolean supportsChannelType(ChannelType channelType);
 }
