@@ -16,6 +16,7 @@ import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -115,75 +116,123 @@ public class DocumentoParsedEventListener {
         variables.put("documentoId", event.getContentId());
         variables.put("summary", event.getSummary());
         
-        // Extract ratings from analysis result (now Korean categories)
+        // Dynamic category ratings processing - CRITICAL FIX
+        // Process ALL categories from Parser Worker dynamically
         if (event.getAnalysisResult() != null && event.getAnalysisResult().getCategoryRatings() != null) {
             List<DocumentoParsedEvent.CategoryRating> ratings = event.getAnalysisResult().getCategoryRatings();
             
-            // Map Korean categories to template variables with comments
+            // Create dynamic category list for template iteration
+            List<Map<String, Object>> categoryList = new ArrayList<>();
+            
+            // Legacy mappings for backward compatibility
+            Map<String, String> legacyMappings = new HashMap<>();
+            legacyMappings.put("제목 매력도", "titleRating");
+            legacyMappings.put("첫인상", "firstImpressionRating");
+            legacyMappings.put("가독성", "readabilityRating");
+            legacyMappings.put("구조/흐름", "structureRating");
+            legacyMappings.put("감정 전달", "emotionalRating");
+            
+            // Process all categories dynamically
             for (DocumentoParsedEvent.CategoryRating rating : ratings) {
-                if (rating != null) {
+                if (rating != null && rating.getCategory() != null) {
                     String category = rating.getCategory();
                     String comment = rating.getComment() != null ? rating.getComment() : "";
                     Integer ratingValue = rating.getRating();
                     String stars = generateStars(ratingValue);
                     
-                    if ("제목 매력도".equals(category)) {
-                        variables.put("titleRating", stars);
-                        variables.put("titleComment", comment);
-                    } else if ("첫인상".equals(category)) {
-                        variables.put("firstImpressionRating", stars);
-                        variables.put("firstImpressionComment", comment);
-                    } else if ("가독성".equals(category)) {
-                        variables.put("readabilityRating", stars);
-                        variables.put("readabilityComment", comment);
-                    } else if ("구조/흐름".equals(category)) {
-                        variables.put("structureRating", stars);
-                        variables.put("structureComment", comment);
-                    } else if ("감정 전달".equals(category)) {
-                        variables.put("emotionalRating", stars);
-                        variables.put("emotionalComment", comment);
+                    // Add to dynamic list (for ALL categories)
+                    Map<String, Object> categoryItem = new HashMap<>();
+                    categoryItem.put("name", category);
+                    categoryItem.put("stars", stars);
+                    categoryItem.put("rating", ratingValue != null ? ratingValue : 0);
+                    categoryItem.put("comment", comment);
+                    categoryList.add(categoryItem);
+                    
+                    // Maintain legacy variables for backward compatibility
+                    String legacyKey = legacyMappings.get(category);
+                    if (legacyKey != null) {
+                        variables.put(legacyKey, stars);
+                        variables.put(legacyKey.replace("Rating", "Comment"), comment);
                     }
                 }
             }
             
-            // Also provide overall score if available
+            // Add dynamic category list for template iteration
+            variables.put("categoryRatings", categoryList);
+            
+            // Generate HTML table for all categories dynamically
+            StringBuilder categoryTableHtml = new StringBuilder();
+            if (categoryList.isEmpty()) {
+                // No categories available
+                categoryTableHtml.append(
+                    "<tr>" +
+                    "<td colspan=\"3\" style=\"padding: 20px; text-align: center; color: #666;\">" +
+                    "카테고리별 평점이 아직 준비되지 않았습니다." +
+                    "</td>" +
+                    "</tr>"
+                );
+            } else {
+                // Generate rows for each category
+                for (int i = 0; i < categoryList.size(); i++) {
+                    Map<String, Object> category = categoryList.get(i);
+                    String borderStyle = (i == categoryList.size() - 1) ? "" : " border-bottom: 1px solid #dee2e6;";
+                    categoryTableHtml.append(String.format(
+                        "<tr>" +
+                        "<td style=\"padding: 12px;%s\"><strong>%s</strong></td>" +
+                        "<td style=\"padding: 12px;%s text-align: center;\">" +
+                        "<span style=\"color: #ffc107;\">%s</span>" +
+                        "</td>" +
+                        "<td style=\"padding: 12px;%s font-size: 14px; color: #666;\">%s</td>" +
+                        "</tr>",
+                        borderStyle, escapeHtml(String.valueOf(category.get("name"))),
+                        borderStyle, category.get("stars"),
+                        borderStyle, escapeHtml(String.valueOf(category.get("comment")))
+                    ));
+                }
+            }
+            variables.put("categoryRatingsTable", categoryTableHtml.toString());
+            
+            // Set legacy defaults for missing mappings
+            for (Map.Entry<String, String> entry : legacyMappings.entrySet()) {
+                String legacyKey = entry.getValue();
+                if (!variables.containsKey(legacyKey)) {
+                    variables.put(legacyKey, "N/A");
+                    variables.put(legacyKey.replace("Rating", "Comment"), "");
+                }
+            }
+            
+            // Overall score and assessment
             if (event.getAnalysisResult().getOverallScore() != null) {
                 variables.put("overallScore", String.format("%.1f", event.getAnalysisResult().getOverallScore()));
             } else {
                 variables.put("overallScore", "N/A");
             }
             
-            // Overall assessment (new field for frontend parity)
             if (event.getAnalysisResult().getOverallAssessment() != null) {
                 variables.put("overallAssessment", event.getAnalysisResult().getOverallAssessment());
             } else {
                 variables.put("overallAssessment", "전반적으로 잘 쓰셨어요! 👏");
             }
-        }
-        
-        // Default values if not set
-        if (!variables.containsKey("titleRating")) {
+        } else {
+            // No analysis result - set empty category list and table
+            variables.put("categoryRatings", new ArrayList<>());
+            variables.put("categoryRatingsTable", 
+                "<tr><td colspan=\"3\" style=\"padding: 20px; text-align: center; color: #666;\">" +
+                "분석 결과가 없습니다.</td></tr>");
+            variables.put("overallScore", "N/A");
+            variables.put("overallAssessment", "분석 결과가 없습니다");
+            
+            // Set all legacy variables to N/A
             variables.put("titleRating", "N/A");
             variables.put("titleComment", "");
-        }
-        if (!variables.containsKey("firstImpressionRating")) {
             variables.put("firstImpressionRating", "N/A");
             variables.put("firstImpressionComment", "");
-        }
-        if (!variables.containsKey("readabilityRating")) {
             variables.put("readabilityRating", "N/A");
             variables.put("readabilityComment", "");
-        }
-        if (!variables.containsKey("structureRating")) {
             variables.put("structureRating", "N/A");
             variables.put("structureComment", "");
-        }
-        if (!variables.containsKey("emotionalRating")) {
             variables.put("emotionalRating", "N/A");
             variables.put("emotionalComment", "");
-        }
-        if (!variables.containsKey("overallScore")) {
-            variables.put("overallScore", "N/A");
         }
         
         // Detailed review sections

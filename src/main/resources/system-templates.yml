@@ -128,41 +128,7 @@ templates:
           <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
             <h3 style="color: #667eea; margin-top: 0;">📈 카테고리별 평점 (전체 점수: {overallScore}/10)</h3>
             <table style="width: 100%; border-collapse: collapse;">
-              <tr>
-                <td style="padding: 12px; border-bottom: 1px solid #dee2e6;"><strong>제목 매력도</strong></td>
-                <td style="padding: 12px; border-bottom: 1px solid #dee2e6; text-align: center;">
-                  <span style="color: #ffc107;">{titleRating}</span>
-                </td>
-                <td style="padding: 12px; border-bottom: 1px solid #dee2e6; font-size: 14px; color: #666;">{titleComment}</td>
-              </tr>
-              <tr>
-                <td style="padding: 12px; border-bottom: 1px solid #dee2e6;"><strong>첫인상</strong></td>
-                <td style="padding: 12px; border-bottom: 1px solid #dee2e6; text-align: center;">
-                  <span style="color: #ffc107;">{firstImpressionRating}</span>
-                </td>
-                <td style="padding: 12px; border-bottom: 1px solid #dee2e6; font-size: 14px; color: #666;">{firstImpressionComment}</td>
-              </tr>
-              <tr>
-                <td style="padding: 12px; border-bottom: 1px solid #dee2e6;"><strong>가독성</strong></td>
-                <td style="padding: 12px; border-bottom: 1px solid #dee2e6; text-align: center;">
-                  <span style="color: #ffc107;">{readabilityRating}</span>
-                </td>
-                <td style="padding: 12px; border-bottom: 1px solid #dee2e6; font-size: 14px; color: #666;">{readabilityComment}</td>
-              </tr>
-              <tr>
-                <td style="padding: 12px; border-bottom: 1px solid #dee2e6;"><strong>구조/흐름</strong></td>
-                <td style="padding: 12px; border-bottom: 1px solid #dee2e6; text-align: center;">
-                  <span style="color: #ffc107;">{structureRating}</span>
-                </td>
-                <td style="padding: 12px; border-bottom: 1px solid #dee2e6; font-size: 14px; color: #666;">{structureComment}</td>
-              </tr>
-              <tr>
-                <td style="padding: 12px;"><strong>감정 전달</strong></td>
-                <td style="padding: 12px; text-align: center;">
-                  <span style="color: #ffc107;">{emotionalRating}</span>
-                </td>
-                <td style="padding: 12px; font-size: 14px; color: #666;">{emotionalComment}</td>
-              </tr>
+              {categoryRatingsTable}
             </table>
           </div>
           
