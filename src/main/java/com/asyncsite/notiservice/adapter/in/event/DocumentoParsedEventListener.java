@@ -63,8 +63,8 @@ public class DocumentoParsedEventListener {
             Map<String, Object> metadata = new HashMap<>();
             metadata.put("templateId", "documento-analysis");
             
-            // Convert analysis result to template variables
-            Map<String, Object> variables = buildTemplateVariables(event);
+            // Convert analysis result to template variables (pass JsonNode for extra fields)
+            Map<String, Object> variables = buildTemplateVariables(event, eventNode);
             metadata.put("variables", variables);
             
             // Additional context
@@ -107,7 +107,7 @@ public class DocumentoParsedEventListener {
         }
     }
     
-    private Map<String, Object> buildTemplateVariables(DocumentoParsedEvent event) {
+    private Map<String, Object> buildTemplateVariables(DocumentoParsedEvent event, JsonNode eventNode) {
         Map<String, Object> variables = new HashMap<>();
         
         // Basic information
@@ -358,6 +358,28 @@ public class DocumentoParsedEventListener {
         } else {
             variables.put("strengths", "<li>분석 결과가 없습니다</li>");
             variables.put("growthPoints", "<li>분석 결과가 없습니다</li>");
+        }
+        
+        // Document length warning handling (from JsonNode for extra fields)
+        try {
+            JsonNode analysisResultNode = eventNode.get("analysisResult");
+            if (analysisResultNode != null && analysisResultNode.has("documentLengthWarning")) {
+                String warning = analysisResultNode.get("documentLengthWarning").asText();
+                // Format as HTML for email template
+                String warningHtml = "<div style=\"background-color:#fff3cd;padding:15px;border-radius:8px;margin:20px 0;border-left:4px solid #ffc107;\">" +
+                                   "<p style=\"margin:0;color:#856404;font-size:14px;\">" + 
+                                   "<strong>⚠️ 알림</strong><br/>" + 
+                                   escapeHtml(warning) + 
+                                   "</p></div>";
+                variables.put("documentLengthWarning", warningHtml);
+                log.info("[DOCUMENTO] Document length warning added for content: {}", event.getContentId());
+            } else {
+                // No warning, set empty string for template
+                variables.put("documentLengthWarning", "");
+            }
+        } catch (Exception e) {
+            log.warn("[DOCUMENTO] Failed to extract document length warning: {}", e.getMessage());
+            variables.put("documentLengthWarning", "");
         }
         
         return variables;
