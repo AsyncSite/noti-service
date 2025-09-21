@@ -29,19 +29,21 @@ class YamlLoadTest {
             assertThat(config).isNotNull();
             assertThat(config.getVersion()).isNotNull();
             assertThat(config.getTemplates()).isNotEmpty();
-            assertThat(config.getTemplates().size()).isEqualTo(5);
-            
+            assertThat(config.getTemplates().size()).isEqualTo(7);
+
             // 템플릿 ID 확인
             var templateIds = config.getTemplates().stream()
                 .map(SystemTemplateInitializer.TemplateConfig::getTemplateId)
                 .toList();
-            
+
             assertThat(templateIds).containsExactlyInAnyOrder(
                 "passkey-otp",
                 "password-reset",
                 "welcome",
                 "documento-analysis",
-                "study-approved"
+                "study-approved",
+                "querydaily-question",
+                "querydaily-answer-guide"
             );
         }
     }

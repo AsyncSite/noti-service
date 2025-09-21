@@ -323,3 +323,179 @@ templates:
         maxMembers: "10"
         category: "Backend"
       active: true
+    # QueryDaily 질문 발송
+    - templateId: "querydaily-question"
+      channelType: "EMAIL"
+      eventType: "NOTI"
+      titleTemplate: "[QueryDaily | Day {currentDay}/3] {userName}님, 오늘의 질문이 도착했습니다"
+      contentTemplate: |
+        <div style="padding: 40px 20px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
+          <!-- 심플한 로고 영역 -->
+          <div style="text-align: center; margin-bottom: 30px;">
+            <h2 style="color: #0066CC; margin: 0; font-size: 24px; font-weight: 700;">QueryDaily</h2>
+          </div>
+
+          <!-- 개인화된 인사 및 진행 상황 -->
+          <p style="color: #333; font-size: 16px; line-height: 1.6; margin-bottom: 10px;">
+            안녕하세요, <strong>{userName}님.</strong>
+          </p>
+          <p style="color: #666; font-size: 15px; line-height: 1.6; margin-bottom: 30px;">
+            면접 근육을 단련하는 <strong>{currentDay}번째 날</strong>입니다.
+            오늘은 많은 주니어 개발자들이 실무에서 꼭 마주치는 질문을 준비했습니다.
+          </p>
+
+          <!-- 오늘의 질문 (Day 표시) -->
+          <div style="background: #F0F7FF; padding: 25px; border-radius: 12px; margin-bottom: 30px; border-left: 4px solid #0066CC;">
+            <p style="color: #0066CC; font-size: 14px; font-weight: 600; margin: 0 0 15px 0; text-transform: uppercase;">
+              오늘의 질문 (Day {currentDay}/3)
+            </p>
+            <h3 style="color: #333; margin: 0 0 20px 0; font-size: 20px; line-height: 1.5; font-weight: 600;">
+              "{question}"
+            </h3>
+            <p style="margin: 0; color: #666; font-size: 15px; line-height: 1.6;">
+              <strong>💡 힌트:</strong> {hint}
+            </p>
+          </div>
+
+          <!-- 동기부여 메시지 -->
+          <p style="color: #666; font-size: 15px; line-height: 1.6; margin-bottom: 30px;">
+            이 질문에 막힘없이 답변하셨다면, 이미 한 단계 성장하신 겁니다. 👍
+          </p>
+
+          <!-- CTA: 유료 전환 유도 -->
+          <div style="background: linear-gradient(135deg, #F0F7FF 0%, #E6F2FF 100%); padding: 25px; border-radius: 12px; margin-bottom: 30px; text-align: center;">
+            <p style="color: #333; font-size: 16px; line-height: 1.6; margin: 0 0 20px 0;">
+              만약 <strong>"이 질문에 대한 최상위권 개발자의 답변은 어떨까?"</strong> 궁금하신가요?
+            </p>
+            <p style="color: #666; font-size: 14px; line-height: 1.5; margin: 0 0 25px 0;">
+              면접관의 의도 분석부터, 두 페르소나의 모범 답변 예시,<br>
+              그리고 예상 꼬리 질문까지 담긴 <strong>'프리미엄 답변 가이드'</strong>는<br>
+              인터뷰 패스에서 확인하실 수 있습니다.
+            </p>
+            <a href="https://asyncsite.com/querydaily/premium?utm_source=email&utm_medium=daily&utm_campaign=day{currentDay}"
+               style="display: inline-block; background: linear-gradient(135deg, #00B388 0%, #008060 100%); color: white; padding: 12px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 15px; box-shadow: 0 2px 8px rgba(0, 179, 136, 0.3);">
+              🚀 내 답변과 비교해보기 (인터뷰 패스 알아보기)
+            </a>
+          </div>
+
+          <!-- 내일 예고 -->
+          <p style="color: #666; font-size: 15px; line-height: 1.6; margin-bottom: 40px;">
+            내일은 <strong>'{tomorrowTopic}'</strong>에 대한 질문으로 찾아뵙겠습니다.
+          </p>
+
+          <!-- 서명 -->
+          <p style="color: #999; font-size: 14px; margin-bottom: 30px;">
+            QueryDaily 드림
+          </p>
+
+          <!-- 푸터 -->
+          <hr style="border: none; border-top: 1px solid #e9ecef; margin: 30px 0;">
+          <p style="color: #999; font-size: 12px; text-align: center;">
+            © 2025 QueryDaily by AsyncSite |
+            <a href="https://asyncsite.com/querydaily/unsubscribe" style="color: #999;">수신 거부</a>
+          </p>
+        </div>
+      variables:
+        userName: "개발자"
+        currentDay: "3"
+        totalDays: "3"
+        question: "REST API와 GraphQL의 차이점을 설명해주세요"
+        hint: "오버페칭과 언더페칭 문제를 중심으로 설명하세요"
+        tomorrowTopic: "대용량 데이터 처리"
+      active: true
+
+    # QueryDaily 답변 가이드
+    - templateId: "querydaily-answer-guide"
+      channelType: "EMAIL"
+      eventType: "NOTI"
+      titleTemplate: "[QueryDaily] 오늘의 답변 가이드 📚"
+      contentTemplate: |
+        <div style="background: linear-gradient(135deg, #0066CC 0%, #004999 100%); padding: 40px 20px; text-align: center; border-radius: 8px 8px 0 0;">
+          <h1 style="color: white; margin: 0;">QueryDaily 답변 가이드</h1>
+        </div>
+        <div style="padding: 40px 20px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
+          <h2 style="color: #0066CC; margin-bottom: 30px; font-size: 24px;">🎯 {question}</h2>
+
+          <!-- 질문 분석 -->
+          <div style="background: #F0F7FF; padding: 20px; border-radius: 10px; margin-bottom: 25px; border-left: 4px solid #0066CC;">
+            <h3 style="color: #0066CC; margin-top: 0; font-size: 18px;">📊 질문 분석</h3>
+            <p style="color: #333; line-height: 1.6; margin: 0;">{analysis}</p>
+          </div>
+
+          <!-- 핵심 키워드 -->
+          <div style="background: #F8F9FA; padding: 20px; border-radius: 10px; margin-bottom: 25px;">
+            <h3 style="color: #00B388; margin-top: 0; font-size: 18px;">🔑 핵심 키워드</h3>
+            <p style="color: #333; font-size: 16px; margin: 0;"><strong>{keywords}</strong></p>
+          </div>
+
+          <!-- STAR 구조 -->
+          <div style="background: linear-gradient(135deg, #F0F7FF 0%, #E6F2FF 100%); padding: 20px; border-radius: 10px; margin-bottom: 25px;">
+            <h3 style="color: #0066CC; margin-top: 0; font-size: 18px;">⭐ STAR 구조화</h3>
+            <div style="background: white; padding: 15px; border-radius: 8px;">
+              <p style="margin: 10px 0; padding: 10px; background: #F0F7FF; border-radius: 6px;">
+                <strong style="color: #0066CC;">S (Situation):</strong><br>
+                <span style="color: #333;">{starStructure.situation}</span>
+              </p>
+              <p style="margin: 10px 0; padding: 10px; background: #F0F7FF; border-radius: 6px;">
+                <strong style="color: #0066CC;">T (Task):</strong><br>
+                <span style="color: #333;">{starStructure.task}</span>
+              </p>
+              <p style="margin: 10px 0; padding: 10px; background: #F0F7FF; border-radius: 6px;">
+                <strong style="color: #0066CC;">A (Action):</strong><br>
+                <span style="color: #333;">{starStructure.action}</span>
+              </p>
+              <p style="margin: 10px 0; padding: 10px; background: #E8F5F0; border-radius: 6px;">
+                <strong style="color: #00B388;">R (Result):</strong><br>
+                <span style="color: #333;">{starStructure.result}</span>
+              </p>
+            </div>
+          </div>
+
+          <!-- 페르소나별 답변 -->
+          <div style="background: white; border: 1px solid #E6F2FF; padding: 20px; border-radius: 10px; margin-bottom: 25px;">
+            <h3 style="color: #0066CC; margin-top: 0; font-size: 18px;">👥 페르소나별 모범 답변</h3>
+            <div style="display: flex; gap: 15px;">
+              <div style="flex: 1; background: #F0F7FF; padding: 15px; border-radius: 8px;">
+                <h4 style="color: #0066CC; margin: 0 0 10px 0; font-size: 16px;">🏢 빅테크 지원자</h4>
+                <p style="color: #333; line-height: 1.6; margin: 0; font-size: 14px;">{personaAnswers.bigTech}</p>
+              </div>
+              <div style="flex: 1; background: #E8F5F0; padding: 15px; border-radius: 8px;">
+                <h4 style="color: #00B388; margin: 0 0 10px 0; font-size: 16px;">🦄 유니콘 지원자</h4>
+                <p style="color: #333; line-height: 1.6; margin: 0; font-size: 14px;">{personaAnswers.unicorn}</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- 예상 꼬리질문 -->
+          <div style="background: #FFF9E6; border: 1px solid #FFD700; padding: 20px; border-radius: 10px; margin-bottom: 30px;">
+            <h3 style="color: #CC8800; margin-top: 0; font-size: 18px;">💭 예상 꼬리 질문</h3>
+            <p style="color: #333; line-height: 1.8; margin: 0; font-size: 15px;">{followUpQuestions}</p>
+          </div>
+
+          <!-- CTA -->
+          <div style="text-align: center; margin: 40px 0;">
+            <a href="https://asyncsite.com/querydaily/practice"
+               style="display: inline-block; background: linear-gradient(135deg, #00B388 0%, #008060 100%); color: white; padding: 14px 36px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px; box-shadow: 0 2px 8px rgba(0, 179, 136, 0.3);">
+              🎯 다음 질문 도전하기
+            </a>
+          </div>
+
+          <!-- 푸터 -->
+          <hr style="border: none; border-top: 1px solid #e9ecef; margin: 30px 0;">
+          <p style="color: #999; font-size: 12px; text-align: center;">
+            © 2025 QueryDaily by AsyncSite |
+            <a href="https://asyncsite.com/querydaily/unsubscribe" style="color: #999;">수신 거부</a>
+          </p>
+        </div>
+      variables:
+        question: "REST API와 GraphQL의 차이점"
+        analysis: "API 설계 방식의 이해도 평가"
+        keywords: "REST, GraphQL, 오버페칭"
+        starStructure.situation: "모바일 앱 개발"
+        starStructure.task: "효율적인 데이터 fetching"
+        starStructure.action: "GraphQL 도입"
+        starStructure.result: "API 호출 50% 감소"
+        personaAnswers.bigTech: "대규모 서비스 안정성 중심"
+        personaAnswers.unicorn: "빠른 개발 속도 중심"
+        followUpQuestions: "N+1 문제 해결 방법은?"
+      active: true
