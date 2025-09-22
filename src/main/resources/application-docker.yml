@@ -39,6 +39,7 @@ spring:
           connection-timeout: 5000
           timeout: 5000
           write-timeout: 5000
+        debug: true
 
   # Thymeleaf Configuration (explicit to ensure template resolution in docker profile)
   thymeleaf:

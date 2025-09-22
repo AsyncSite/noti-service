@@ -9,7 +9,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
 @Slf4j
-@Component
+// @Component // DISABLED: Replaced by NotificationQueuePort to avoid optimistic locking
 @RequiredArgsConstructor
 public class NotiEventSenderImpl implements NotiEventSender {
 

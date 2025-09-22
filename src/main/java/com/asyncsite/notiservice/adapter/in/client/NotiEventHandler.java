@@ -14,7 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.UnsupportedEncodingException;
 
 @Slf4j
-@Component
+// @Component // DISABLED: Using NotificationCommandHandler instead to avoid optimistic locking
 @RequiredArgsConstructor
 public class NotiEventHandler {
     //

@@ -3,6 +3,7 @@ package com.asyncsite.notiservice.application.service;
 import com.asyncsite.notiservice.domain.model.Notification;
 import com.asyncsite.notiservice.domain.model.NotificationSettings;
 import com.asyncsite.notiservice.domain.model.NotificationTemplate;
+import com.asyncsite.notiservice.domain.model.command.NotificationCommand;
 import com.asyncsite.notiservice.domain.model.vo.ChannelType;
 import com.asyncsite.notiservice.domain.model.vo.EventType;
 import com.asyncsite.notiservice.domain.port.in.NotificationUseCase;
@@ -29,8 +30,7 @@ public class NotificationService implements NotificationUseCase {
     private final NotificationSettingsRepositoryPort settingsRepository;
     private final NotificationTemplateRepositoryPort templateRepository;
     private final List<NotificationSenderPort> notificationSenders;
-
-    private final NotiEventSender notiEventSender;
+    private final NotificationQueuePort notificationQueue;
 
     @Override
     public List<Notification> getNotificationsByUserId(String userId, ChannelType channelType, int page, int size) {
@@ -115,7 +115,10 @@ public class NotificationService implements NotificationUseCase {
 
         notification = notificationRepository.saveNotification(notification);
 
-        notiEventSender.notiCreated(notification);
+        // Send command with only ID to avoid optimistic locking
+        NotificationCommand command = NotificationCommand.createSendCommand(notification.getNotificationId());
+        notificationQueue.send(command);
+
         return notification;
     }
 

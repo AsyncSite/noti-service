@@ -7,11 +7,17 @@ public enum EventType {
 
     // Users
     PASSWORD_RESET,
-    
+
     // Documento
     DOCUMENTO_ANALYZED,
 
+    // QueryDaily
+    QUERY_DAILY_QUESTION,
+
+    // General
     NOTI,
     LOG,
-    ACTION
+    ACTION,
+    USER_ACTION,
+    SYSTEM
 }
