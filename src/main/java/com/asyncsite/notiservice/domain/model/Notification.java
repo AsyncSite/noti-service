@@ -25,6 +25,7 @@ public class Notification {
     private String failMessage;
     private Integer retryCount;
     private Long version;
+    private LocalDateTime scheduledAt;
 
 
     // === 정적 팩토리 메서드 ===
@@ -43,6 +44,33 @@ public class Notification {
                 .content(content)
                 .recipientContacts(recipientContacts)
                 .status(NotificationStatus.PENDING)
+                .createdAt(now)
+                .updatedAt(now)
+                .retryCount(0)
+                .version(0L)
+                .build();
+    }
+
+    /**
+     * 예약된 알림을 생성합니다.
+     */
+    public static Notification createScheduled(String userId, String templateId, ChannelType channelType,
+                                               String title, String content, List<String> recipientContacts,
+                                               LocalDateTime scheduledAt) {
+        LocalDateTime now = LocalDateTime.now();
+        NotificationStatus status = (scheduledAt != null && scheduledAt.isAfter(now))
+                ? NotificationStatus.SCHEDULED
+                : NotificationStatus.PENDING;
+
+        return Notification.builder()
+                .userId(userId)
+                .templateId(templateId)
+                .channelType(channelType)
+                .title(title)
+                .content(content)
+                .recipientContacts(recipientContacts)
+                .status(status)
+                .scheduledAt(scheduledAt)
                 .createdAt(now)
                 .updatedAt(now)
                 .retryCount(0)
@@ -79,6 +107,14 @@ public class Notification {
         this.sentAt = this.updatedAt;
     }
 
+    /**
+     * 알림 상태를 업데이트합니다.
+     */
+    public void updateStatus(NotificationStatus newStatus) {
+        this.status = newStatus;
+        this.updatedAt = LocalDateTime.now();
+    }
+
     // === 비즈니스 로직 메서드 ===
 
     public boolean isPending() {
@@ -109,9 +145,29 @@ public class Notification {
     }
 
     /**
+     * 알림이 PENDING 상태로 너무 오래 머물러 있는지 확인합니다.
+     * 5분 이상 PENDING 상태인 경우 true를 반환합니다.
+     */
+    public boolean hasBeenPendingTooLong() {
+        if (!isPending()) {
+            return false;
+        }
+        LocalDateTime fiveMinutesAgo = LocalDateTime.now().minusMinutes(5);
+        return updatedAt != null && updatedAt.isBefore(fiveMinutesAgo);
+    }
+
+    /**
      * 알림이 처리 중인지 확인합니다.
      */
     public boolean isProcessing() {
         return isPending() || isRetry();
+    }
+
+    public boolean isScheduled() {
+        return status == NotificationStatus.SCHEDULED;
+    }
+
+    public boolean shouldBeSentNow() {
+        return isScheduled() && scheduledAt != null && !scheduledAt.isAfter(LocalDateTime.now());
     }
 }

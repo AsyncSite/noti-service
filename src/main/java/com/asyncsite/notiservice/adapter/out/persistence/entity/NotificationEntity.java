@@ -44,6 +44,7 @@ public class NotificationEntity {
     private LocalDateTime sentAt;
     private String failMessage;
     private Integer retryCount;
+    private LocalDateTime scheduledAt;
 
     public static NotificationEntity from(Notification notification) {
         return NotificationEntity.builder()
@@ -60,6 +61,7 @@ public class NotificationEntity {
                 .sentAt(notification.getSentAt())
                 .failMessage(notification.getFailMessage())
                 .retryCount(notification.getRetryCount())
+                .scheduledAt(notification.getScheduledAt())
                 .version(notification.getVersion())
                 .build();
     }
@@ -79,6 +81,7 @@ public class NotificationEntity {
                 .sentAt(this.sentAt)
                 .failMessage(this.failMessage)
                 .retryCount(this.retryCount)
+                .scheduledAt(this.scheduledAt)
                 .version(this.version)
                 .build();
     }

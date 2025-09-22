@@ -6,6 +6,7 @@ import com.asyncsite.notiservice.domain.model.vo.EventType;
 import jakarta.mail.MessagingException;
 
 import java.io.UnsupportedEncodingException;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -48,4 +49,34 @@ public interface NotificationUseCase {
      * @return 재시도된 알림 정보
      */
     Notification retryNotification(String notificationId) throws MessagingException, UnsupportedEncodingException;
+
+    /**
+     * 예약된 알림을 생성합니다.
+     *
+     * @param userId 사용자 ID
+     * @param channelType 발송 타입
+     * @param eventType 이벤트 타입
+     * @param metadata 메타데이터
+     * @param recipientContact 수신자 연락처
+     * @param scheduledAt 예약 발송 시간
+     * @return 생성된 예약 알림
+     */
+    Notification createScheduledNotification(String userId, ChannelType channelType, EventType eventType,
+                                           Map<String, Object> metadata, String recipientContact,
+                                           LocalDateTime scheduledAt);
+
+    /**
+     * 예약된 알림을 대량으로 생성합니다.
+     *
+     * @param userId 사용자 ID
+     * @param channelType 발송 타입
+     * @param eventType 이벤트 타입
+     * @param metadata 메타데이터
+     * @param recipientContacts 수신자 연락처 목록
+     * @param scheduledAt 예약 발송 시간
+     * @return 생성된 예약 알림
+     */
+    Notification createScheduledNotificationBulk(String userId, ChannelType channelType, EventType eventType,
+                                                Map<String, Object> metadata, List<String> recipientContacts,
+                                                LocalDateTime scheduledAt);
 }

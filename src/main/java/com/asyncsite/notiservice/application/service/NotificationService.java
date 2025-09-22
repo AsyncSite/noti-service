@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.UnsupportedEncodingException;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -157,5 +158,99 @@ public class NotificationService implements NotificationUseCase {
     public Notification getNotificationById(String notificationId) {
         return notificationRepository.findNotificationById(notificationId)
                 .orElseThrow(RuntimeException::new);
+    }
+
+    @Override
+    public Notification createScheduledNotification(String userId, ChannelType channelType, EventType eventType,
+                                                  Map<String, Object> metadata, String recipientContact,
+                                                  LocalDateTime scheduledAt) {
+        return saveScheduled(userId, channelType, eventType, metadata, List.of(recipientContact), scheduledAt);
+    }
+
+    @Override
+    public Notification createScheduledNotificationBulk(String userId, ChannelType channelType, EventType eventType,
+                                                       Map<String, Object> metadata, List<String> recipientContacts,
+                                                       LocalDateTime scheduledAt) {
+        return saveScheduled(userId, channelType, eventType, metadata, recipientContacts, scheduledAt);
+    }
+
+    private Notification saveScheduled(String userId, ChannelType channelType, EventType eventType,
+                                      Map<String, Object> metadata, List<String> recipientContacts,
+                                      LocalDateTime scheduledAt) {
+        log.info("예약 알림 생성: userId={}, channelType={}, scheduledAt={}", userId, channelType, scheduledAt);
+
+        // Validate scheduled time is in the future
+        if (scheduledAt != null && scheduledAt.isBefore(LocalDateTime.now())) {
+            throw new IllegalArgumentException("예약 시간은 미래여야 합니다: " + scheduledAt);
+        }
+
+        // Trial user handling: skip settings check if userId is null
+        NotificationSettings settings;
+        if (userId == null || userId.isEmpty()) {
+            log.info("Trial user detected, using default notification settings");
+            settings = NotificationSettings.createDefaultForTrial();
+        } else {
+            Optional<NotificationSettings> settingsOpt = settingsRepository.findByUserId(userId);
+            settings = settingsOpt.orElse(NotificationSettings.createDefault(userId));
+            if (!settings.isNotificationEnabled(channelType)) {
+                log.info("Notifications disabled for user: {} channel: {}", userId, channelType);
+                return null;
+            }
+        }
+
+        // Template selection
+        Map<String, Object> variables = (Map<String, Object>) metadata.getOrDefault("variables", java.util.Map.of());
+        variables = com.asyncsite.notiservice.common.MaskingUtil.maskVariablesForDisplay(variables);
+        NotificationTemplate useTemplate;
+
+        String templateId = (String) metadata.get("templateId");
+        if (templateId != null && !templateId.isBlank()) {
+            Optional<NotificationTemplate> templateOpt = templateRepository.findTemplateById(templateId);
+            if (templateOpt.isEmpty()) {
+                throw new IllegalArgumentException("템플릿을 찾을 수 없습니다: " + templateId);
+            }
+            useTemplate = templateOpt.get();
+        } else {
+            Optional<NotificationTemplate> defaultOpt = templateRepository.findDefaultTemplate(channelType, eventType);
+            if (defaultOpt.isPresent()) {
+                useTemplate = defaultOpt.get();
+            } else {
+                List<NotificationTemplate> candidates = templateRepository.findActiveTemplatesByChannelAndEvent(channelType, eventType);
+                if (candidates.isEmpty()) {
+                    throw new IllegalArgumentException("해당 채널/이벤트의 활성 템플릿이 없습니다.");
+                }
+                useTemplate = candidates.get(0);
+            }
+        }
+
+        // Validate template
+        if (useTemplate.getChannelType() != channelType) {
+            throw new IllegalArgumentException("요청 채널과 템플릿 채널이 일치하지 않습니다.");
+        }
+        if (!useTemplate.isActive()) {
+            throw new IllegalArgumentException("비활성화된 템플릿입니다: " + useTemplate.getTemplateId());
+        }
+
+        String title = useTemplate.renderTitle(variables);
+        String content = useTemplate.renderContent(variables);
+
+        // Create scheduled notification
+        Notification notification = Notification.createScheduled(
+                userId,
+                useTemplate.getTemplateId(),
+                channelType,
+                title,
+                content,
+                recipientContacts,
+                scheduledAt
+        );
+
+        notification = notificationRepository.saveNotification(notification);
+
+        // Scheduled notifications don't get queued immediately - the scheduler will handle them
+        log.info("예약 알림 생성 완료: notificationId={}, scheduledAt={}",
+                notification.getNotificationId(), notification.getScheduledAt());
+
+        return notification;
     }
 }

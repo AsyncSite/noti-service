@@ -53,10 +53,18 @@ public class NotificationCommandHandler {
             }
 
             Notification notification = notificationOpt.get();
+            Long currentVersion = notification.getVersion();
 
-            // Skip if already sent successfully
+            // Skip if already sent successfully (idempotency check)
             if (notification.isSent()) {
                 log.info("Notification already sent successfully: {}", notificationId);
+                return;
+            }
+
+            // Skip if not in a processable state
+            if (!notification.isPending() && !notification.isRetry()) {
+                log.info("Notification not in processable state: {} (status: {})",
+                    notificationId, notification.getStatus());
                 return;
             }
 
@@ -68,7 +76,14 @@ public class NotificationCommandHandler {
             if (senderOpt.isEmpty()) {
                 log.error("No sender found for channel type: {}", notification.getChannelType());
                 notification.fail("No sender available for channel: " + notification.getChannelType());
-                notificationRepository.saveNotification(notification);
+
+                // Use CAS update to prevent concurrent modifications
+                boolean updated = notificationRepository.updateNotificationWithCAS(
+                    notificationId, currentVersion, notification);
+
+                if (!updated) {
+                    log.warn("Failed to update notification status - version conflict: {}", notificationId);
+                }
                 return;
             }
 
@@ -76,13 +91,31 @@ public class NotificationCommandHandler {
             NotificationSenderPort sender = senderOpt.get();
             Notification sentNotification = sender.sendNotification(notification);
 
-            // Save updated status
-            notificationRepository.saveNotification(sentNotification);
+            // Use CAS update to save the status change atomically
+            boolean updated = notificationRepository.updateNotificationWithCAS(
+                notificationId, currentVersion, sentNotification);
+
+            if (!updated) {
+                // Version conflict - another process may have already processed this
+                log.warn("Version conflict updating notification: {} - skipping", notificationId);
+
+                // Check current status to see if it was already processed
+                Optional<Notification> currentNotification = notificationRepository.findNotificationById(notificationId);
+                if (currentNotification.isPresent() && currentNotification.get().isSent()) {
+                    log.info("Notification was already sent by another process: {}", notificationId);
+                    notificationQueue.clearFailureCount(notificationId);
+                }
+                return;
+            }
 
             // Clear failure count on success
             if (sentNotification.isSent()) {
                 notificationQueue.clearFailureCount(notificationId);
                 log.info("Notification sent successfully: {}", notificationId);
+            } else if (sentNotification.isFailed() && sentNotification.canRetry()) {
+                // Schedule retry if needed
+                log.info("Notification failed but can retry: {}", notificationId);
+                notificationQueue.sendToDLQ(command, new RuntimeException("Notification send failed"));
             }
 
         } catch (Exception e) {
@@ -101,12 +134,23 @@ public class NotificationCommandHandler {
         log.error("Notification permanently failed after max retries: {}", notificationId, error);
 
         try {
-            // Mark notification as permanently failed
+            // Mark notification as permanently failed using CAS
             Optional<Notification> notificationOpt = notificationRepository.findNotificationById(notificationId);
             if (notificationOpt.isPresent()) {
                 Notification notification = notificationOpt.get();
-                notification.fail("Max retry attempts exceeded: " + error.getMessage());
-                notificationRepository.saveNotification(notification);
+                Long currentVersion = notification.getVersion();
+
+                // Only update if not already in a terminal state
+                if (!notification.isSent() && !notification.isFailed()) {
+                    notification.fail("Max retry attempts exceeded: " + error.getMessage());
+
+                    boolean updated = notificationRepository.updateNotificationWithCAS(
+                        notificationId, currentVersion, notification);
+
+                    if (!updated) {
+                        log.warn("Failed to mark notification as failed - version conflict: {}", notificationId);
+                    }
+                }
             }
         } catch (Exception e) {
             log.error("Failed to update notification status to failed: {}", notificationId, e);

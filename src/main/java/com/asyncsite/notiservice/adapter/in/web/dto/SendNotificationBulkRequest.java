@@ -4,6 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import org.apache.logging.log4j.util.Strings;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,7 +26,10 @@ public record SendNotificationBulkRequest(
         List<String> recipientContacts,
 
         // 템플릿 렌더링 변수
-        Map<String, Object> variables
+        Map<String, Object> variables,
+
+        // 예약 발송 시간 (optional)
+        LocalDateTime scheduledAt
 ) {
     public Map<String, Object> getMetaData() {
         Map<String, Object> meta = new HashMap<>();

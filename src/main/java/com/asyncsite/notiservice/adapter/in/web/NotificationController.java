@@ -29,15 +29,30 @@ public class NotificationController {
     @PostMapping
     public ResponseEntity<ApiResponse<NotificationResponse>> sendNotification(
             @Valid @RequestBody SendNotificationRequest request) {
-        log.info("알림 발송 요청: userId={}, channelType={}, templateId={}", request.userId(), request.channelType(), request.templateId());
+        log.info("알림 발송 요청: userId={}, channelType={}, templateId={}, scheduledAt={}",
+            request.userId(), request.channelType(), request.templateId(), request.scheduledAt());
 
-        Notification notification = notiUseCase.createNotification(
-                        request.userId(),
-                        ChannelType.valueOf(request.channelType()),
-                        EventType.valueOf(request.eventType()),
-                        request.getMetaData(),
-                        request.recipientContact()
-                );
+        Notification notification;
+        if (request.scheduledAt() != null) {
+            // 예약 발송
+            notification = notiUseCase.createScheduledNotification(
+                    request.userId(),
+                    ChannelType.valueOf(request.channelType()),
+                    EventType.valueOf(request.eventType()),
+                    request.getMetaData(),
+                    request.recipientContact(),
+                    request.scheduledAt()
+            );
+        } else {
+            // 즉시 발송
+            notification = notiUseCase.createNotification(
+                    request.userId(),
+                    ChannelType.valueOf(request.channelType()),
+                    EventType.valueOf(request.eventType()),
+                    request.getMetaData(),
+                    request.recipientContact()
+            );
+        }
 
         return ApiResponse.success(NotificationResponse.from(notification));
     }
@@ -45,15 +60,30 @@ public class NotificationController {
     @PostMapping("/bulk")
     public ResponseEntity<ApiResponse<NotificationResponse>> sendNotificationBulk(
             @Valid @RequestBody SendNotificationBulkRequest request) {
-        log.info("알림 발송 요청: userId={}, channelType={}, templateId={}", request.userId(), request.channelType(), request.templateId());
+        log.info("알림 발송 요청: userId={}, channelType={}, templateId={}, scheduledAt={}",
+            request.userId(), request.channelType(), request.templateId(), request.scheduledAt());
 
-        Notification res = notiUseCase.createNotificationBulk(
-                        request.userId(),
-                        ChannelType.valueOf(request.channelType()),
-                        EventType.valueOf(request.eventType()),
-                        request.getMetaData(),
-                        request.recipientContacts()
-                );
+        Notification res;
+        if (request.scheduledAt() != null) {
+            // 예약 발송
+            res = notiUseCase.createScheduledNotificationBulk(
+                    request.userId(),
+                    ChannelType.valueOf(request.channelType()),
+                    EventType.valueOf(request.eventType()),
+                    request.getMetaData(),
+                    request.recipientContacts(),
+                    request.scheduledAt()
+            );
+        } else {
+            // 즉시 발송
+            res = notiUseCase.createNotificationBulk(
+                    request.userId(),
+                    ChannelType.valueOf(request.channelType()),
+                    EventType.valueOf(request.eventType()),
+                    request.getMetaData(),
+                    request.recipientContacts()
+            );
+        }
         return ApiResponse.success(NotificationResponse.from(res));
     }
 
