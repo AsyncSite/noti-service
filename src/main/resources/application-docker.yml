@@ -113,9 +113,6 @@ application:
       retry-delay: ${APPLICATION_NOTIFICATION_EMAIL_RETRY_DELAY:5000}
       from-address: ${APPLICATION_NOTIFICATION_EMAIL_FROM_ADDRESS:asyncsite@gmail.com}
       from-name: ${APPLICATION_NOTIFICATION_EMAIL_FROM_NAME:AsyncSite}
-  querydaily:
-    base-url: ${QUERYDAILY_BASE_URL:https://querydaily.asyncsite.com}
-  notification:
     discord:
       enabled: ${APPLICATION_NOTIFICATION_DISCORD_ENABLED:true}
       webhook-url: ${APPLICATION_NOTIFICATION_DISCORD_WEBHOOK_URL:}
@@ -126,6 +123,8 @@ application:
       max-pool-size: ${APPLICATION_NOTIFICATION_ASYNC_MAX_POOL_SIZE:10}
       queue-capacity: ${APPLICATION_NOTIFICATION_ASYNC_QUEUE_CAPACITY:100}
       thread-name-prefix: ${APPLICATION_NOTIFICATION_ASYNC_THREAD_NAME_PREFIX:noti-async-}
+  querydaily:
+    base-url: ${QUERYDAILY_BASE_URL:https://querydaily.asyncsite.com}
 
 # Logging Configuration
 logging:
