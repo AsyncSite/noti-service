@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
+import org.springframework.core.env.Environment;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,6 +20,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 
 import java.io.InputStream;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -34,6 +36,7 @@ public class SystemTemplateInitializer implements ApplicationRunner {
     
     private final NotificationTemplateRepositoryPort templateRepository;
     private final PlatformTransactionManager transactionManager;
+    private final Environment environment;
     
     @Override
     public void run(ApplicationArguments args) throws Exception {
@@ -143,11 +146,14 @@ public class SystemTemplateInitializer implements ApplicationRunner {
     }
     
     private boolean shouldUpdate(NotificationTemplate existing, TemplateConfig config) {
+        // 환경 변수 치환 후 비교
+        Map<String, String> processedVariables = replaceEnvironmentVariables(config.getVariables());
+
         // 템플릿 내용이나 활성화 상태가 변경되었는지 확인
         boolean titleChanged = !nullSafeEquals(existing.getTitleTemplate(), config.getTitleTemplate());
         boolean contentChanged = !nullSafeEquals(existing.getContentTemplate(), config.getContentTemplate());
         boolean activeChanged = existing.isActive() != config.isActive();
-        boolean variablesChanged = !nullSafeMapEquals(existing.getVariables(), config.getVariables());
+        boolean variablesChanged = !nullSafeMapEquals(existing.getVariables(), processedVariables);
         boolean mailConfigChanged = !nullSafeEquals(existing.getMailConfigName(), config.getMailConfigName());
 
         // 문자셋 손상 감지 - 템플릿에 '?' 문자가 포함되어 있으면 강제 업데이트
@@ -209,11 +215,14 @@ public class SystemTemplateInitializer implements ApplicationRunner {
     }
     
     private void updateTemplate(NotificationTemplate existing, TemplateConfig config) {
+        // 환경 변수 치환
+        Map<String, String> processedVariables = replaceEnvironmentVariables(config.getVariables());
+
         NotificationTemplate updated = existing
             .updateTemplate(
                 config.getTitleTemplate(),
                 config.getContentTemplate(),
-                config.getVariables()
+                processedVariables
             );
 
         // mailConfigName 업데이트
@@ -240,16 +249,19 @@ public class SystemTemplateInitializer implements ApplicationRunner {
     
     private void createTemplate(TemplateConfig config) {
         LocalDateTime now = LocalDateTime.now();
-        
-        log.debug("Creating template {} with variables: {}", config.getTemplateId(), config.getVariables());
-        
+
+        // 환경 변수 치환
+        Map<String, String> processedVariables = replaceEnvironmentVariables(config.getVariables());
+
+        log.debug("Creating template {} with variables: {}", config.getTemplateId(), processedVariables);
+
         NotificationTemplate template = NotificationTemplate.builder()
             .templateId(config.getTemplateId())
             .channelType(ChannelType.valueOf(config.getChannelType().toUpperCase()))
             .eventType(EventType.valueOf(config.getEventType().toUpperCase()))
             .titleTemplate(config.getTitleTemplate())
             .contentTemplate(config.getContentTemplate())
-            .variables(config.getVariables())
+            .variables(processedVariables)
             .isDefault(false)
             .priority(0)
             .active(config.isActive())
@@ -296,5 +308,44 @@ public class SystemTemplateInitializer implements ApplicationRunner {
         UPDATED,
         SKIPPED,
         ERROR
+    }
+
+    /**
+     * 템플릿 변수에서 ${...} 패턴의 환경 변수 참조를 실제 값으로 치환합니다.
+     *
+     * @param variables 원본 템플릿 변수 맵
+     * @return 환경 변수가 치환된 변수 맵
+     */
+    private Map<String, String> replaceEnvironmentVariables(Map<String, String> variables) {
+        if (variables == null || variables.isEmpty()) {
+            return variables;
+        }
+
+        Map<String, String> processedVariables = new HashMap<>();
+        for (Map.Entry<String, String> entry : variables.entrySet()) {
+            String key = entry.getKey();
+            String value = entry.getValue();
+
+            // ${...} 패턴을 찾아서 환경 변수로 치환
+            if (value != null && value.startsWith("${") && value.endsWith("}")) {
+                String propertyName = value.substring(2, value.length() - 1);
+
+                // QueryDaily 관련 특별 처리
+                if ("application.querydaily.base-url".equals(propertyName)) {
+                    String resolvedValue = environment.getProperty(propertyName, "https://querydaily.asyncsite.com");
+                    processedVariables.put(key, resolvedValue);
+                    log.debug("환경 변수 치환: {} = {} -> {}", key, value, resolvedValue);
+                } else {
+                    // 다른 환경 변수 처리
+                    String resolvedValue = environment.getProperty(propertyName, value);
+                    processedVariables.put(key, resolvedValue);
+                }
+            } else {
+                // 환경 변수 참조가 아닌 경우 그대로 사용
+                processedVariables.put(key, value);
+            }
+        }
+
+        return processedVariables;
     }
 }
