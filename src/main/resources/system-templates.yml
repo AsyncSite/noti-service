@@ -392,8 +392,7 @@ templates:
           <!-- 푸터 -->
           <hr style="border: none; border-top: 1px solid #e9ecef; margin: 30px 0;">
           <p style="color: #999; font-size: 12px; text-align: center;">
-            © 2025 QueryDaily by AsyncSite |
-            <a href="https://asyncsite.com/querydaily/unsubscribe" style="color: #999;">수신 거부</a>
+            © 2025 QueryDaily by AsyncSite
           </p>
         </div>
       variables:
@@ -486,8 +485,7 @@ templates:
           <!-- 푸터 -->
           <hr style="border: none; border-top: 1px solid #e9ecef; margin: 30px 0;">
           <p style="color: #999; font-size: 12px; text-align: center;">
-            © 2025 QueryDaily by AsyncSite |
-            <a href="https://asyncsite.com/querydaily/unsubscribe" style="color: #999;">수신 거부</a>
+            © 2025 QueryDaily by AsyncSite
           </p>
         </div>
       variables:
