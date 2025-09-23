@@ -1,5 +1,6 @@
 package com.asyncsite.notiservice.application.service;
 
+import com.asyncsite.notiservice.domain.exception.NotificationDisabledException;
 import com.asyncsite.notiservice.domain.model.Notification;
 import com.asyncsite.notiservice.domain.model.NotificationSettings;
 import com.asyncsite.notiservice.domain.model.NotificationTemplate;
@@ -64,7 +65,8 @@ public class NotificationService implements NotificationUseCase {
             // Check if notifications are enabled for this channel
             if (!settings.isNotificationEnabled(channelType)) {
                 log.info("Notifications disabled for user: {} channel: {}", userId, channelType);
-                return null;
+                throw new NotificationDisabledException(userId, channelType.name(),
+                    String.format("사용자 %s의 %s 알림이 비활성화되어 있습니다", userId, channelType));
             }
         }
         // 2. 템플릿 선택: templateId가 있으면 우선 사용, 없으면 (channel,event) 규칙으로 선택

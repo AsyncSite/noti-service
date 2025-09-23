@@ -370,11 +370,11 @@ templates:
             <p style="color: #666; font-size: 14px; line-height: 1.5; margin: 0 0 25px 0;">
               면접관의 의도 분석부터, 두 페르소나의 모범 답변 예시,<br>
               그리고 예상 꼬리 질문까지 담긴 <strong>'프리미엄 답변 가이드'</strong>는<br>
-              인터뷰 패스에서 확인하실 수 있습니다.
+              쿼리 인사이트에서 확인하실 수 있습니다.
             </p>
             <a href="{queryDailyBaseUrl}/products?utm_source=email&utm_medium=daily&utm_campaign=day{currentDay}"
                style="display: inline-block; background: linear-gradient(135deg, #00B388 0%, #008060 100%); color: white; padding: 12px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 15px; box-shadow: 0 2px 8px rgba(0, 179, 136, 0.3);">
-              🚀 내 답변과 비교해보기 (인터뷰 패스 알아보기)
+              🚀 내 답변과 비교해보기 (쿼리 인사이트 알아보기)
             </a>
           </div>
 

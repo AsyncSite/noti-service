@@ -1,5 +1,6 @@
 package com.asyncsite.notiservice.config;
 
+import com.asyncsite.notiservice.domain.exception.NotificationDisabledException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -28,12 +29,26 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Map<String, Object>> handleIllegalArgumentException(IllegalArgumentException e) {
         log.warn("잘못된 인자가 전달됨", e);
-        
+
         Map<String, Object> response = new HashMap<>();
         response.put("error", "Bad Request");
         response.put("message", e.getMessage());
         response.put("timestamp", System.currentTimeMillis());
-        
+
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
+    @ExceptionHandler(NotificationDisabledException.class)
+    public ResponseEntity<Map<String, Object>> handleNotificationDisabledException(NotificationDisabledException e) {
+        log.info("알림이 비활성화되어 있음: userId={}, channelType={}", e.getUserId(), e.getChannelType());
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("error", "Notification Disabled");
+        response.put("message", e.getMessage());
+        response.put("userId", e.getUserId());
+        response.put("channelType", e.getChannelType());
+        response.put("timestamp", System.currentTimeMillis());
+
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(response);
     }
 } 
