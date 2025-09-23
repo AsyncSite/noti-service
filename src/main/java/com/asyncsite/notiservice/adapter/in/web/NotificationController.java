@@ -57,6 +57,37 @@ public class NotificationController {
         return ApiResponse.success(NotificationResponse.from(notification));
     }
 
+    @PostMapping("/force")
+    public ResponseEntity<ApiResponse<NotificationResponse>> sendForceNotification(
+            @Valid @RequestBody SendNotificationRequest request) {
+        log.info("강제 알림 발송 요청: userId={}, channelType={}, templateId={}",
+            request.userId(), request.channelType(), request.templateId());
+
+        Notification notification;
+        if (request.scheduledAt() != null) {
+            // 예약 발송 (강제)
+            notification = notiUseCase.createForceScheduledNotification(
+                    request.userId(),
+                    ChannelType.valueOf(request.channelType()),
+                    EventType.valueOf(request.eventType()),
+                    request.getMetaData(),
+                    request.recipientContact(),
+                    request.scheduledAt()
+            );
+        } else {
+            // 즉시 발송 (강제)
+            notification = notiUseCase.createForceNotification(
+                    request.userId(),
+                    ChannelType.valueOf(request.channelType()),
+                    EventType.valueOf(request.eventType()),
+                    request.getMetaData(),
+                    request.recipientContact()
+            );
+        }
+
+        return ApiResponse.success(NotificationResponse.from(notification));
+    }
+
     @PostMapping("/bulk")
     public ResponseEntity<ApiResponse<NotificationResponse>> sendNotificationBulk(
             @Valid @RequestBody SendNotificationBulkRequest request) {

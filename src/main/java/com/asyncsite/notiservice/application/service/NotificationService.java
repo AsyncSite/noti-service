@@ -176,6 +176,21 @@ public class NotificationService implements NotificationUseCase {
         return saveScheduled(userId, channelType, eventType, metadata, recipientContacts, scheduledAt);
     }
 
+    @Override
+    public Notification createForceNotification(String userId, ChannelType channelType, EventType eventType,
+                                               Map<String, Object> metadata, String recipientContact) {
+        log.info("강제 알림 발송: userId={}, channelType={}, recipientContact={}", userId, channelType, recipientContact);
+        return saveForce(userId, channelType, eventType, metadata, List.of(recipientContact));
+    }
+
+    @Override
+    public Notification createForceScheduledNotification(String userId, ChannelType channelType, EventType eventType,
+                                                        Map<String, Object> metadata, String recipientContact,
+                                                        LocalDateTime scheduledAt) {
+        log.info("강제 예약 알림 생성: userId={}, channelType={}, scheduledAt={}", userId, channelType, scheduledAt);
+        return saveScheduledForce(userId, channelType, eventType, metadata, List.of(recipientContact), scheduledAt);
+    }
+
     private Notification saveScheduled(String userId, ChannelType channelType, EventType eventType,
                                       Map<String, Object> metadata, List<String> recipientContacts,
                                       LocalDateTime scheduledAt) {
@@ -251,6 +266,134 @@ public class NotificationService implements NotificationUseCase {
 
         // Scheduled notifications don't get queued immediately - the scheduler will handle them
         log.info("예약 알림 생성 완료: notificationId={}, scheduledAt={}",
+                notification.getNotificationId(), notification.getScheduledAt());
+
+        return notification;
+    }
+
+    private Notification saveForce(String userId, ChannelType channelType, EventType eventType,
+                                  Map<String, Object> metadata, List<String> recipientContacts) {
+        log.info("강제 알림 발송 처리 시작: userId={}, channelType={}", userId, channelType);
+
+        // 템플릿 선택 (설정 체크 없이)
+        Map<String, Object> variables = (Map<String, Object>) metadata.getOrDefault("variables", java.util.Map.of());
+        variables = com.asyncsite.notiservice.common.MaskingUtil.maskVariablesForDisplay(variables);
+        NotificationTemplate useTemplate;
+
+        String templateId = (String) metadata.get("templateId");
+        if (templateId != null && !templateId.isBlank()) {
+            Optional<NotificationTemplate> templateOpt = templateRepository.findTemplateById(templateId);
+            if (templateOpt.isEmpty()) {
+                throw new IllegalArgumentException("템플릿을 찾을 수 없습니다: " + templateId);
+            }
+            useTemplate = templateOpt.get();
+        } else {
+            // 기본 템플릿 우선
+            Optional<NotificationTemplate> defaultOpt = templateRepository.findDefaultTemplate(channelType, eventType);
+            if (defaultOpt.isPresent()) {
+                useTemplate = defaultOpt.get();
+            } else {
+                // 우선순위/최신순 폴백
+                List<NotificationTemplate> candidates = templateRepository.findActiveTemplatesByChannelAndEvent(channelType, eventType);
+                if (candidates.isEmpty()) {
+                    throw new IllegalArgumentException("해당 채널/이벤트의 활성 템플릿이 없습니다.");
+                }
+                useTemplate = candidates.get(0);
+            }
+        }
+
+        // 채널 일치/활성 검증
+        if (useTemplate.getChannelType() != channelType) {
+            throw new IllegalArgumentException("요청 채널과 템플릿 채널이 일치하지 않습니다.");
+        }
+        if (!useTemplate.isActive()) {
+            throw new IllegalArgumentException("비활성화된 템플릿입니다: " + useTemplate.getTemplateId());
+        }
+
+        String title = useTemplate.renderTitle(variables);
+        String content = useTemplate.renderContent(variables);
+
+        // 알림 생성
+        Notification notification = Notification.create(
+                userId,
+                useTemplate.getTemplateId(),
+                channelType,
+                title,
+                content,
+                recipientContacts
+        );
+
+        notification = notificationRepository.saveNotification(notification);
+
+        // Send command with only ID to avoid optimistic locking
+        NotificationCommand command = NotificationCommand.createSendCommand(notification.getNotificationId());
+        notificationQueue.send(command);
+
+        log.info("강제 알림 발송 완료: notificationId={}", notification.getNotificationId());
+        return notification;
+    }
+
+    private Notification saveScheduledForce(String userId, ChannelType channelType, EventType eventType,
+                                           Map<String, Object> metadata, List<String> recipientContacts,
+                                           LocalDateTime scheduledAt) {
+        log.info("강제 예약 알림 생성: userId={}, channelType={}, scheduledAt={}", userId, channelType, scheduledAt);
+
+        // Validate scheduled time is in the future
+        if (scheduledAt != null && scheduledAt.isBefore(LocalDateTime.now())) {
+            throw new IllegalArgumentException("예약 시간은 미래여야 합니다: " + scheduledAt);
+        }
+
+        // Template selection (설정 체크 없이)
+        Map<String, Object> variables = (Map<String, Object>) metadata.getOrDefault("variables", java.util.Map.of());
+        variables = com.asyncsite.notiservice.common.MaskingUtil.maskVariablesForDisplay(variables);
+        NotificationTemplate useTemplate;
+
+        String templateId = (String) metadata.get("templateId");
+        if (templateId != null && !templateId.isBlank()) {
+            Optional<NotificationTemplate> templateOpt = templateRepository.findTemplateById(templateId);
+            if (templateOpt.isEmpty()) {
+                throw new IllegalArgumentException("템플릿을 찾을 수 없습니다: " + templateId);
+            }
+            useTemplate = templateOpt.get();
+        } else {
+            Optional<NotificationTemplate> defaultOpt = templateRepository.findDefaultTemplate(channelType, eventType);
+            if (defaultOpt.isPresent()) {
+                useTemplate = defaultOpt.get();
+            } else {
+                List<NotificationTemplate> candidates = templateRepository.findActiveTemplatesByChannelAndEvent(channelType, eventType);
+                if (candidates.isEmpty()) {
+                    throw new IllegalArgumentException("해당 채널/이벤트의 활성 템플릿이 없습니다.");
+                }
+                useTemplate = candidates.get(0);
+            }
+        }
+
+        // 채널 일치/활성 검증
+        if (useTemplate.getChannelType() != channelType) {
+            throw new IllegalArgumentException("요청 채널과 템플릿 채널이 일치하지 않습니다.");
+        }
+        if (!useTemplate.isActive()) {
+            throw new IllegalArgumentException("비활성화된 템플릿입니다: " + useTemplate.getTemplateId());
+        }
+
+        String title = useTemplate.renderTitle(variables);
+        String content = useTemplate.renderContent(variables);
+
+        // Create scheduled notification
+        Notification notification = Notification.createScheduled(
+                userId,
+                useTemplate.getTemplateId(),
+                channelType,
+                title,
+                content,
+                recipientContacts,
+                scheduledAt
+        );
+
+        notification = notificationRepository.saveNotification(notification);
+
+        // Scheduled notifications don't get queued immediately - the scheduler will handle them
+        log.info("강제 예약 알림 생성 완료: notificationId={}, scheduledAt={}",
                 notification.getNotificationId(), notification.getScheduledAt());
 
         return notification;

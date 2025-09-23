@@ -79,4 +79,32 @@ public interface NotificationUseCase {
     Notification createScheduledNotificationBulk(String userId, ChannelType channelType, EventType eventType,
                                                 Map<String, Object> metadata, List<String> recipientContacts,
                                                 LocalDateTime scheduledAt);
+
+    /**
+     * 알림 설정을 무시하고 강제로 알림을 발송합니다.
+     *
+     * @param userId 사용자 ID
+     * @param channelType 발송 타입
+     * @param eventType 이벤트 타입
+     * @param metadata 메타데이터
+     * @param recipientContact 수신자 연락처
+     * @return 발송된 알림 정보
+     */
+    Notification createForceNotification(String userId, ChannelType channelType, EventType eventType,
+                                        Map<String, Object> metadata, String recipientContact);
+
+    /**
+     * 알림 설정을 무시하고 강제로 예약 알림을 생성합니다.
+     *
+     * @param userId 사용자 ID
+     * @param channelType 발송 타입
+     * @param eventType 이벤트 타입
+     * @param metadata 메타데이터
+     * @param recipientContact 수신자 연락처
+     * @param scheduledAt 예약 발송 시간
+     * @return 생성된 예약 알림
+     */
+    Notification createForceScheduledNotification(String userId, ChannelType channelType, EventType eventType,
+                                                 Map<String, Object> metadata, String recipientContact,
+                                                 LocalDateTime scheduledAt);
 }
