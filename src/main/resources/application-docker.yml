@@ -113,6 +113,9 @@ application:
       retry-delay: ${APPLICATION_NOTIFICATION_EMAIL_RETRY_DELAY:5000}
       from-address: ${APPLICATION_NOTIFICATION_EMAIL_FROM_ADDRESS:asyncsite@gmail.com}
       from-name: ${APPLICATION_NOTIFICATION_EMAIL_FROM_NAME:AsyncSite}
+  querydaily:
+    base-url: ${QUERYDAILY_BASE_URL:https://querydaily.asyncsite.com}
+  notification:
     discord:
       enabled: ${APPLICATION_NOTIFICATION_DISCORD_ENABLED:true}
       webhook-url: ${APPLICATION_NOTIFICATION_DISCORD_WEBHOOK_URL:}

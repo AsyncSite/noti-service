@@ -372,7 +372,7 @@ templates:
               그리고 예상 꼬리 질문까지 담긴 <strong>'프리미엄 답변 가이드'</strong>는<br>
               인터뷰 패스에서 확인하실 수 있습니다.
             </p>
-            <a href="https://asyncsite.com/querydaily/premium?utm_source=email&utm_medium=daily&utm_campaign=day{currentDay}"
+            <a href="{queryDailyBaseUrl}/products?utm_source=email&utm_medium=daily&utm_campaign=day{currentDay}"
                style="display: inline-block; background: linear-gradient(135deg, #00B388 0%, #008060 100%); color: white; padding: 12px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 15px; box-shadow: 0 2px 8px rgba(0, 179, 136, 0.3);">
               🚀 내 답변과 비교해보기 (인터뷰 패스 알아보기)
             </a>
@@ -402,6 +402,7 @@ templates:
         question: "REST API와 GraphQL의 차이점을 설명해주세요"
         hint: "오버페칭과 언더페칭 문제를 중심으로 설명하세요"
         tomorrowTopic: "대용량 데이터 처리"
+        queryDailyBaseUrl: "${application.querydaily.base-url}"
       active: true
 
     # QueryDaily 답변 가이드
@@ -474,7 +475,7 @@ templates:
 
           <!-- CTA -->
           <div style="text-align: center; margin: 40px 0;">
-            <a href="https://asyncsite.com/querydaily/practice"
+            <a href="{queryDailyBaseUrl}/products"
                style="display: inline-block; background: linear-gradient(135deg, #00B388 0%, #008060 100%); color: white; padding: 14px 36px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px; box-shadow: 0 2px 8px rgba(0, 179, 136, 0.3);">
               🎯 다음 질문 도전하기
             </a>
@@ -498,4 +499,5 @@ templates:
         personaAnswers.bigTech: "대규모 서비스 안정성 중심"
         personaAnswers.unicorn: "빠른 개발 속도 중심"
         followUpQuestions: "N+1 문제 해결 방법은?"
+        queryDailyBaseUrl: "${application.querydaily.base-url}"
       active: true

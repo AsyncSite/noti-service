@@ -89,6 +89,8 @@ application:
     email:
       from-address: asyncsite@gmail.com
       from-name: AsyncSite
+  querydaily:
+    base-url: ${QUERYDAILY_BASE_URL:http://localhost:4500}
 
 # Logging Configuration
 logging:
