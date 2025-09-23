@@ -25,6 +25,7 @@ public class NotificationTemplate {
     private Integer version;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private String mailConfigName;  // null이면 default 사용
 
     private static final Pattern VARIABLE_PATTERN = Pattern.compile("\\{([^}]+)\\}");
 

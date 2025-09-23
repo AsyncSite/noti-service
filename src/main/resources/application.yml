@@ -22,7 +22,7 @@ spring:
 
   # Flyway Configuration
 
-  # Mail Configuration
+  # Mail Configuration (deprecated - for backward compatibility)
   mail:
     host: smtp.gmail.com
     port: 587
@@ -34,6 +34,33 @@ spring:
           auth: true
           starttls:
             enable: true
+
+  # Multi Mail Configurations
+  mail-configs:
+    default:
+      host: smtp.gmail.com
+      port: 587
+      username: asyncsite@gmail.com
+      password: unkhpoegvshusagl
+      from-name: AsyncSite
+      properties:
+        mail:
+          smtp:
+            auth: true
+            starttls:
+              enable: true
+    querydaily:
+      host: smtp.gmail.com
+      port: 587
+      username: official.querydaily@gmail.com
+      password: zajo fczh roba lkry
+      from-name: QueryDaily
+      properties:
+        mail:
+          smtp:
+            auth: true
+            starttls:
+              enable: true
 
   # Thymeleaf Configuration
   thymeleaf:

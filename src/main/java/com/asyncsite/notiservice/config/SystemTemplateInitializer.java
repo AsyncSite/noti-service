@@ -148,18 +148,19 @@ public class SystemTemplateInitializer implements ApplicationRunner {
         boolean contentChanged = !nullSafeEquals(existing.getContentTemplate(), config.getContentTemplate());
         boolean activeChanged = existing.isActive() != config.isActive();
         boolean variablesChanged = !nullSafeMapEquals(existing.getVariables(), config.getVariables());
-        
+        boolean mailConfigChanged = !nullSafeEquals(existing.getMailConfigName(), config.getMailConfigName());
+
         // 문자셋 손상 감지 - 템플릿에 '?' 문자가 포함되어 있으면 강제 업데이트
         boolean charsetCorrupted = isCharsetCorrupted(existing);
-        
+
         if (charsetCorrupted) {
             log.warn("⚠️ 템플릿 문자셋 손상 감지 - ID: {}, 강제 업데이트 수행", existing.getTemplateId());
             return true;
         }
-        
-        if (titleChanged || contentChanged || activeChanged || variablesChanged) {
-            log.debug("템플릿 변경 감지 - ID: {}, 제목변경: {}, 내용변경: {}, 활성화변경: {}, 변수변경: {}",
-                existing.getTemplateId(), titleChanged, contentChanged, activeChanged, variablesChanged);
+
+        if (titleChanged || contentChanged || activeChanged || variablesChanged || mailConfigChanged) {
+            log.debug("템플릿 변경 감지 - ID: {}, 제목변경: {}, 내용변경: {}, 활성화변경: {}, 변수변경: {}, 메일설정변경: {}",
+                existing.getTemplateId(), titleChanged, contentChanged, activeChanged, variablesChanged, mailConfigChanged);
             return true;
         }
         
@@ -214,7 +215,17 @@ public class SystemTemplateInitializer implements ApplicationRunner {
                 config.getContentTemplate(),
                 config.getVariables()
             );
-        
+
+        // mailConfigName 업데이트
+        if (config.getMailConfigName() != null &&
+            !config.getMailConfigName().equals(existing.getMailConfigName())) {
+            updated = updated.toBuilder()
+                .mailConfigName(config.getMailConfigName())
+                .updatedAt(LocalDateTime.now())
+                .build();
+            log.debug("템플릿 메일 설정 변경: {} -> {}", existing.getMailConfigName(), config.getMailConfigName());
+        }
+
         // 활성화 상태 변경
         if (config.isActive() && !existing.isActive()) {
             updated = updated.activate();
@@ -223,7 +234,7 @@ public class SystemTemplateInitializer implements ApplicationRunner {
             updated = updated.deactivate();
             log.debug("템플릿 비활성화: {}", config.getTemplateId());
         }
-        
+
         templateRepository.saveTemplate(updated);
     }
     
@@ -245,6 +256,7 @@ public class SystemTemplateInitializer implements ApplicationRunner {
             .version(null)  // JPA @Version 필드는 null로 시작
             .createdAt(now)
             .updatedAt(now)
+            .mailConfigName(config.getMailConfigName())
             .build();
         
         templateRepository.saveTemplate(template);
@@ -276,6 +288,7 @@ public class SystemTemplateInitializer implements ApplicationRunner {
         private String contentTemplate;
         private Map<String, String> variables;
         private boolean active = true;
+        private String mailConfigName;
     }
     
     private enum ProcessResult {

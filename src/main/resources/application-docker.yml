@@ -24,7 +24,7 @@ spring:
         jdbc:
           time_zone: UTC
         
-  # Mail Configuration
+  # Mail Configuration (deprecated - for backward compatibility)
   mail:
     host: ${SPRING_MAIL_HOST:smtp.gmail.com}
     port: ${SPRING_MAIL_PORT:587}
@@ -40,6 +40,39 @@ spring:
           timeout: 5000
           write-timeout: 5000
         debug: true
+
+  # Multi Mail Configurations
+  mail-configs:
+    default:
+      host: ${MAIL_DEFAULT_HOST:smtp.gmail.com}
+      port: ${MAIL_DEFAULT_PORT:587}
+      username: ${MAIL_DEFAULT_USERNAME:asyncsite@gmail.com}
+      password: ${MAIL_DEFAULT_PASSWORD:unkhpoegvshusagl}
+      from-name: ${MAIL_DEFAULT_FROM_NAME:AsyncSite}
+      properties:
+        mail:
+          smtp:
+            auth: true
+            starttls:
+              enable: true
+            connection-timeout: 5000
+            timeout: 5000
+            write-timeout: 5000
+    querydaily:
+      host: ${MAIL_QUERYDAILY_HOST:smtp.gmail.com}
+      port: ${MAIL_QUERYDAILY_PORT:587}
+      username: ${MAIL_QUERYDAILY_USERNAME:official.querydaily@gmail.com}
+      password: ${MAIL_QUERYDAILY_PASSWORD:zajo fczh roba lkry}
+      from-name: ${MAIL_QUERYDAILY_FROM_NAME:QueryDaily}
+      properties:
+        mail:
+          smtp:
+            auth: true
+            starttls:
+              enable: true
+            connection-timeout: 5000
+            timeout: 5000
+            write-timeout: 5000
 
   # Thymeleaf Configuration (explicit to ensure template resolution in docker profile)
   thymeleaf:

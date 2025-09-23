@@ -1,5 +1,6 @@
 package com.asyncsite.notiservice.adapter.out.notification;
 
+import com.asyncsite.notiservice.config.MultiMailConfig;
 import com.asyncsite.notiservice.domain.model.Notification;
 import com.asyncsite.notiservice.domain.model.NotificationTemplate;
 import com.asyncsite.notiservice.domain.model.vo.ChannelType;
@@ -8,8 +9,9 @@ import com.asyncsite.notiservice.domain.port.out.NotificationTemplateRepositoryP
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import java.io.UnsupportedEncodingException;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -18,17 +20,18 @@ import org.thymeleaf.context.Context;
 import org.thymeleaf.spring6.SpringTemplateEngine;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Slf4j
 @Component
-@RequiredArgsConstructor
 public class EmailNotificationSender implements NotificationSenderPort {
 
-    private final JavaMailSender mailSender;
+    private final JavaMailSender defaultMailSender;
+    private final JavaMailSender querydailyMailSender;
     private final SpringTemplateEngine templateEngine;
-
     private final NotificationTemplateRepositoryPort templateRepository;
+    private final MultiMailConfig mailConfig;
 
     @Value("${application.notification.email.from-address:}")
     private String configuredFromAddress;
@@ -38,6 +41,20 @@ public class EmailNotificationSender implements NotificationSenderPort {
 
     @Value("${spring.mail.username:}")
     private String mailUsername;
+
+    @Autowired
+    public EmailNotificationSender(
+            @Qualifier("defaultMailSender") JavaMailSender defaultMailSender,
+            @Qualifier("querydailyMailSender") JavaMailSender querydailyMailSender,
+            SpringTemplateEngine templateEngine,
+            NotificationTemplateRepositoryPort templateRepository,
+            MultiMailConfig mailConfig) {
+        this.defaultMailSender = defaultMailSender;
+        this.querydailyMailSender = querydailyMailSender;
+        this.templateEngine = templateEngine;
+        this.templateRepository = templateRepository;
+        this.mailConfig = mailConfig;
+    }
 
     @Override
     public Notification sendNotification(Notification notification) throws MessagingException, UnsupportedEncodingException {
@@ -76,8 +93,12 @@ public class EmailNotificationSender implements NotificationSenderPort {
             return notification;
         }
 
-        // 3. 이메일 메시지 구성 및 발송
-        MimeMessage message = mailSender.createMimeMessage();
+        // 3. 템플릿의 mailConfigName에 따라 적절한 JavaMailSender 선택
+        JavaMailSender selectedMailSender = getMailSender(template.getMailConfigName());
+        MultiMailConfig.MailConfigProperties selectedConfig = getMailConfig(template.getMailConfigName());
+
+        // 4. 이메일 메시지 구성 및 발송
+        MimeMessage message = selectedMailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
         Context context = new Context();
@@ -101,37 +122,79 @@ public class EmailNotificationSender implements NotificationSenderPort {
             throw e;
         }
 
-        String resolvedFromAddress = (configuredFromAddress != null && !configuredFromAddress.isBlank())
-                ? configuredFromAddress
-                : mailUsername;
+        // 선택된 설정에서 발신자 정보 가져오기
+        String resolvedFromAddress = selectedConfig.getUsername();
+        String resolvedFromName = selectedConfig.getFromName();
+
+        // 폴백 처리 (backward compatibility)
+        if (resolvedFromAddress == null || resolvedFromAddress.isBlank()) {
+            resolvedFromAddress = (configuredFromAddress != null && !configuredFromAddress.isBlank())
+                    ? configuredFromAddress
+                    : mailUsername;
+        }
+
+        if (resolvedFromName == null || resolvedFromName.isBlank()) {
+            resolvedFromName = configuredFromName;
+        }
 
         if (resolvedFromAddress == null || resolvedFromAddress.isBlank()) {
-            log.warn("발신자 이메일(from-address)이 비어 있습니다. 설정값을 확인해주세요. application.notification.email.from-address 또는 spring.mail.username");
+            log.warn("발신자 이메일(from-address)이 비어 있습니다. 설정값을 확인해주세요.");
             throw new jakarta.mail.internet.AddressException("From address is empty");
         }
 
-        // 발신자 이름과 이메일 주소를 함께 설정
-        String resolvedFromName = (configuredFromName != null && !configuredFromName.isBlank())
-                ? configuredFromName
-                : "AsyncSite";
-        
-        log.info("이메일 발신자 설정: fromName='{}', fromAddress='{}'", resolvedFromName, resolvedFromAddress);
+        log.info("이메일 발신자 설정: fromName='{}', fromAddress='{}', mailConfig='{}'",
+            resolvedFromName, resolvedFromAddress, template.getMailConfigName());
+
         helper.setFrom(resolvedFromAddress, resolvedFromName);
         helper.setTo(recipientEmails.toArray(new String[0]));
         helper.setSubject(title);
         helper.setText(html, true);
-        mailSender.send(message);
+        selectedMailSender.send(message);
 
-        log.info("이메일 발송 성공: notificationId={}, recipient={}", notification.getNotificationId(), recipientEmails);
+        log.info("이메일 발송 성공: notificationId={}, recipient={}, mailConfig={}",
+            notification.getNotificationId(), recipientEmails, template.getMailConfigName());
 
         // 알림을 발송 완료 상태로 변경하여 반환
         notification.markAsSent();
         return notification;
     }
 
+    /**
+     * mailConfigName에 따라 적절한 JavaMailSender를 반환합니다.
+     */
+    private JavaMailSender getMailSender(String mailConfigName) {
+        if ("querydaily".equals(mailConfigName)) {
+            log.debug("Using QueryDaily mail sender");
+            return querydailyMailSender;
+        }
+        log.debug("Using default mail sender for config: {}", mailConfigName);
+        return defaultMailSender;
+    }
+
+    /**
+     * mailConfigName에 따라 적절한 메일 설정을 반환합니다.
+     */
+    private MultiMailConfig.MailConfigProperties getMailConfig(String mailConfigName) {
+        Map<String, MultiMailConfig.MailConfigProperties> configs = mailConfig.getMailConfigs();
+
+        if (configs == null) {
+            // 설정이 없으면 기본값 반환
+            MultiMailConfig.MailConfigProperties defaultConfig = new MultiMailConfig.MailConfigProperties();
+            defaultConfig.setUsername(mailUsername);
+            defaultConfig.setFromName(configuredFromName);
+            return defaultConfig;
+        }
+
+        if ("querydaily".equals(mailConfigName) && configs.containsKey("querydaily")) {
+            return configs.get("querydaily");
+        }
+
+        // default 설정 반환
+        return configs.getOrDefault("default", new MultiMailConfig.MailConfigProperties());
+    }
+
     @Override
     public boolean supportsChannelType(ChannelType channelType) {
         return channelType == ChannelType.EMAIL;
     }
-
 }

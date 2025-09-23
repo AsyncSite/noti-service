@@ -39,6 +39,7 @@ public class NotificationTemplateEntity {
     private int priority;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private String mailConfigName;
 
 
     public static NotificationTemplateEntity from(NotificationTemplate template) {
@@ -55,6 +56,7 @@ public class NotificationTemplateEntity {
                 .priority(template.getPriority())
                 .createdAt(template.getCreatedAt())
                 .updatedAt(template.getUpdatedAt())
+                .mailConfigName(template.getMailConfigName())
                 .build();
     }
 
@@ -84,6 +86,7 @@ public class NotificationTemplateEntity {
                 .priority(priority)
                 .createdAt(createdAt)
                 .updatedAt(updatedAt)
+                .mailConfigName(mailConfigName)
                 .build();
     }
 }

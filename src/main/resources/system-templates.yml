@@ -327,6 +327,7 @@ templates:
     - templateId: "querydaily-question"
       channelType: "EMAIL"
       eventType: "NOTI"
+      mailConfigName: "querydaily"
       titleTemplate: "[QueryDaily | Day {currentDay}/3] {userName}님, 오늘의 질문이 도착했습니다"
       contentTemplate: |
         <div style="padding: 40px 20px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
@@ -409,6 +410,7 @@ templates:
     - templateId: "querydaily-answer-guide"
       channelType: "EMAIL"
       eventType: "NOTI"
+      mailConfigName: "querydaily"
       titleTemplate: "[QueryDaily] 오늘의 답변 가이드 📚"
       contentTemplate: |
         <div style="background: linear-gradient(135deg, #0066CC 0%, #004999 100%); padding: 40px 20px; text-align: center; border-radius: 8px 8px 0 0;">
