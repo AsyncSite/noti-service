@@ -501,3 +501,85 @@ templates:
         followUpQuestions: "N+1 문제 해결 방법은?"
         queryDailyBaseUrl: "${application.querydaily.base-url}"
       active: true
+
+    # QueryDaily 베타 신청 확인
+    - templateId: "querydaily-application-confirmation"
+      channelType: "EMAIL"
+      eventType: "NOTI"
+      mailConfigName: "querydaily"
+      titleTemplate: "[QueryDaily] 베타 테스트 신청이 완료되었습니다"
+      contentTemplate: |
+        <div style="background: linear-gradient(135deg, #0066CC 0%, #004999 100%); padding: 40px 20px; text-align: center; border-radius: 8px 8px 0 0;">
+          <h1 style="color: white; margin: 0; font-size: 28px;">QueryDaily 베타 테스트 신청 완료</h1>
+          <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0;">매일 성장하는 백엔드 개발자를 위한 면접 트레이닝</p>
+        </div>
+        <div style="padding: 40px 20px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
+          <!-- 인사 메시지 -->
+          <h2 style="color: #333; margin-bottom: 20px; font-size: 22px;">안녕하세요, {userName}님! 👋</h2>
+          <p style="color: #555; font-size: 16px; line-height: 1.6; margin-bottom: 30px;">
+            QueryDaily 베타 테스트 신청이 정상적으로 등록되었습니다.<br>
+            신청해 주셔서 감사합니다.
+          </p>
+
+          <!-- 신청 정보 확인 -->
+          <div style="background: #F0F7FF; padding: 25px; border-radius: 10px; margin-bottom: 30px; border-left: 4px solid #0066CC;">
+            <h3 style="color: #0066CC; margin-top: 0; font-size: 18px;">📝 신청 정보</h3>
+            <table style="width: 100%; border-collapse: collapse;">
+              <tr>
+                <td style="padding: 8px 0; color: #666;">이메일:</td>
+                <td style="padding: 8px 0; color: #333; font-weight: 500;">{userEmail}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0; color: #666;">신청일시:</td>
+                <td style="padding: 8px 0; color: #333; font-weight: 500;">{applicationDate}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0; color: #666;">이력서:</td>
+                <td style="padding: 8px 0; color: #333; font-weight: 500;">{resumeFileName}</td>
+              </tr>
+            </table>
+          </div>
+
+          <!-- 안내 사항 -->
+          <div style="margin: 30px 0;">
+            <p style="color: #555; font-size: 15px; line-height: 1.8; margin: 0 0 15px 0;">
+              현재 QueryDaily는 베타 테스트 기간이에요. 신청해 주신 분들 중에서 순차적으로 베타 테스터를 모집하고 있어요.
+              베타 기간이 종료되면 참여 기회에 대해 별도로 안내 메일을 보내드릴 예정이에요.
+            </p>
+            <p style="color: #555; font-size: 15px; line-height: 1.8; margin: 0 0 15px 0;">
+              혹시 이메일이 스팸함으로 분류될 수 있으니 확인해 주시면 좋을 것 같아요.
+              베타 테스트 참여는 물론 완전 무료이며, 수집된 개인정보는 베타 기간 종료 후 안전하게 삭제돼요.
+            </p>
+            <p style="color: #555; font-size: 15px; line-height: 1.8; margin: 0;">
+              정식 서비스가 출시되면 베타 신청자분들께는 특별한 혜택도 준비하고 있으니 기대해 주세요!
+            </p>
+          </div>
+
+          <!-- 문의 사항 -->
+          <div style="background: #F0F7FF; padding: 25px; border-radius: 10px; margin-bottom: 30px;">
+            <h3 style="color: #0066CC; margin-top: 0; font-size: 18px;">💬 문의 사항</h3>
+            <p style="color: #555; line-height: 1.6; margin: 10px 0;">
+              프로그램 관련 궁금하신 점이 있으시면 언제든 연락 주세요!
+            </p>
+            <ul style="margin: 10px 0; padding-left: 20px; color: #555;">
+              <li>이메일: <a href="mailto:official.querydaily@gmail.com" style="color: #0066CC;">official.querydaily@gmail.com</a></li>
+              <li>카카오톡: <a href="https://pf.kakao.com/_zxkxmUn/chat" style="color: #0066CC;">QueryDaily 문의</a></li>
+            </ul>
+          </div>
+
+
+          <!-- 푸터 -->
+          <hr style="border: none; border-top: 1px solid #e9ecef; margin: 30px 0;">
+          <p style="color: #999; font-size: 12px; text-align: center; line-height: 1.6;">
+            본 메일은 QueryDaily 베타 테스트 신청자에게 발송되는 안내 메일입니다.<br>
+            3일 챌린지 기간 동안은 서비스 이메일 수신이 필수이며, 종료 후 자동으로 수신이 중단됩니다.<br>
+            © 2025 QueryDaily by AsyncSite | <a href="https://querydaily.asyncsite.com/privacy" style="color: #999;">개인정보처리방침</a>
+          </p>
+        </div>
+      variables:
+        userName: "테스터"
+        userEmail: "test@example.com"
+        applicationDate: "2025-09-23 15:00:00"
+        resumeFileName: "이력서.pdf"
+        queryId: "123"
+      active: true

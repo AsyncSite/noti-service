@@ -29,7 +29,7 @@ class YamlLoadTest {
             assertThat(config).isNotNull();
             assertThat(config.getVersion()).isNotNull();
             assertThat(config.getTemplates()).isNotEmpty();
-            assertThat(config.getTemplates().size()).isEqualTo(7);
+            assertThat(config.getTemplates().size()).isEqualTo(8);
 
             // 템플릿 ID 확인
             var templateIds = config.getTemplates().stream()
@@ -43,7 +43,8 @@ class YamlLoadTest {
                 "documento-analysis",
                 "study-approved",
                 "querydaily-question",
-                "querydaily-answer-guide"
+                "querydaily-answer-guide",
+                "querydaily-application-confirmation"
             );
         }
     }
