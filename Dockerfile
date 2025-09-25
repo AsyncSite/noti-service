@@ -2,7 +2,7 @@
 # Requires JAR to be built locally first: ./gradlew clean build
 # This approach avoids authentication issues during Docker build
 
-FROM public.ecr.aws/amazoncorretto/amazoncorretto:21
+FROM eclipse-temurin:21-jre
 WORKDIR /app
 
 # Create non-root user for security and logs directory
