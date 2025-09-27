@@ -254,7 +254,7 @@ templates:
     # 스터디 승인
     - templateId: "study-approved"
       channelType: "EMAIL"
-      eventType: "STUDY"
+      eventType: "STUDY_APPROVED"
       titleTemplate: "[AsyncSite] 스터디 '{studyTitle}'가 승인되었습니다"
       contentTemplate: |
         <div style="background: linear-gradient(135deg, #C3E88D 0%, #82AAFF 100%); padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
