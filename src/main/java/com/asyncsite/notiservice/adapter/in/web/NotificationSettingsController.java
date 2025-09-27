@@ -1,6 +1,6 @@
 package com.asyncsite.notiservice.adapter.in.web;
 
-import com.asyncsite.notiservice.adapter.in.web.dto.ApiResponse;
+import com.asyncsite.coreplatform.common.dto.ApiResponse;
 import com.asyncsite.notiservice.adapter.in.web.dto.NotificationSettingsResponse;
 import com.asyncsite.notiservice.adapter.in.web.dto.UpdateNotificationSettingsRequest;
 import com.asyncsite.notiservice.domain.model.NotificationSettings;
@@ -8,7 +8,6 @@ import com.asyncsite.notiservice.domain.port.in.NotificationSettingsUseCase;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @Slf4j
@@ -20,14 +19,14 @@ public class NotificationSettingsController {
     private final NotificationSettingsUseCase settingsUseCase;
 
     @GetMapping("/{userId}")
-    public ResponseEntity<ApiResponse<NotificationSettingsResponse>> getNotificationSettings(@PathVariable String userId) {
+    public ApiResponse<NotificationSettingsResponse> getNotificationSettings(@PathVariable String userId) {
         log.info("알림 설정 조회: userId={}", userId);
 
         return ApiResponse.success(NotificationSettingsResponse.from( settingsUseCase.getNotificationSettings(userId)));
     }
 
     @PutMapping("/{userId}")
-    public ResponseEntity<ApiResponse<NotificationSettingsResponse>> updateNotificationSettings(
+    public ApiResponse<NotificationSettingsResponse> updateNotificationSettings(
             @PathVariable String userId,
             @Valid @RequestBody UpdateNotificationSettingsRequest request) {
 
@@ -43,7 +42,7 @@ public class NotificationSettingsController {
     }
 
     @PostMapping("/{userId}/reset")
-    public ResponseEntity<ApiResponse<NotificationSettingsResponse>> resetNotificationSettings(@PathVariable String userId) {
+    public ApiResponse<NotificationSettingsResponse> resetNotificationSettings(@PathVariable String userId) {
         log.info("알림 설정 초기화: userId={}", userId);
 
         NotificationSettings resetSettings = settingsUseCase.resetNotificationSettings(userId);

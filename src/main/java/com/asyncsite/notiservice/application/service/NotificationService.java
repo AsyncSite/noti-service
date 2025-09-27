@@ -7,11 +7,15 @@ import com.asyncsite.notiservice.domain.model.NotificationTemplate;
 import com.asyncsite.notiservice.domain.model.command.NotificationCommand;
 import com.asyncsite.notiservice.domain.model.vo.ChannelType;
 import com.asyncsite.notiservice.domain.model.vo.EventType;
+import com.asyncsite.notiservice.domain.model.vo.NotificationSearchCriteria;
+import com.asyncsite.notiservice.domain.model.vo.NotificationStatus;
 import com.asyncsite.notiservice.domain.port.in.NotificationUseCase;
 import com.asyncsite.notiservice.domain.port.out.*;
 import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -395,6 +399,61 @@ public class NotificationService implements NotificationUseCase {
         // Scheduled notifications don't get queued immediately - the scheduler will handle them
         log.info("강제 예약 알림 생성 완료: notificationId={}, scheduledAt={}",
                 notification.getNotificationId(), notification.getScheduledAt());
+
+        return notification;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<Notification> getAllNotifications(Pageable pageable) {
+        log.debug("백오피스 전체 알림 조회 요청: page={}, size={}, sort={}",
+                pageable.getPageNumber(), pageable.getPageSize(), pageable.getSort());
+
+        Page<Notification> notifications = notificationRepository.findAllNotifications(pageable);
+
+        log.info("백오피스 전체 알림 조회 완료: totalElements={}, totalPages={}, currentPage={}",
+                notifications.getTotalElements(), notifications.getTotalPages(), notifications.getNumber());
+
+        return notifications;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<Notification> searchNotifications(NotificationSearchCriteria criteria, Pageable pageable) {
+        log.info("백오피스 알림 검색 요청: criteria={}, page={}, size={}",
+                criteria, pageable.getPageNumber(), pageable.getPageSize());
+
+        Page<Notification> notifications = notificationRepository.searchNotifications(criteria, pageable);
+
+        log.info("백오피스 알림 검색 완료: totalElements={}, totalPages={}, currentPage={}",
+                notifications.getTotalElements(), notifications.getTotalPages(), notifications.getNumber());
+
+        return notifications;
+    }
+
+    @Override
+    @Transactional
+    public Notification cancelScheduledNotification(String notificationId) {
+        log.info("예약 알림 취소 요청: notificationId={}", notificationId);
+
+        // 알림 조회
+        Notification notification = notificationRepository.findNotificationById(notificationId)
+                .orElseThrow(() -> new IllegalArgumentException("알림을 찾을 수 없습니다: " + notificationId));
+
+        // 상태 검증 - SCHEDULED 상태만 취소 가능
+        if (notification.getStatus() != NotificationStatus.SCHEDULED) {
+            throw new IllegalStateException(
+                    String.format("예약 상태의 알림만 취소할 수 있습니다. 현재 상태: %s", notification.getStatus())
+            );
+        }
+
+        // 상태를 CANCELLED로 변경
+        notification.cancel();
+
+        // 변경사항 저장
+        notification = notificationRepository.saveNotification(notification);
+
+        log.info("예약 알림 취소 완료: notificationId={}", notificationId);
 
         return notification;
     }

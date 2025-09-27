@@ -26,7 +26,11 @@ public class NotificationTemplateEntity {
     private String templateId;
     @Version
     private Integer version;
+    @Enumerated(EnumType.STRING)
+    @Column(length = 20)
     private ChannelType channelType;
+    @Enumerated(EnumType.STRING)
+    @Column(length = 30)
     private EventType eventType;
     @Column(columnDefinition = "TEXT")
     private String titleTemplate;

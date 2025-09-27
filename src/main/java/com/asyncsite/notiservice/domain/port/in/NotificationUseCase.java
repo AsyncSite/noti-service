@@ -3,7 +3,10 @@ package com.asyncsite.notiservice.domain.port.in;
 import com.asyncsite.notiservice.domain.model.Notification;
 import com.asyncsite.notiservice.domain.model.vo.ChannelType;
 import com.asyncsite.notiservice.domain.model.vo.EventType;
+import com.asyncsite.notiservice.domain.model.vo.NotificationSearchCriteria;
 import jakarta.mail.MessagingException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.io.UnsupportedEncodingException;
 import java.time.LocalDateTime;
@@ -107,4 +110,33 @@ public interface NotificationUseCase {
     Notification createForceScheduledNotification(String userId, ChannelType channelType, EventType eventType,
                                                  Map<String, Object> metadata, String recipientContact,
                                                  LocalDateTime scheduledAt);
+
+    /**
+     * 백오피스용 전체 알림 목록을 조회합니다.
+     * 모든 사용자의 알림을 최신순으로 조회합니다.
+     *
+     * @param pageable 페이징 정보
+     * @return 알림 목록 페이지
+     */
+    Page<Notification> getAllNotifications(Pageable pageable);
+
+    /**
+     * 백오피스용 알림 검색 기능입니다.
+     * 다양한 조건으로 알림을 검색할 수 있습니다.
+     *
+     * @param criteria 검색 조건
+     * @param pageable 페이징 정보
+     * @return 검색된 알림 목록 페이지
+     */
+    Page<Notification> searchNotifications(NotificationSearchCriteria criteria, Pageable pageable);
+
+    /**
+     * 예약된 알림을 취소합니다.
+     * SCHEDULED 상태인 알림만 취소 가능합니다.
+     *
+     * @param notificationId 알림 ID
+     * @return 취소된 알림 정보
+     * @throws IllegalStateException 예약 상태가 아닌 경우
+     */
+    Notification cancelScheduledNotification(String notificationId);
 }

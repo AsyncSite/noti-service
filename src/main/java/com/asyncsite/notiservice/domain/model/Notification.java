@@ -170,4 +170,23 @@ public class Notification {
     public boolean shouldBeSentNow() {
         return isScheduled() && scheduledAt != null && !scheduledAt.isAfter(LocalDateTime.now());
     }
+
+    /**
+     * 예약된 알림을 취소합니다.
+     * SCHEDULED 상태에서만 호출 가능합니다.
+     */
+    public void cancel() {
+        if (status != NotificationStatus.SCHEDULED) {
+            throw new IllegalStateException("예약 상태의 알림만 취소할 수 있습니다. 현재 상태: " + status);
+        }
+        this.status = NotificationStatus.CANCELLED;
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    /**
+     * 알림이 취소되었는지 확인합니다.
+     */
+    public boolean isCancelled() {
+        return status == NotificationStatus.CANCELLED;
+    }
 }

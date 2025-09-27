@@ -2,6 +2,9 @@ package com.asyncsite.notiservice.domain.port.out;
 
 import com.asyncsite.notiservice.domain.model.Notification;
 import com.asyncsite.notiservice.domain.model.vo.ChannelType;
+import com.asyncsite.notiservice.domain.model.vo.NotificationSearchCriteria;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.Optional;
@@ -60,4 +63,23 @@ public interface NotificationRepositoryPort {
      * @return 처리할 PENDING 알림 목록
      */
     List<Notification> findPendingNotifications(int limit);
+
+    /**
+     * 백오피스용 전체 알림 목록을 조회합니다.
+     * 모든 사용자의 알림을 페이징하여 조회합니다.
+     *
+     * @param pageable 페이징 정보
+     * @return 알림 페이지
+     */
+    Page<Notification> findAllNotifications(Pageable pageable);
+
+    /**
+     * 백오피스용 알림 검색 기능입니다.
+     * 다양한 조건으로 알림을 동적으로 검색합니다.
+     *
+     * @param criteria 검색 조건
+     * @param pageable 페이징 정보
+     * @return 검색된 알림 페이지
+     */
+    Page<Notification> searchNotifications(NotificationSearchCriteria criteria, Pageable pageable);
 }

@@ -2,13 +2,17 @@ package com.asyncsite.notiservice.adapter.out.persistence;
 
 import com.asyncsite.notiservice.adapter.out.persistence.entity.NotificationEntity;
 import com.asyncsite.notiservice.adapter.out.persistence.repository.NotificationRepository;
+import com.asyncsite.notiservice.adapter.out.persistence.specification.NotificationSpecifications;
 import com.asyncsite.notiservice.domain.model.Notification;
 import com.asyncsite.notiservice.domain.model.vo.ChannelType;
+import com.asyncsite.notiservice.domain.model.vo.NotificationSearchCriteria;
 import com.asyncsite.notiservice.domain.model.vo.NotificationStatus;
 import com.asyncsite.notiservice.domain.port.out.NotificationRepositoryPort;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -101,5 +105,26 @@ public class NotificationPersistenceAdapter implements NotificationRepositoryPor
                 .stream()
                 .map(NotificationEntity::toDomain)
                 .toList();
+    }
+
+    @Override
+    public Page<Notification> findAllNotifications(Pageable pageable) {
+        log.debug("전체 알림 조회: page={}, size={}, sort={}",
+                pageable.getPageNumber(), pageable.getPageSize(), pageable.getSort());
+
+        Page<NotificationEntity> entityPage = notificationRepository.findAll(pageable);
+
+        return entityPage.map(NotificationEntity::toDomain);
+    }
+
+    @Override
+    public Page<Notification> searchNotifications(NotificationSearchCriteria criteria, Pageable pageable) {
+        log.debug("알림 검색: criteria={}, page={}, size={}",
+                criteria, pageable.getPageNumber(), pageable.getPageSize());
+
+        Page<NotificationEntity> entityPage = notificationRepository.findAll(
+                NotificationSpecifications.withCriteria(criteria), pageable);
+
+        return entityPage.map(NotificationEntity::toDomain);
     }
 }

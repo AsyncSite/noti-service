@@ -1,6 +1,6 @@
 package com.asyncsite.notiservice.adapter.in.web;
 
-import com.asyncsite.notiservice.adapter.in.web.dto.ApiResponse;
+import com.asyncsite.coreplatform.common.dto.ApiResponse;
 import com.asyncsite.notiservice.adapter.in.web.dto.CreateNotificationTemplateRequest;
 import com.asyncsite.notiservice.adapter.in.web.dto.NotificationTemplateResponse;
 import com.asyncsite.notiservice.adapter.in.web.dto.UpdateNotificationTemplateRequest;
@@ -9,7 +9,6 @@ import com.asyncsite.notiservice.domain.port.in.NotificationTemplateUseCase;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -24,7 +23,7 @@ public class NotificationTemplateController {
     private final NotificationTemplateUseCase templateUseCase;
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<NotificationTemplateResponse>>> getTemplates(
+    public ApiResponse<List<NotificationTemplateResponse>> getTemplates(
             @RequestParam(required = false) String channelType,
             @RequestParam(required = false, defaultValue = "true") Boolean active) {
 
@@ -39,7 +38,7 @@ public class NotificationTemplateController {
     }
 
     @GetMapping("/{templateId}")
-    public ResponseEntity<ApiResponse<NotificationTemplateResponse>> getTemplate(
+    public ApiResponse<NotificationTemplateResponse> getTemplate(
             @PathVariable String templateId) {
 
         log.info("템플릿 상세 조회: templateId={}", templateId);
@@ -50,14 +49,14 @@ public class NotificationTemplateController {
     }
 
     @PostMapping
-    public ResponseEntity<ApiResponse<NotificationTemplateResponse>> createTemplate(
+    public ApiResponse<NotificationTemplateResponse> createTemplate(
             @Valid @RequestBody CreateNotificationTemplateRequest request) {
         // Mapper를 사용하여 Request에서 Domain 객체로 변환
         return ApiResponse.success(NotificationTemplateResponse.from(templateUseCase.createTemplate(request.channelType(), request.eventType(), request.titleTemplate(), request.contentTemplate(), request.variables())));
     }
 
     @PutMapping("/{templateId}")
-    public ResponseEntity<ApiResponse<NotificationTemplateResponse>> updateTemplate(
+    public ApiResponse<NotificationTemplateResponse> updateTemplate(
             @PathVariable String templateId,
             @Valid @RequestBody UpdateNotificationTemplateRequest request) {
 
@@ -68,7 +67,7 @@ public class NotificationTemplateController {
     }
 
     @PatchMapping("/{templateId}/deactivate")
-    public ResponseEntity<ApiResponse<Void>> deactivateTemplate(
+    public ApiResponse<Void> deactivateTemplate(
             @PathVariable String templateId) {
 
         log.info("템플릿 비활성화 요청: templateId={}", templateId);
@@ -78,13 +77,13 @@ public class NotificationTemplateController {
     }
 
     @PatchMapping("/{templateId}/default")
-    public ResponseEntity<ApiResponse<Void>> setDefault(@PathVariable String templateId) {
+    public ApiResponse<Void> setDefault(@PathVariable String templateId) {
         templateUseCase.setDefaultTemplate(templateId);
         return ApiResponse.success(null);
     }
 
     @PatchMapping("/{templateId}/priority")
-    public ResponseEntity<ApiResponse<Void>> updatePriority(
+    public ApiResponse<Void> updatePriority(
             @PathVariable String templateId,
             @RequestParam int value) {
         templateUseCase.updatePriority(templateId, value);
@@ -93,7 +92,7 @@ public class NotificationTemplateController {
 
     // FIXME 작업중
     @PostMapping("/{templateId}/preview")
-    public ResponseEntity<ApiResponse<Map<String, String>>> previewTemplate(
+    public ApiResponse<Map<String, String>> previewTemplate(
             @PathVariable String templateId,
             @RequestBody Map<String, Object> variables) {
 

@@ -1,6 +1,6 @@
 package com.asyncsite.notiservice.adapter.in.web;
 
-import com.asyncsite.notiservice.adapter.in.web.dto.ApiResponse;
+import com.asyncsite.coreplatform.common.dto.ApiResponse;
 import com.asyncsite.notiservice.adapter.in.web.dto.NotificationResponse;
 import com.asyncsite.notiservice.adapter.in.web.dto.SendNotificationBulkRequest;
 import com.asyncsite.notiservice.adapter.in.web.dto.SendNotificationRequest;
@@ -12,7 +12,6 @@ import jakarta.mail.MessagingException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.UnsupportedEncodingException;
@@ -27,7 +26,7 @@ public class NotificationController {
     private final NotificationUseCase notiUseCase;
 
     @PostMapping
-    public ResponseEntity<ApiResponse<NotificationResponse>> sendNotification(
+    public ApiResponse<NotificationResponse> sendNotification(
             @Valid @RequestBody SendNotificationRequest request) {
         log.info("알림 발송 요청: userId={}, channelType={}, templateId={}, scheduledAt={}",
             request.userId(), request.channelType(), request.templateId(), request.scheduledAt());
@@ -58,7 +57,7 @@ public class NotificationController {
     }
 
     @PostMapping("/force")
-    public ResponseEntity<ApiResponse<NotificationResponse>> sendForceNotification(
+    public ApiResponse<NotificationResponse> sendForceNotification(
             @Valid @RequestBody SendNotificationRequest request) {
         log.info("강제 알림 발송 요청: userId={}, channelType={}, templateId={}",
             request.userId(), request.channelType(), request.templateId());
@@ -89,7 +88,7 @@ public class NotificationController {
     }
 
     @PostMapping("/bulk")
-    public ResponseEntity<ApiResponse<NotificationResponse>> sendNotificationBulk(
+    public ApiResponse<NotificationResponse> sendNotificationBulk(
             @Valid @RequestBody SendNotificationBulkRequest request) {
         log.info("알림 발송 요청: userId={}, channelType={}, templateId={}, scheduledAt={}",
             request.userId(), request.channelType(), request.templateId(), request.scheduledAt());
@@ -119,7 +118,7 @@ public class NotificationController {
     }
 
     @GetMapping("/{notificationId}")
-    public ResponseEntity<ApiResponse<NotificationResponse>> getNotification(
+    public ApiResponse<NotificationResponse> getNotification(
             @PathVariable String notificationId) {
         log.info("알림 조회 요청: notificationId={}", notificationId);
 
@@ -128,7 +127,7 @@ public class NotificationController {
     }
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<NotificationResponse>>> getNotifications(
+    public ApiResponse<List<NotificationResponse>> getNotifications(
             @RequestParam String userId,
             @RequestParam(defaultValue = "EMAIL") String channelType,
             @RequestParam(defaultValue = "0") int page,
@@ -145,7 +144,7 @@ public class NotificationController {
     }
 
     @PatchMapping("/{notificationId}/retry")
-    public ResponseEntity<ApiResponse<NotificationResponse>> retryNotification(
+    public ApiResponse<NotificationResponse> retryNotification(
             @PathVariable String notificationId) throws MessagingException, UnsupportedEncodingException {
 
         log.info("알림 재시도 요청: notificationId={}", notificationId);
@@ -153,13 +152,23 @@ public class NotificationController {
         return ApiResponse.success(NotificationResponse.from(notiUseCase.retryNotification(notificationId)));
     }
 
+    @PatchMapping("/{notificationId}/cancel")
+    public ApiResponse<NotificationResponse> cancelScheduledNotification(
+            @PathVariable String notificationId) {
+
+        log.info("예약 알림 취소 요청: notificationId={}", notificationId);
+
+        Notification cancelledNotification = notiUseCase.cancelScheduledNotification(notificationId);
+        return ApiResponse.success(NotificationResponse.from(cancelledNotification));
+    }
+
     @GetMapping("/event-types")
-    public ResponseEntity<ApiResponse<EventType[]>> getEventTypes() {
+    public ApiResponse<EventType[]> getEventTypes() {
         return ApiResponse.success(EventType.values());
     }
 
     @GetMapping("/channel-types")
-    public ResponseEntity<ApiResponse<ChannelType[]>> getChannelTypes() {
+    public ApiResponse<ChannelType[]> getChannelTypes() {
         return ApiResponse.success(ChannelType.values());
     }
 }

@@ -14,7 +14,11 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
-@Table(name = "notifications")
+@Table(name = "notifications", indexes = {
+    @Index(name = "idx_created_at", columnList = "createdAt DESC"),
+    @Index(name = "idx_user_channel_created", columnList = "userId, channelType, createdAt DESC"),
+    @Index(name = "idx_status_scheduled", columnList = "status, scheduledAt")
+})
 @Getter
 @Builder(toBuilder = true)
 @NoArgsConstructor
@@ -29,6 +33,8 @@ public class NotificationEntity {
     private Long version;
     private String userId;
     private String templateId;
+    @Enumerated(EnumType.STRING)
+    @Column(length = 20)
     private ChannelType channelType;
     
     @Column(columnDefinition = "TEXT")
@@ -38,6 +44,8 @@ public class NotificationEntity {
     private String content;
     
     private String recipientContactJson;
+    @Enumerated(EnumType.STRING)
+    @Column(length = 20)
     private NotificationStatus status;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
