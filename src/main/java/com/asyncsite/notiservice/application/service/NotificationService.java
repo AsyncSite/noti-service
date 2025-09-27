@@ -19,7 +19,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.thymeleaf.TemplateEngine;
 
 import java.io.UnsupportedEncodingException;
 import java.time.LocalDateTime;
@@ -39,7 +38,6 @@ public class NotificationService implements NotificationUseCase {
     private final NotificationTemplateRepositoryPort templateRepository;
     private final List<NotificationSenderPort> notificationSenders;
     private final NotificationQueuePort notificationQueue;
-    private final TemplateEngine templateEngine;
 
     @Override
     public List<Notification> getNotificationsByUserId(String userId, ChannelType channelType, int page, int size) {
@@ -463,53 +461,19 @@ public class NotificationService implements NotificationUseCase {
 
     @Override
     public String renderEmailPreview(Notification notification) {
-        log.info("이메일 미리보기 렌더링: notificationId={}, templateId={}",
+        log.info("이메일 미리보기 조회: notificationId={}, templateId={}",
                 notification.getNotificationId(), notification.getTemplateId());
 
-        // 템플릿 조회
-        NotificationTemplate template = templateRepository
-                .findTemplateById(notification.getTemplateId())
-                .orElseThrow(() -> new IllegalArgumentException("템플릿을 찾을 수 없습니다: " + notification.getTemplateId()));
+        // 이미 렌더링된 실제 이메일 내용 반환
+        String content = notification.getContent();
 
-        Map<String, Object> variables = new HashMap<>();
-
-        // 기본 변수 설정
-        variables.put("userId", notification.getUserId() != null ? notification.getUserId() : "User");
-
-        // 템플릿에 따른 변수 설정
-        if (template.getTemplateId().contains("querydaily")) {
-            // QueryDaily 관련 템플릿
-            variables.put("userName", extractUserName(notification.getUserId()));
-            variables.put("currentDay", 1);
-            variables.put("totalDays", 3);
-
-            // 기본 질문과 힌트 설정
-            variables.put("question", "RESTful API 설계 원칙에 대해 설명해주세요.");
-            variables.put("hint", "REST의 6가지 제약 조건과 HTTP 메소드의 올바른 사용법을 생각해보세요.");
-            variables.put("nextTopic", "데이터베이스 인덱싱");
-
-            if (notification.getContent() != null) {
-                // content에서 추가 정보가 있다면 추출 (향후 JSON 파싱으로 개선 가능)
-                try {
-                    // JSON 파싱 로직 추가 예정
-                } catch (Exception e) {
-                    log.debug("추가 콘텐츠 파싱 스킵: {}", e.getMessage());
-                }
-            }
+        if (content == null || content.trim().isEmpty()) {
+            log.warn("알림 콘텐츠가 비어있음: notificationId={}", notification.getNotificationId());
+            return "<div style='padding: 20px; text-align: center; color: #666;'>미리보기를 표시할 수 없습니다.</div>";
         }
 
-        // Thymeleaf를 사용한 템플릿 렌더링
-        try {
-            org.thymeleaf.context.Context context = new org.thymeleaf.context.Context();
-            context.setVariables(variables);
-
-            return templateEngine.process(template.getTemplateId(), context);
-        } catch (Exception e) {
-            log.error("템플릿 렌더링 실패: {}", e.getMessage());
-            // 실패 시 기본 콘텐츠 반환
-            return notification.getContent() != null ? notification.getContent() :
-                   "<p>미리보기를 생성할 수 없습니다.</p>";
-        }
+        log.debug("미리보기 반환: {} 글자", content.length());
+        return content;
     }
 
     private String extractUserName(String userId) {
