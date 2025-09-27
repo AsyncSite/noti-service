@@ -1,6 +1,7 @@
 package com.asyncsite.notiservice.adapter.in.web;
 
 import com.asyncsite.coreplatform.common.dto.ApiResponse;
+import com.asyncsite.notiservice.adapter.in.web.dto.NotificationPreviewResponse;
 import com.asyncsite.notiservice.adapter.in.web.dto.NotificationResponse;
 import com.asyncsite.notiservice.adapter.in.web.dto.SendNotificationBulkRequest;
 import com.asyncsite.notiservice.adapter.in.web.dto.SendNotificationRequest;
@@ -160,6 +161,25 @@ public class NotificationController {
 
         Notification cancelledNotification = notiUseCase.cancelScheduledNotification(notificationId);
         return ApiResponse.success(NotificationResponse.from(cancelledNotification));
+    }
+
+    @GetMapping("/{notificationId}/preview")
+    public ApiResponse<NotificationPreviewResponse> getNotificationPreview(
+            @PathVariable String notificationId) {
+
+        log.info("알림 미리보기 요청: notificationId={}", notificationId);
+
+        Notification notification = notiUseCase.getNotificationById(notificationId);
+
+        // 이메일 채널만 지원
+        if (notification.getChannelType() != ChannelType.EMAIL) {
+            throw new IllegalArgumentException("이메일 알림만 미리보기를 지원합니다.");
+        }
+
+        // HTML 템플릿 렌더링
+        String htmlContent = notiUseCase.renderEmailPreview(notification);
+
+        return ApiResponse.success(new NotificationPreviewResponse(htmlContent));
     }
 
     @GetMapping("/event-types")
