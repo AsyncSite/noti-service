@@ -345,32 +345,32 @@ templates:
             곧 시작될 <strong>{challengeName}</strong>에 함께하게 되어 반갑습니다. 챌린지는 <strong>{challengeStartAt}</strong>부터 3일 동안 진행되며, 매일 실전 면접에 가까운 질문이 이메일로 전달됩니다.
           </p>
 
-          <!-- 준비 체크리스트 -->
+          <!-- 새로운 안내 섹션 -->
           <div style="background: #F0F7FF; padding: 25px; border-radius: 12px; margin-bottom: 30px;">
-            <h3 style="color: #0066CC; margin: 0 0 15px 0; font-size: 18px;">시작 전 준비 체크리스트</h3>
-            <ul style="margin: 0; padding-left: 20px; color: #555; font-size: 14px; line-height: 1.8;">
-              <li>메일 수신함을 확인하고 <strong>QueryDaily</strong>를 안전 발신자로 등록해주세요.</li>
-              <li>매일 아침 10분 정도 <strong>답변 작성 시간</strong>을 확보해 두면 좋아요.</li>
-              <li>답변을 기록할 <strong>노트나 문서</strong>를 미리 준비해두면 더 효율적으로 진행할 수 있어요.</li>
-            </ul>
-          </div>
-
-          <!-- 일정 안내 -->
-          <div style="padding: 25px; border-radius: 12px; border: 1px solid #E0E7FF; margin-bottom: 30px;">
-            <h3 style="color: #1F3A93; margin: 0 0 15px 0; font-size: 18px;">챌린지 일정</h3>
-            <p style="color: #666; font-size: 14px; line-height: 1.8; margin: 0;">
-              <strong>Day 1</strong> — {challengeStartAt}<br>
-              <strong>Day 2</strong> — 첫 질문 수신 후 다음날 동일 시간에 도착<br>
-              <strong>Day 3</strong> — 마지막 질문 및 저녁에 답변 가이드 발송
+            <h3 style="color: #0066CC; margin: 0 0 15px 0; font-size: 18px;">3일간의 특별한 여정이 시작됩니다</h3>
+            <p style="margin: 0; color: #555; font-size: 15px; line-height: 1.8;">
+              매일 아침, 실전 면접에서 자주 나오는 <strong>핵심 질문</strong>이 이메일로 전달됩니다.<br>
+              질문에 대해 스스로 답변을 정리해보시고, 저녁에는 <strong>전문가의 모범 답변 가이드</strong>와 비교해보세요.<br>
+              단 3일만으로도 면접 답변 실력이 한 단계 성장하는 것을 느끼실 수 있을 거예요.
             </p>
           </div>
 
-          <!-- CTA -->
-          <div style="text-align: center; margin-bottom: 40px;">
-            <a href="{queryDailyBaseUrl}/challenge?utm_source=email&utm_medium=start&utm_campaign=querydaily"
-               style="display: inline-block; background: linear-gradient(135deg, #00B388 0%, #008060 100%); color: white; padding: 14px 36px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 15px; box-shadow: 0 4px 12px rgba(0, 179, 136, 0.25);">
-              챌린지 소개 확인하기
-            </a>
+          <!-- 참여 방법 -->
+          <div style="padding: 25px; border-radius: 12px; border: 1px solid #E0E7FF; margin-bottom: 30px;">
+            <h3 style="color: #1F3A93; margin: 0 0 15px 0; font-size: 18px;">참여 방법은 간단해요</h3>
+            <div style="color: #666; font-size: 14px; line-height: 1.8;">
+              <p style="margin: 0 0 12px 0;"><strong>1.</strong> 매일 아침 질문 이메일을 확인하세요</p>
+              <p style="margin: 0 0 12px 0;"><strong>2.</strong> 15분 정도 시간을 내어 답변을 정리해보세요</p>
+              <p style="margin: 0 0 12px 0;"><strong>3.</strong> 저녁에 전달되는 모범 답변과 비교해보세요</p>
+              <p style="margin: 0;"><strong>4.</strong> 다음날 아침, 새로운 질문으로 또 한 번 성장하세요</p>
+            </div>
+          </div>
+
+          <!-- 시작일 정보 -->
+          <div style="background: linear-gradient(135deg, #E8F5F0 0%, #F0F7FF 100%); padding: 25px; border-radius: 12px; margin-bottom: 30px; text-align: center;">
+            <h3 style="color: #0066CC; margin: 0 0 10px 0; font-size: 18px;">첫 번째 질문 발송일</h3>
+            <p style="color: #333; font-size: 20px; font-weight: 600; margin: 0;">{challengeStartAt}</p>
+            <p style="color: #666; font-size: 14px; margin: 10px 0 0 0;">이날부터 3일 연속으로 질문이 발송됩니다</p>
           </div>
 
           <!-- 마무리 -->
