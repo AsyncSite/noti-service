@@ -139,4 +139,12 @@ public interface NotificationUseCase {
      * @throws IllegalStateException 예약 상태가 아닌 경우
      */
     Notification cancelScheduledNotification(String notificationId);
+
+    /**
+     * 이메일 알림의 HTML 미리보기를 렌더링합니다.
+     *
+     * @param notification 알림 정보
+     * @return 렌더링된 HTML 콘텐츠
+     */
+    String renderEmailPreview(Notification notification);
 }
