@@ -597,7 +597,7 @@ templates:
         challengeName: "QueryDaily 3-Day Challenge"
         midFeedbackTime: "2일차 화요일 오후"
         surveyUrl: "https://forms.gle/querydaily-mid"
-        kakaoChannelUrl: "https://pf.kakao.com/_querydaily"
+        kakaoChannelUrl: "https://pf.kakao.com/_zxkxmUn/chat"
       active: true
 
     # QueryDaily 답변 가이드
