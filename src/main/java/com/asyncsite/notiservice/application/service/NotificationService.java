@@ -1,5 +1,6 @@
 package com.asyncsite.notiservice.application.service;
 
+import com.asyncsite.notiservice.adapter.in.web.dto.NotificationStatsResponse;
 import com.asyncsite.notiservice.domain.exception.NotificationDisabledException;
 import com.asyncsite.notiservice.domain.model.Notification;
 import com.asyncsite.notiservice.domain.model.NotificationSettings;
@@ -481,5 +482,30 @@ public class NotificationService implements NotificationUseCase {
             return "사용자";
         }
         return userId.split("@")[0];
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public NotificationStatsResponse getNotificationStats() {
+        log.debug("알림 통계 조회 시작");
+
+        // 상태별 개수를 단일 쿼리로 조회
+        Map<String, Long> stats = notificationRepository.getNotificationStatistics();
+
+        NotificationStatsResponse response = NotificationStatsResponse.builder()
+                .total(stats.getOrDefault("total", 0L))
+                .sent(stats.getOrDefault("sent", 0L))
+                .failed(stats.getOrDefault("failed", 0L))
+                .pending(stats.getOrDefault("pending", 0L))
+                .scheduled(stats.getOrDefault("scheduled", 0L))
+                .retry(stats.getOrDefault("retry", 0L))
+                .cancelled(stats.getOrDefault("cancelled", 0L))
+                .build();
+
+        log.debug("알림 통계 조회 완료: total={}, sent={}, failed={}, pending={}, scheduled={}, retry={}, cancelled={}",
+                response.getTotal(), response.getSent(), response.getFailed(),
+                response.getPending(), response.getScheduled(), response.getRetry(), response.getCancelled());
+
+        return response;
     }
 }

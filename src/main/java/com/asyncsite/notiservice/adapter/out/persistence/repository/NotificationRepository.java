@@ -14,6 +14,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Repository
@@ -46,4 +47,17 @@ public interface NotificationRepository extends JpaRepository<NotificationEntity
                              @Param("pendingStatus") NotificationStatus pendingStatus,
                              @Param("scheduledStatus") NotificationStatus scheduledStatus,
                              @Param("now") LocalDateTime now);
+
+    @Query(value = """
+        SELECT
+            CAST(COUNT(*) AS SIGNED) as total,
+            CAST(SUM(CASE WHEN status = 'SENT' THEN 1 ELSE 0 END) AS SIGNED) as sent,
+            CAST(SUM(CASE WHEN status = 'FAILED' THEN 1 ELSE 0 END) AS SIGNED) as failed,
+            CAST(SUM(CASE WHEN status = 'PENDING' THEN 1 ELSE 0 END) AS SIGNED) as pending,
+            CAST(SUM(CASE WHEN status = 'SCHEDULED' THEN 1 ELSE 0 END) AS SIGNED) as scheduled,
+            CAST(SUM(CASE WHEN status = 'RETRY' THEN 1 ELSE 0 END) AS SIGNED) as retry,
+            CAST(SUM(CASE WHEN status = 'CANCELLED' THEN 1 ELSE 0 END) AS SIGNED) as cancelled
+        FROM notifications
+        """, nativeQuery = true)
+    Map<String, Long> getNotificationStatistics();
 }

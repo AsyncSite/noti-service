@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Slf4j
@@ -126,5 +127,18 @@ public class NotificationPersistenceAdapter implements NotificationRepositoryPor
                 NotificationSpecifications.withCriteria(criteria), pageable);
 
         return entityPage.map(NotificationEntity::toDomain);
+    }
+
+    @Override
+    public Map<String, Long> getNotificationStatistics() {
+        log.debug("알림 통계 조회 시작");
+
+        Map<String, Long> stats = notificationRepository.getNotificationStatistics();
+
+        log.debug("알림 통계 조회 완료: total={}, sent={}, failed={}, pending={}, scheduled={}, retry={}, cancelled={}",
+                stats.get("total"), stats.get("sent"), stats.get("failed"),
+                stats.get("pending"), stats.get("scheduled"), stats.get("retry"), stats.get("cancelled"));
+
+        return stats;
     }
 }

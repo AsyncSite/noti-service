@@ -7,6 +7,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 public interface NotificationRepositoryPort {
@@ -82,4 +83,12 @@ public interface NotificationRepositoryPort {
      * @return 검색된 알림 페이지
      */
     Page<Notification> searchNotifications(NotificationSearchCriteria criteria, Pageable pageable);
+
+    /**
+     * 알림 통계를 조회합니다.
+     * 단일 쿼리로 모든 상태별 개수를 집계합니다.
+     *
+     * @return 상태별 알림 개수 맵 (total, sent, failed, pending, scheduled, retry, cancelled)
+     */
+    Map<String, Long> getNotificationStatistics();
 }
