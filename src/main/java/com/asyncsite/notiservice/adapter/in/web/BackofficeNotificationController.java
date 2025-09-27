@@ -2,6 +2,7 @@ package com.asyncsite.notiservice.adapter.in.web;
 
 import com.asyncsite.coreplatform.common.dto.ApiResponse;
 import com.asyncsite.notiservice.adapter.in.web.dto.BackofficeNotificationResponse;
+import com.asyncsite.notiservice.adapter.in.web.dto.NotificationStatsResponse;
 import com.asyncsite.notiservice.domain.model.Notification;
 import com.asyncsite.notiservice.domain.model.vo.ChannelType;
 import com.asyncsite.notiservice.domain.model.vo.NotificationSearchCriteria;
@@ -157,5 +158,23 @@ public class BackofficeNotificationController {
                 pageResponse.getTotalElements(), pageResponse.getTotalPages(), pageResponse.getNumber());
 
         return ApiResponse.success(pageResponse);
+    }
+
+    /**
+     * 알림 통계 조회 (백오피스용)
+     * 전체 알림의 상태별 통계를 조회합니다.
+     *
+     * @return 알림 통계 응답
+     */
+    @GetMapping("/stats")
+    public ApiResponse<NotificationStatsResponse> getNotificationStats() {
+        log.info("백오피스 알림 통계 조회 요청");
+
+        NotificationStatsResponse stats = notificationUseCase.getNotificationStats();
+
+        log.info("백오피스 알림 통계 조회 완료: total={}, sent={}, failed={}, pending={}, scheduled={}",
+                stats.getTotal(), stats.getSent(), stats.getFailed(), stats.getPending(), stats.getScheduled());
+
+        return ApiResponse.success(stats);
     }
 }

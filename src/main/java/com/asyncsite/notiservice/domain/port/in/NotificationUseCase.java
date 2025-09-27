@@ -1,5 +1,6 @@
 package com.asyncsite.notiservice.domain.port.in;
 
+import com.asyncsite.notiservice.adapter.in.web.dto.NotificationStatsResponse;
 import com.asyncsite.notiservice.domain.model.Notification;
 import com.asyncsite.notiservice.domain.model.vo.ChannelType;
 import com.asyncsite.notiservice.domain.model.vo.EventType;
@@ -147,4 +148,12 @@ public interface NotificationUseCase {
      * @return 렌더링된 HTML 콘텐츠
      */
     String renderEmailPreview(Notification notification);
+
+    /**
+     * 알림 통계를 조회합니다.
+     * 전체 알림의 상태별 개수를 집계합니다.
+     *
+     * @return 알림 통계 정보
+     */
+    NotificationStatsResponse getNotificationStats();
 }
